@@ -40,7 +40,7 @@ export default function CoursesPage() {
     );
 
     return (
-        <div className="min-h-screen dark bg-gray-50 dark:bg-[rgba(38,38,36,1)] text-gray-900 dark:text-white transition-colors duration-300">
+        <div className="min-h-screen dark  dark:bg-[rgba(38,38,36,1)] text-gray-900 dark:text-white transition-colors duration-300">
             <div className="flex">
                 {/* Main Content */}
                 <main className="flex-1 p-8">
@@ -141,8 +141,8 @@ export default function CoursesPage() {
 
                         {/* Course Grid */}
                         <div className={`grid gap-6 ${viewMode === "grid"
-                                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                                : 'grid-cols-1'
+                            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                            : 'grid-cols-1'
                             }`}>
                             {filteredCourses.map((course) => (
                                 <Card

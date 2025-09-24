@@ -9,7 +9,7 @@ import Navbar from './_components/AppNavbar'
 const DashboardProvider = ({ children }) => {
     return (
         <SidebarProvider>
-            <div className="flex h-screen w-full overflow-hidden">
+            <div className="flex h-screen w-full  overflow-hidden">
                 {/* Sidebar - Hidden on mobile, collapsed on medium, full on large */}
                 <AppSidebar />
 
@@ -19,7 +19,7 @@ const DashboardProvider = ({ children }) => {
                     <Navbar />
 
                     {/* Scrollable Content Area */}
-                    <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 w-full">
+                    <main className="flex-1 overflow-y-auto dark:bg-gray-900 w-full">
                         <div className="w-full h-full">
                             <div className="p-4 md:p-6 w-full">
                                 <WelcomeContainer />
