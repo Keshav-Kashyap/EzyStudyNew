@@ -1,0 +1,34 @@
+import React from 'react';
+
+const EzyLoader = () => {
+    return (
+        <div
+            className="min-h-screen flex items-center justify-center dark:text-white text-black transition-colors duration-500"
+            style={{ backgroundColor: 'rgb(38,38,36)' }}
+        >
+            <div className="text-center">
+                {/* EZY Text Animation */}
+                <div className="text-6xl font-bold text-white mb-8">
+                    <span className="inline-block animate-bounce" style={{ animationDelay: '0ms' }}>
+                        E
+                    </span>
+                    <span className="inline-block animate-bounce" style={{ animationDelay: '200ms' }}>
+                        Z
+                    </span>
+                    <span className="inline-block animate-bounce" style={{ animationDelay: '400ms' }}>
+                        Y
+                    </span>
+                </div>
+
+                {/* Loading dots */}
+                <div className="flex space-x-2 justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '400ms' }}></div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default EzyLoader;

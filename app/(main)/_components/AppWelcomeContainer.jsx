@@ -1,9 +1,17 @@
 
-
-import React from 'react';
+"use client"
+import React, { useContext } from 'react';
 import { Calendar, Clock } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
+import { UserDetailContext } from '@/context/UserDetailContext';
+import EzyLoader from './Loading'
 
 const WelcomeContainer = () => {
+
+
+
+    const { userDetail } = useContext(UserDetailContext);
+    console.log(userDetail);
     const currentDate = new Date();
     const dateOptions = {
         weekday: 'long',
@@ -27,6 +35,13 @@ const WelcomeContainer = () => {
         return 'Good Evening';
     };
 
+    if (!userDetail) {
+        return (
+
+            <EzyLoader />
+
+        );
+    }
     return (
         <div
             className="p-6 rounded-lg text-white"
@@ -35,7 +50,7 @@ const WelcomeContainer = () => {
             <div className="flex items-center justify-between mb-4">
                 <div>
                     <h1 className="text-2xl font-bold text-white mb-1">
-                        {getGreeting()}, Student! 👋
+                        {getGreeting()}, {userDetail?.name}!
                     </h1>
                     <p className="text-gray-400">
                         Ready to continue your learning journey today?
