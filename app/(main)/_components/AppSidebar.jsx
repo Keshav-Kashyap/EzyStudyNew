@@ -18,76 +18,40 @@ import {
     LogOut,
     Bell
 } from 'lucide-react';
+import Link from 'next/link';
 
-const AppSidebar = () => {
+// Menu Items Array - Use icon names as strings for Server Components
+
+
+const AppSidebar = ({ menuItems, bottomMenuItems }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
-    const menuItems = [
-        {
-            title: 'Dashboard',
-            icon: Home,
-            href: '/dashboard',
-            isActive: true
-        },
-        {
-            title: 'MCA Library',
-            icon: Code,
-            href: '/mca-library'
-        },
-        {
-            title: 'BCA Library',
-            icon: Database,
-            href: '/bca-library'
-        },
-        {
-            title: 'B.Tech Library',
-            icon: Cpu,
-            href: '/btech-library'
-        },
-        {
-            title: 'General Library',
-            icon: BookOpen,
-            href: '/general-library'
-        },
-        {
-            title: 'Study Materials',
-            icon: GraduationCap,
-            href: '/study-materials'
-        }
-    ];
+    // Icon mapping for string-based icons
+    const iconMap = {
+        Home,
+        Code,
+        Database,
+        Cpu,
+        BookOpen,
+        GraduationCap,
+        Bell,
+        Settings,
+        CreditCard,
+        Users
+    };
 
-    const bottomMenuItems = [
-        {
-            title: 'Notifications',
-            icon: Bell,
-            href: '/notifications',
-            badge: 3
-        },
-        {
-            title: 'Settings',
-            icon: Settings,
-            href: '/settings'
-        },
-        {
-            title: 'Billing',
-            icon: CreditCard,
-            href: '/billing'
-        },
-        {
-            title: 'Join Us',
-            icon: Users,
-            href: '/join-us'
-        }
-    ];
+
+
+
 
     return (
         <div className={`
             hidden md:flex 
             ${isCollapsed ? 'w-20' : 'w-72'} 
-            bg-white dark:bg-[rgb(38,38,36)] 
+            bg-white dark:bg-[#1e1e1d] 
             border-r border-gray-200 dark:border-[rgb(50,50,48)] 
             text-gray-900 dark:text-white 
-            transition-all duration-300 flex-col min-h-screen
+            transition-all duration-300 ease-in-out flex-col min-h-screen
             relative shadow-xl
         `}>
 
@@ -110,7 +74,7 @@ const AppSidebar = () => {
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
                     className={`
-                        p-2.5 rounded-xl transition-all duration-200 
+                        p-2.5 rounded-xl transition-all duration-300 ease-in-out 
                         hover:bg-gray-100 dark:hover:bg-[rgb(48,48,46)] hover:shadow-lg
                         ${isCollapsed ? 'mx-auto' : ''}
                     `}
@@ -134,62 +98,67 @@ const AppSidebar = () => {
                         </div>
                     )}
 
-                    {menuItems.map((item, index) => (
-                        <button
-                            key={index}
-                            className={`
-                                w-full flex items-center gap-4 px-4 py-3 rounded-xl 
-                                transition-all duration-300 group relative overflow-hidden
-                                ${item.isActive
-                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-600/20 text-white'
-                                    : 'hover:bg-gray-100 dark:hover:bg-[rgb(48,48,46)] hover:shadow-lg'
-                                }
-                                ${isCollapsed ? 'justify-center' : ''}
-                                before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent
-                                before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700
-                            `}
-                            title={isCollapsed ? item.title : ''}
-                        >
-                            <item.icon
-                                size={22}
-                                className={`
-                                    flex-shrink-0 transition-all duration-300
+                    {menuItems.map((item, index) => {
+                        const IconComponent = iconMap[item.icon] || Home; // Get icon from map
+
+                        return (
+                            <Link href={item.href} key={index}>
+                                <button
+                                    className={`
+                                    w-full flex items-center gap-4 px-4 py-3 rounded-xl 
+                                    transition-all duration-300 ease-in-out group relative overflow-hidden
                                     ${item.isActive
-                                        ? 'text-white drop-shadow-sm'
-                                        : 'text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 group-hover:scale-110'
-                                    }
-                                `}
-                            />
-
-                            {!isCollapsed && (
-                                <>
-                                    <span className={`
-                                        text-sm font-medium transition-all duration-300
-                                        ${item.isActive
-                                            ? 'text-white drop-shadow-sm'
-                                            : 'text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white group-hover:translate-x-1'
+                                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-600/20 text-white'
+                                            : 'hover:bg-gray-100 dark:hover:bg-[rgb(48,48,46)] hover:shadow-lg'
                                         }
-                                    `}>
-                                        {item.title}
-                                    </span>
+                                    ${isCollapsed ? 'justify-center' : ''}
+                                    before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent
+                                    before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-300
+                                `}
+                                    title={isCollapsed ? item.title : ''}
+                                >
+                                    <IconComponent
+                                        size={22}
+                                        className={`
+                                        flex-shrink-0 transition-all duration-300 ease-in-out
+                                        ${item.isActive
+                                                ? 'text-white drop-shadow-sm'
+                                                : 'text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 group-hover:scale-110'
+                                            }
+                                    `}
+                                    />
 
-                                    {item.isActive && (
-                                        <div className="absolute right-3">
-                                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                    {!isCollapsed && (
+                                        <>
+                                            <span className={`
+                                            text-sm font-medium transition-all duration-300 ease-in-out
+                                            ${item.isActive
+                                                    ? 'text-white drop-shadow-sm'
+                                                    : 'text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white group-hover:translate-x-1'
+                                                }
+                                        `}>
+                                                {item.title}
+                                            </span>
+
+                                            {item.isActive && (
+                                                <div className="absolute right-3">
+                                                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {/* Tooltip for collapsed state */}
+                                    {isCollapsed && (
+                                        <div className="absolute left-full ml-4 px-3 py-2 bg-gray-900 dark:bg-gray-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out whitespace-nowrap z-50 shadow-xl">
+                                            {item.title}
+                                            <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-gray-900 dark:bg-gray-800 rotate-45"></div>
                                         </div>
                                     )}
-                                </>
-                            )}
-
-                            {/* Tooltip for collapsed state */}
-                            {isCollapsed && (
-                                <div className="absolute left-full ml-4 px-3 py-2 bg-gray-900 dark:bg-gray-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-xl">
-                                    {item.title}
-                                    <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-gray-900 dark:bg-gray-800 rotate-45"></div>
-                                </div>
-                            )}
-                        </button>
-                    ))}
+                                </button>
+                            </Link>
+                        );
+                    })}
                 </div>
             </nav>
 
@@ -204,48 +173,52 @@ const AppSidebar = () => {
                         </div>
                     )}
 
-                    {bottomMenuItems.map((item, index) => (
-                        <button
-                            key={index}
-                            className={`
-                                w-full flex items-center gap-4 px-4 py-3 rounded-xl 
-                                transition-all duration-300 group relative overflow-hidden
-                                hover:bg-gray-100 dark:hover:bg-[rgb(48,48,46)] hover:shadow-lg
-                                ${isCollapsed ? 'justify-center' : ''}
-                                before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 dark:before:via-white/5 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700
-                            `}
-                            title={isCollapsed ? item.title : ''}
-                        >
-                            <div className="relative">
-                                <item.icon
-                                    size={20}
-                                    className="text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white transition-all duration-300 flex-shrink-0 group-hover:scale-110"
-                                />
-                                {item.badge && (
-                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
-                                        <span className="text-xs text-white font-bold">{item.badge}</span>
+                    {bottomMenuItems.map((item, index) => {
+                        const IconComponent = iconMap[item.icon] || Settings; // Get icon from map
+
+                        return (
+                            <button
+                                key={index}
+                                className={`
+                                    w-full flex items-center gap-4 px-4 py-3 rounded-xl 
+                                    transition-all duration-300 ease-in-out group relative overflow-hidden
+                                    hover:bg-gray-100 dark:hover:bg-[rgb(48,48,46)] hover:shadow-lg
+                                    ${isCollapsed ? 'justify-center' : ''}
+                                    before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 dark:before:via-white/5 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-300
+                                `}
+                                title={isCollapsed ? item.title : ''}
+                            >
+                                <div className="relative">
+                                    <IconComponent
+                                        size={20}
+                                        className="text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white transition-all duration-300 ease-in-out flex-shrink-0 group-hover:scale-110"
+                                    />
+                                    {item.badge && (
+                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                                            <span className="text-xs text-white font-bold">{item.badge}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {!isCollapsed && (
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-all duration-300 group-hover:translate-x-1">
+                                        {item.title}
+                                    </span>
+                                )}
+
+                                {/* Tooltip for collapsed state */}
+                                {isCollapsed && (
+                                    <div className="absolute left-full ml-4 px-3 py-2 bg-gray-900 dark:bg-gray-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-xl">
+                                        {item.title}
+                                        {item.badge && (
+                                            <span className="ml-2 px-2 py-1 bg-red-500 text-xs rounded-full animate-pulse">{item.badge}</span>
+                                        )}
+                                        <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-gray-900 dark:bg-gray-800 rotate-45"></div>
                                     </div>
                                 )}
-                            </div>
-
-                            {!isCollapsed && (
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-all duration-300 group-hover:translate-x-1">
-                                    {item.title}
-                                </span>
-                            )}
-
-                            {/* Tooltip for collapsed state */}
-                            {isCollapsed && (
-                                <div className="absolute left-full ml-4 px-3 py-2 bg-gray-900 dark:bg-gray-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-xl">
-                                    {item.title}
-                                    {item.badge && (
-                                        <span className="ml-2 px-2 py-1 bg-red-500 text-xs rounded-full animate-pulse">{item.badge}</span>
-                                    )}
-                                    <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-gray-900 dark:bg-gray-800 rotate-45"></div>
-                                </div>
-                            )}
-                        </button>
-                    ))}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 

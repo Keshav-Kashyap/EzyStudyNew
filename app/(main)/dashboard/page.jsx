@@ -5,25 +5,56 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-import { courses } from '../../../services/constant'
+const courses = [
+    {
+        id: 1,
+        title: "MCA",
+        subtitle: "Master of Computer Applications",
+        description: "Advanced programming, software development, database management, and system design for IT professionals.",
+        category: "Postgraduate",
+        documents: 180,
+        students: "3.2K",
+        semesters: 4,
+        duration: "2 Years",
+        image: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=300&fit=crop"
+    },
+    {
+        id: 2,
+        title: "BCA",
+        subtitle: "Bachelor of Computer Applications",
+        description: "Comprehensive computer science fundamentals, programming languages, and application development.",
+        category: "Undergraduate",
+        documents: 240,
+        students: "5.8K",
+        semesters: 6,
+        duration: "3 Years",
+        image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop"
+    },
+    {
+        id: 3,
+        title: "B.Tech CSE",
+        subtitle: "Computer Science & Engineering",
+        description: "Core engineering principles, advanced algorithms, AI/ML, and cutting-edge technology solutions.",
+        category: "Engineering",
+        documents: 320,
+        students: "8.5K",
+        semesters: 8,
+        duration: "4 Years",
+        image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop"
+    },
+];
+
 import {
-    Brain,
     Search,
     BookOpen,
     Users,
     FileText,
-    Bell,
     Home,
-    User,
     GraduationCap,
-    Code,
-    Palette,
-    BarChart,
     Filter,
     Grid,
     List,
     Star,
-    Clock,
     TrendingUp
 } from "lucide-react";
 import Link from "next/link";
@@ -40,48 +71,56 @@ export default function CoursesPage() {
     );
 
     return (
-        <div className="min-h-screen dark  dark:bg-[rgba(38,38,36,1)] text-gray-900 dark:text-white transition-colors duration-300">
+        <div className="min-h-screen bg-white dark:bg-[rgb(38,38,36)] text-slate-900 dark:text-slate-100 transition-colors duration-300">
             <div className="flex">
                 {/* Main Content */}
-                <main className="flex-1 p-8">
+                <main className="flex-1 p-6 lg:p-8">
                     <div className="max-w-7xl mx-auto">
                         {/* Header Section */}
-                        <div className="flex justify-between items-start mb-8">
+                        <div className="flex justify-between items-start mb-10">
                             <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="p-4 rounded-2xl bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-lg border border-blue-200 dark:border-blue-800">
                                         <GraduationCap className="h-8 w-8" />
                                     </div>
                                     <div>
-                                        <h1 className="text-4xl font-bold mb-2">Course Library</h1>
-                                        <p className="text-lg text-gray-600 dark:text-gray-300">
+                                        <h1 className="text-4xl lg:text-5xl font-bold mb-2 text-slate-900 dark:text-white">
+                                            Course Library
+                                        </h1>
+                                        <p className="text-lg text-slate-600 dark:text-slate-300">
                                             Discover comprehensive learning materials designed for academic excellence
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Stats */}
-                                <div className="flex gap-6 mb-6">
-                                    <div className="flex items-center gap-2">
-                                        <BookOpen className="h-5 w-5 text-green-600 dark:text-green-400" />
-                                        <span className="font-semibold">{courses.length}</span>
-                                        <span className="text-gray-500 dark:text-gray-400">
-                                            Courses
-                                        </span>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
+                                    <div className="flex items-center gap-3 p-4 rounded-xl shadow-md border bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200">
+                                        <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                                            <BookOpen className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-2xl text-slate-900 dark:text-white">{courses.length}</div>
+                                            <div className="text-sm text-slate-600 dark:text-slate-400">Courses</div>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                        <span className="font-semibold">12K+</span>
-                                        <span className="text-gray-500 dark:text-gray-400">
-                                            Students
-                                        </span>
+                                    <div className="flex items-center gap-3 p-4 rounded-xl shadow-md border bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200">
+                                        <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                                            <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-2xl text-slate-900 dark:text-white">12K+</div>
+                                            <div className="text-sm text-slate-600 dark:text-slate-400">Students</div>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                                        <span className="font-semibold">4.8</span>
-                                        <span className="text-gray-500 dark:text-gray-400">
-                                            Rating
-                                        </span>
+                                    <div className="flex items-center gap-3 p-4 rounded-xl shadow-md border bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200">
+                                        <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                                            <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-2xl text-slate-900 dark:text-white">4.8</div>
+                                            <div className="text-sm text-slate-600 dark:text-slate-400">Rating</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -90,30 +129,33 @@ export default function CoursesPage() {
                         {/* Search and Filters */}
                         <div className="flex flex-col sm:flex-row gap-4 mb-8">
                             <div className="flex-1 relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-500" />
                                 <Input
                                     placeholder="Search courses, categories, or topics..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 h-12 text-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-400"
+                                    className="pl-12 h-14 text-lg border shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 border-gray-300 dark:border-gray-600"
                                 />
                             </div>
 
-                            <div className="flex gap-2">
+                            <div className="flex gap-3">
                                 <Button
                                     variant="outline"
-                                    className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    className="h-14 px-6 shadow-sm border-gray-300 dark:border-gray-600 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-transparent"
                                 >
                                     <Filter className="h-4 w-4 mr-2" />
                                     Filter
                                 </Button>
 
-                                <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                                <div className="flex rounded-lg overflow-hidden shadow-sm border border-gray-300 dark:border-gray-600">
                                     <Button
                                         variant={viewMode === "grid" ? "default" : "ghost"}
                                         size="sm"
                                         onClick={() => setViewMode("grid")}
-                                        className="rounded-none"
+                                        className={`rounded-none h-14 px-4 ${viewMode === "grid"
+                                            ? "bg-blue-600 text-white"
+                                            : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                                            }`}
                                     >
                                         <Grid className="h-4 w-4" />
                                     </Button>
@@ -121,7 +163,10 @@ export default function CoursesPage() {
                                         variant={viewMode === "list" ? "default" : "ghost"}
                                         size="sm"
                                         onClick={() => setViewMode("list")}
-                                        className="rounded-none"
+                                        className={`rounded-none h-14 px-4 ${viewMode === "list"
+                                            ? "bg-blue-600 text-white"
+                                            : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                                            }`}
                                     >
                                         <List className="h-4 w-4" />
                                     </Button>
@@ -131,9 +176,9 @@ export default function CoursesPage() {
 
                         {/* Results Count */}
                         {searchQuery && (
-                            <div className="mb-6">
-                                <p className="text-gray-600 dark:text-gray-300">
-                                    Found <span className="font-semibold">{filteredCourses.length}</span> courses
+                            <div className="mb-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                                <p className="text-slate-700 dark:text-slate-300">
+                                    Found <span className="font-bold text-blue-600 dark:text-blue-400">{filteredCourses.length}</span> courses
                                     {searchQuery && ` for "${searchQuery}"`}
                                 </p>
                             </div>
@@ -147,18 +192,20 @@ export default function CoursesPage() {
                             {filteredCourses.map((course) => (
                                 <Card
                                     key={course.id}
-                                    className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:shadow-lg"
+                                    className="group overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] shadow-lg border bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
                                 >
                                     {/* Course Header */}
-                                    <div className={`relative h-40 bg-gradient-to-br ${course.bgColor} overflow-hidden`}>
-                                        <div className="absolute inset-0 bg-black/20"></div>
-                                        <div className="relative z-10 flex items-center justify-center h-full text-center text-white">
+                                    <div className="relative h-44 overflow-hidden">
+                                        <img
+                                            src={course.image}
+                                            alt={course.title}
+                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                        />
+                                        <div className="absolute inset-0 bg-black/40"></div>
+                                        <div className="relative z-10 flex items-center justify-center h-full text-center text-white p-6">
                                             <div>
-                                                <div className="text-5xl mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                                                    {course.image}
-                                                </div>
-                                                <h3 className="text-2xl font-bold mb-1">{course.title}</h3>
-                                                <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                                                <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">{course.title}</h3>
+                                                <Badge variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0 shadow-lg">
                                                     {course.category}
                                                 </Badge>
                                             </div>
@@ -166,7 +213,7 @@ export default function CoursesPage() {
 
                                         {/* Trending Badge */}
                                         <div className="absolute top-4 right-4">
-                                            <Badge className="bg-yellow-500 text-yellow-900 border-0">
+                                            <Badge className="bg-yellow-400 text-yellow-900 border-0 shadow-lg font-semibold">
                                                 <TrendingUp className="h-3 w-3 mr-1" />
                                                 Popular
                                             </Badge>
@@ -174,27 +221,31 @@ export default function CoursesPage() {
                                     </div>
 
                                     <CardHeader className="pb-4">
-                                        <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">
+                                        <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">
                                             {course.subtitle}
                                         </CardTitle>
-                                        <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                                        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                                             {course.description}
                                         </p>
                                     </CardHeader>
 
                                     <CardContent className="pt-0">
                                         {/* Course Stats */}
-                                        <div className="flex items-center justify-between mb-6">
+                                        <div className="flex items-center justify-between mb-6 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600">
                                             <div className="flex items-center space-x-6">
                                                 <div className="flex items-center space-x-2">
-                                                    <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                                    <div className="p-1 rounded bg-blue-100 dark:bg-blue-900/20">
+                                                        <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                                         {course.documents} docs
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center space-x-2">
-                                                    <Users className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                                    <div className="p-1 rounded bg-green-100 dark:bg-green-900/20">
+                                                        <Users className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                                         {course.students}
                                                     </span>
                                                 </div>
@@ -202,22 +253,16 @@ export default function CoursesPage() {
 
                                             <div className="flex items-center space-x-1">
                                                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
                                                     4.8
                                                 </span>
                                             </div>
                                         </div>
 
-                                        {/* Action Buttons */}
-                                        <div className="flex gap-3">
-                                            <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5">
+                                        {/* Action Button */}
+                                        <div className="flex">
+                                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-200">
                                                 Start Learning
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                className="px-4 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            >
-                                                Preview
                                             </Button>
                                         </div>
                                     </CardContent>
@@ -227,17 +272,19 @@ export default function CoursesPage() {
 
                         {/* Empty State */}
                         {filteredCourses.length === 0 && searchQuery && (
-                            <div className="text-center py-16">
-                                <Search className="h-16 w-16 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
-                                <h3 className="text-xl font-semibold mb-2 text-gray-600 dark:text-gray-300">
+                            <div className="text-center py-20">
+                                <div className="p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                                    <Search className="h-12 w-12 text-slate-500" />
+                                </div>
+                                <h3 className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-300">
                                     No courses found
                                 </h3>
-                                <p className="text-gray-500 dark:text-gray-400">
-                                    Try adjusting your search terms or browse all courses
+                                <p className="text-slate-600 dark:text-slate-400 mb-6 max-w-md mx-auto">
+                                    We couldn't find any courses matching your search. Try different keywords or browse all courses.
                                 </p>
                                 <Button
                                     onClick={() => setSearchQuery("")}
-                                    className="mt-4"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 shadow-lg"
                                 >
                                     Clear Search
                                 </Button>
@@ -245,12 +292,12 @@ export default function CoursesPage() {
                         )}
 
                         {/* Back to Home */}
-                        <div className="mt-16 text-center border-t border-gray-200 dark:border-gray-700 pt-8">
+                        <div className="mt-20 text-center border-t border-gray-200 dark:border-gray-700 pt-12">
                             <Link href="/">
                                 <Button
                                     variant="outline"
                                     size="lg"
-                                    className="inline-flex items-center space-x-2 px-8 py-3 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    className="inline-flex items-center space-x-3 px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-200 text-lg font-medium border-gray-300 dark:border-gray-600 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-transparent"
                                 >
                                     <Home className="h-5 w-5" />
                                     <span>Back to Home</span>

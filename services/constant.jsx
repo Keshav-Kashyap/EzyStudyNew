@@ -1,3 +1,5 @@
+import { Home, Code, Database, Cpu, BookOpen, GraduationCap } from "lucide-react";
+
 export const courses = [
     {
         id: 1,
@@ -64,5 +66,112 @@ export const courses = [
         category: "Computer Applications",
         image: "🎓",
         bgColor: "from-blue-500 to-blue-700"
+    }
+];
+
+
+
+
+export const menuItems = [
+    {
+        title: "Dashboard",
+        icon: "Home", // Icon name as string
+        href: "/dashboard",
+        isActive: true,
+    },
+    {
+        title: "MCA Library",
+        icon: "Code",
+        href: "/library/mca",
+    },
+    {
+        title: "BCA Library",
+        icon: "Database",
+        href: "/library/bca",
+    },
+    {
+        title: "B.Tech Library",
+        icon: "Cpu",
+        href: "/library/btech",
+    },
+    {
+        title: "General Library",
+        icon: "BookOpen",
+        href: "/general-library",
+    },
+    {
+        title: "Study Materials",
+        icon: "GraduationCap",
+        href: "/study-materials",
+    },
+];
+
+export const adminMenuItems = [
+    {
+        title: "Dashboard",
+        icon: "BookOpen",
+        href: "/admin/dashboard",
+        isActive: true,
+    },
+    {
+        title: "Course Upload",
+        icon: "Upload",
+        href: "/admin/courses",
+    },
+    {
+        title: "Library",
+        icon: "FileText",
+        href: "/admin/library",
+    },
+    {
+        title: "Settings",
+        icon: "Settings",
+        href: "/admin/settings",
+    },
+];
+export const bottomMenuItems = [
+    {
+        title: 'Notifications',
+        icon: "Bell",
+        href: '/notifications',
+        badge: 3
+    },
+    {
+        title: 'Settings',
+        icon: "Settings",
+        href: '/settings'
+    },
+    {
+        title: 'Billing',
+        icon: "CreditCard",
+        href: '/billing'
+    },
+    {
+        title: 'Join Us',
+        icon: "Users",
+        href: '/join-us'
+    }
+];
+export const adminbottomMenuItems = [
+    {
+        title: 'Notifications',
+        icon: "Bell",
+        href: '/notifications',
+        badge: 3
+    },
+    {
+        title: 'Settings',
+        icon: "Settings",
+        href: '/settings'
+    },
+    {
+        title: 'Billing',
+        icon: "CreditCard",
+        href: '/billing'
+    },
+    {
+        title: 'Team',
+        icon: "Users",
+        href: '/join-us'
     }
 ];

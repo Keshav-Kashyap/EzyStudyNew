@@ -48,13 +48,13 @@ const Navbar = () => {
     }
 
     return (
-        <nav className="w-full h-16 bg-white dark:bg-gray-900 text-gray-900 dark:text-white flex items-center justify-between px-6 sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
+        <nav className="w-full h-16 bg-white dark:bg-[rgb(38,38,36)] text-gray-900 dark:text-white flex items-center justify-between px-6 sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300 ease-in-out">
 
             {/* Left Side - Mobile Menu & Brand */}
             <div className="flex items-center gap-4">
                 {/* Mobile Sidebar Toggle */}
                 <div className="md:hidden">
-                    <SidebarTrigger className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                    <SidebarTrigger className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-300 ease-in-out">
                         <Menu size={20} className="text-gray-900 dark:text-white" />
                     </SidebarTrigger>
                 </div>
@@ -73,7 +73,7 @@ const Navbar = () => {
                         placeholder="Search courses, materials..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-200 dark:border-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
             </div>
@@ -84,7 +84,7 @@ const Navbar = () => {
                 {/* Theme Toggle Button */}
                 <button
                     onClick={toggleTheme}
-                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 ease-in-out"
                     aria-label="Toggle theme"
                 >
                     {theme === 'dark' ? (
@@ -97,7 +97,7 @@ const Navbar = () => {
                 {/* Bell Icon */}
                 <div className="relative notification-dropdown">
                     <button
-                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
+                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 ease-in-out relative"
                         onClick={() => setShowNotifications(!showNotifications)}
                     >
                         <Bell size={20} className="text-gray-700 dark:text-gray-300" />
@@ -109,7 +109,7 @@ const Navbar = () => {
 
                     {/* Notifications Dropdown */}
                     {showNotifications && (
-                        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 transition-all duration-300 ease-in-out">
                             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                                 <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
                             </div>
@@ -134,7 +134,7 @@ const Navbar = () => {
                 {/* User Profile */}
                 <div className="relative profile-dropdown">
                     <button
-                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 ease-in-out"
                         onClick={() => setShowProfile(!showProfile)}
                     >
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
@@ -146,7 +146,7 @@ const Navbar = () => {
 
                     {/* Profile Dropdown */}
                     {showProfile && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 transition-all duration-300 ease-in-out">
                             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                                 <p className="font-semibold text-gray-900 dark:text-white">Admin User</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">admin@eduportal.com</p>

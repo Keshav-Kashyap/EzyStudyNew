@@ -1,4 +1,3 @@
-
 "use client"
 import React, { useContext } from 'react';
 import { Calendar, Clock } from 'lucide-react';
@@ -7,12 +6,9 @@ import { UserDetailContext } from '@/context/UserDetailContext';
 import EzyLoader from './Loading'
 
 const WelcomeContainer = () => {
-
-
-
     const { userDetail } = useContext(UserDetailContext);
-    console.log(userDetail);
     const currentDate = new Date();
+
     const dateOptions = {
         weekday: 'long',
         year: 'numeric',
@@ -36,45 +32,37 @@ const WelcomeContainer = () => {
     };
 
     if (!userDetail) {
-        return (
-
-            <EzyLoader />
-
-        );
+        return <EzyLoader />;
     }
+
     return (
-        <div
-            className="p-6 rounded-lg text-white"
-            style={{ backgroundColor: 'rgb(38, 38, 36)', border: '1px solid rgb(50, 50, 48)' }}
-        >
+        <div className="p-6 rounded-lg bg-white dark:bg-[rgb(38,38,36)] border border-gray-300 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white mb-1">
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-1">
                         {getGreeting()}, {userDetail?.name}!
                     </h1>
-                    <p className="text-gray-400">
+                    <p className="text-gray-600 dark:text-gray-400">
                         Ready to continue your learning journey today?
                     </p>
                 </div>
 
                 <div className="text-right">
-                    <div className="flex items-center gap-2 text-sm text-gray-300 mb-1">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-1">
                         <Calendar size={16} />
                         <span>{formattedDate}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                         <Clock size={16} />
                         <span>{formattedTime}</span>
                     </div>
                 </div>
             </div>
 
-            <div
-                className="p-4 rounded-lg"
-                style={{ backgroundColor: 'rgb(48, 48, 46)', border: '1px solid rgb(60, 60, 58)' }}
-            >
-                <p className="text-sm text-gray-300">
-                    <span className="font-semibold text-blue-400">Quick Tip:</span> Check out the latest resources in your library sections to stay updated with your coursework.
+            <div className="p-4 rounded-lg bg-gray-100 dark:bg-[rgb(48,48,46)] border border-gray-300 dark:border-[rgb(60,60,58)]">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">Quick Tip:</span>{' '}
+                    Check out the latest resources in your library sections to stay updated with your coursework.
                 </p>
             </div>
         </div>
