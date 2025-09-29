@@ -16,15 +16,19 @@ import {
     Home,
     User,
     LogOut,
-    Bell
+    Bell,
+    Upload,
+    FileText
 } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 // Menu Items Array - Use icon names as strings for Server Components
 
 
 const AppSidebar = ({ menuItems, bottomMenuItems }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const pathname = usePathname();
 
     // Icon mapping for string-based icons
     const iconMap = {
@@ -37,8 +41,16 @@ const AppSidebar = ({ menuItems, bottomMenuItems }) => {
         Bell,
         Settings,
         CreditCard,
-        Users
+        Users,
+        Upload,
+        FileText
     };
+
+    // Update menu items with active status based on current pathname
+    const updatedMenuItems = menuItems.map(item => ({
+        ...item,
+        isActive: pathname === item.href
+    }));
 
 
 
@@ -98,7 +110,7 @@ const AppSidebar = ({ menuItems, bottomMenuItems }) => {
                         </div>
                     )}
 
-                    {menuItems.map((item, index) => {
+                    {updatedMenuItems.map((item, index) => {
                         const IconComponent = iconMap[item.icon] || Home; // Get icon from map
 
                         return (

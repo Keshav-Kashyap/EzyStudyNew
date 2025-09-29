@@ -10,6 +10,7 @@ import {
 } from '@clerk/nextjs'
 import Provider from "./Provider";
 import { ThemeProvider } from './ThemeProvider';
+import { Toaster } from 'sonner';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,6 +44,7 @@ export default function RootLayout({ children }) {
               disableTransitionOnChange={false}
             >
               {children}
+              <Toaster position="top-right" />
             </ThemeProvider>
 
           </Provider>

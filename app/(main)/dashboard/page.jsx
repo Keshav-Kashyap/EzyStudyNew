@@ -5,45 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-const courses = [
-    {
-        id: 1,
-        title: "MCA",
-        subtitle: "Master of Computer Applications",
-        description: "Advanced programming, software development, database management, and system design for IT professionals.",
-        category: "Postgraduate",
-        documents: 180,
-        students: "3.2K",
-        semesters: 4,
-        duration: "2 Years",
-        image: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=300&fit=crop"
-    },
-    {
-        id: 2,
-        title: "BCA",
-        subtitle: "Bachelor of Computer Applications",
-        description: "Comprehensive computer science fundamentals, programming languages, and application development.",
-        category: "Undergraduate",
-        documents: 240,
-        students: "5.8K",
-        semesters: 6,
-        duration: "3 Years",
-        image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop"
-    },
-    {
-        id: 3,
-        title: "B.Tech CSE",
-        subtitle: "Computer Science & Engineering",
-        description: "Core engineering principles, advanced algorithms, AI/ML, and cutting-edge technology solutions.",
-        category: "Engineering",
-        documents: 320,
-        students: "8.5K",
-        semesters: 8,
-        duration: "4 Years",
-        image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop"
-    },
-];
-
 import {
     Search,
     BookOpen,
@@ -55,20 +16,114 @@ import {
     Grid,
     List,
     Star,
-    TrendingUp
+    TrendingUp,
+    Loader2
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function CoursesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [viewMode, setViewMode] = useState("grid");
+    const [courses, setCourses] = useState([]);
+    const [dashboardStats, setDashboardStats] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Fetch courses and dashboard stats on component mount
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+
+                // Fetch courses
+                const coursesResponse = await fetch('/api/courses');
+                const coursesData = await coursesResponse.json();
+
+                if (coursesData) {
+                    console.log(coursesData);
+                }
+                // Fetch dashboard stats
+                const statsResponse = await fetch('/api/dashboard/stats');
+                const statsData = await statsResponse.json();
+                if (statsData) {
+                    console.log(statsData)
+                }
+
+                if (coursesData.success) {
+                    // Transform courses data to match the UI format
+                    const transformedCourses = coursesData.courses.map(course => ({
+                        id: course.id,
+                        title: course.category,
+                        subtitle: course.title,
+                        description: course.description || "Comprehensive learning materials and resources.",
+                        category: course.category,
+                        documents: course.documentsCount || course.totalMaterials || 0,
+                        students: `${Math.floor((course.studentsCount || 0) / 1000)}K` || "0K",
+                        semesters: course.semesters || 0,
+                        duration: course.duration,
+                        image: course.image || getDefaultImage(course.category),
+                        bgColor: course.bgColor || 'bg-blue-500'
+                    }));
+                    setCourses(transformedCourses);
+                }
+
+                if (statsData.success) {
+                    setDashboardStats(statsData);
+                }
+
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    // Function to get default images based on category
+    const getDefaultImage = (category) => {
+        const images = {
+            'MCA': "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=300&fit=crop",
+            'BCA': "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop",
+            'BTech': "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop"
+        };
+        return images[category] || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop";
+    };
 
     const filteredCourses = courses.filter(course =>
         course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         course.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         course.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-white dark:bg-[rgb(38,38,36)] flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+                    <p className="text-lg text-slate-600 dark:text-slate-300">Loading courses...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-white dark:bg-[rgb(38,38,36)] flex items-center justify-center">
+                <div className="text-center max-w-md mx-auto p-6">
+                    <div className="text-red-500 mb-4">❌</div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Error Loading Data</h2>
+                    <p className="text-slate-600 dark:text-slate-300 mb-4">{error}</p>
+                    <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
+                        Try Again
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white dark:bg-[rgb(38,38,36)] text-slate-900 dark:text-slate-100 transition-colors duration-300">
@@ -100,7 +155,9 @@ export default function CoursesPage() {
                                             <BookOpen className="h-5 w-5 text-green-600 dark:text-green-400" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-2xl text-slate-900 dark:text-white">{courses.length}</div>
+                                            <div className="font-bold text-2xl text-slate-900 dark:text-white">
+                                                {dashboardStats?.summary?.courses || courses.length}
+                                            </div>
                                             <div className="text-sm text-slate-600 dark:text-slate-400">Courses</div>
                                         </div>
                                     </div>
@@ -109,7 +166,9 @@ export default function CoursesPage() {
                                             <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-2xl text-slate-900 dark:text-white">12K+</div>
+                                            <div className="font-bold text-2xl text-slate-900 dark:text-white">
+                                                {dashboardStats?.summary?.students || '12K+'}
+                                            </div>
                                             <div className="text-sm text-slate-600 dark:text-slate-400">Students</div>
                                         </div>
                                     </div>
@@ -118,7 +177,9 @@ export default function CoursesPage() {
                                             <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-2xl text-slate-900 dark:text-white">4.8</div>
+                                            <div className="font-bold text-2xl text-slate-900 dark:text-white">
+                                                {dashboardStats?.summary?.rating || '4.8'}
+                                            </div>
                                             <div className="text-sm text-slate-600 dark:text-slate-400">Rating</div>
                                         </div>
                                     </div>

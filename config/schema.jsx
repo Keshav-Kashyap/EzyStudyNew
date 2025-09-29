@@ -81,3 +81,62 @@ export const downloadsTable = pgTable("downloads", {
     downloadedAt: timestamp().defaultNow()
 });
 
+// New Enhanced Tables for Admin System
+
+// Enhanced Courses Table (for new admin system)
+export const adminCourses = pgTable("admin_courses", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar({ length: 255 }).notNull(),
+    code: varchar({ length: 50 }).notNull().unique(),
+    description: text(),
+    duration: integer().notNull(), // in years
+    totalSemesters: integer(),
+    isActive: boolean().default(true),
+    createdAt: timestamp().defaultNow(),
+    updatedAt: timestamp().defaultNow()
+});
+
+// Enhanced Semesters Table (for new admin system)
+export const adminSemesters = pgTable("admin_semesters", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    courseId: integer().references(() => adminCourses.id),
+    name: varchar({ length: 100 }).notNull(),
+    semesterNumber: integer().notNull(),
+    description: text(),
+    isActive: boolean().default(true),
+    createdAt: timestamp().defaultNow(),
+    updatedAt: timestamp().defaultNow()
+});
+
+// Enhanced Subjects Table (for new admin system)  
+export const adminSubjects = pgTable("admin_subjects", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    courseId: integer().references(() => adminCourses.id),
+    semesterId: integer().references(() => adminSemesters.id),
+    name: varchar({ length: 255 }).notNull(),
+    code: varchar({ length: 50 }).notNull(),
+    description: text(),
+    credits: integer().notNull(),
+    isActive: boolean().default(true),
+    createdAt: timestamp().defaultNow(),
+    updatedAt: timestamp().defaultNow()
+});
+
+// Enhanced Materials Table (for new admin system)
+export const adminMaterials = pgTable("admin_materials", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    courseId: integer().references(() => adminCourses.id),
+    semesterId: integer().references(() => adminSemesters.id),
+    subjectId: integer().references(() => adminSubjects.id),
+    title: varchar({ length: 255 }).notNull(),
+    description: text(),
+    materialType: varchar({ length: 50 }).notNull(), // notes, assignment, book, presentation, video
+    fileUrl: varchar({ length: 500 }),
+    cloudinaryPublicId: varchar({ length: 255 }), // For Cloudinary management
+    fileSize: integer(), // in bytes
+    downloadCount: integer().default(0),
+    isActive: boolean().default(true),
+    createdAt: timestamp().defaultNow(),
+    updatedAt: timestamp().defaultNow()
+});
+

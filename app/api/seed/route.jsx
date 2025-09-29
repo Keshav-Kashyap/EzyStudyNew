@@ -2,7 +2,15 @@ import { db } from "@/config/db";
 import { courses, semesters, subjects, resources } from "@/drizzel/schema";
 import { NextResponse } from "next/server";
 
+export async function GET() {
+    return seedDatabase();
+}
+
 export async function POST() {
+    return seedDatabase();
+}
+
+async function seedDatabase() {
     try {
         // Insert sample courses
         const courseData = await db.insert(courses).values([

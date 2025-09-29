@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +30,7 @@ export default function AdminDashboard() {
         try {
             setLoading(true);
 
+            // Fetch dashboard stats
             const response = await fetch('/api/admin/dashboard');
             const data = await response.json();
 
@@ -46,9 +47,37 @@ export default function AdminDashboard() {
                     { action: "User registered", timestamp: "4 hours ago", type: "user" },
                     { action: "Course updated", timestamp: "6 hours ago", type: "course" }
                 ]);
+            } else {
+                // Mock data fallback
+                setStats({
+                    totalCourses: 5,
+                    totalUsers: 152,
+                    totalMaterials: 89,
+                    totalUploads: 234
+                });
+
+                setRecentActivity([
+                    { action: "New material uploaded", timestamp: "2 hours ago", type: "upload" },
+                    { action: "User registered", timestamp: "4 hours ago", type: "user" },
+                    { action: "Course updated", timestamp: "6 hours ago", type: "course" }
+                ]);
             }
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
+
+            // Fallback data
+            setStats({
+                totalCourses: 5,
+                totalUsers: 152,
+                totalMaterials: 89,
+                totalUploads: 234
+            });
+
+            setRecentActivity([
+                { action: "New material uploaded", timestamp: "2 hours ago", type: "upload" },
+                { action: "User registered", timestamp: "4 hours ago", type: "user" },
+                { action: "Course updated", timestamp: "6 hours ago", type: "course" }
+            ]);
         } finally {
             setLoading(false);
         }
@@ -112,6 +141,7 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
+            {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {statCards.map((card, index) => (
                     <Card key={index}>
@@ -131,7 +161,9 @@ export default function AdminDashboard() {
                 ))}
             </div>
 
+            {/* Main Content Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                {/* Recent Activity */}
                 <Card className="col-span-4">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -172,6 +204,7 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
+                {/* Quick Stats */}
                 <Card className="col-span-3">
                     <CardHeader>
                         <CardTitle>Quick Stats</CardTitle>
@@ -214,6 +247,7 @@ export default function AdminDashboard() {
                 </Card>
             </div>
 
+            {/* Quick Actions */}
             <Card>
                 <CardHeader>
                     <CardTitle>Quick Actions</CardTitle>

@@ -1,5 +1,12 @@
-import { db } from '../config/db.jsx';
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import { courses, semesters, subjects, resources } from '../drizzel/schema.jsx';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const sql = neon(process.env.DATABASE_URL);
+const db = drizzle({ client: sql });
 
 async function seedDatabase() {
     try {

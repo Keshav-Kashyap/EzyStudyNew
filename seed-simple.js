@@ -4,7 +4,7 @@ async function seedData() {
         console.log('🌱 Starting database seeding...');
 
         // Use fetch to call seed API
-        const response = await fetch('http://localhost:3001/api/seed', {
+        const response = await fetch('http://localhost:3000/api/seed', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -19,7 +19,7 @@ async function seedData() {
         console.log('✅ Seeding successful:', result);
 
         // Now check if data was inserted
-        const checkResponse = await fetch('http://localhost:3001/api/check-db');
+        const checkResponse = await fetch('http://localhost:3000/api/check-db');
         const checkResult = await checkResponse.json();
         console.log('🔍 Database check:', checkResult);
 

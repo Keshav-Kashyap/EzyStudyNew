@@ -109,24 +109,24 @@ export const menuItems = [
 export const adminMenuItems = [
     {
         title: "Dashboard",
-        icon: "BookOpen",
+        icon: "Home",
         href: "/admin/dashboard",
-        isActive: true,
+        isActive: false,
     },
     {
-        title: "Course Upload",
+        title: "Library Manager",
         icon: "Upload",
-        href: "/admin/courses",
-    },
-    {
-        title: "Library",
-        icon: "FileText",
         href: "/admin/library",
     },
     {
-        title: "Settings",
-        icon: "Settings",
-        href: "/admin/settings",
+        title: "Analytics",
+        icon: "BookOpen",
+        href: "/admin/analytics",
+    },
+    {
+        title: "User Management",
+        icon: "Users",
+        href: "/admin/users",
     },
 ];
 export const bottomMenuItems = [

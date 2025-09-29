@@ -1,51 +1,100 @@
 "use client"
-import React from 'react';
-import { BookOpen, FileText, ChevronDown, Calendar, GraduationCap } from 'lucide-react';
-import { useParams } from "next/navigation"
+import React, { useState, useEffect } from 'react';
+import { BookOpen, FileText, ChevronDown, Calendar, GraduationCap, Loader2 } from 'lucide-react';
+import { useParams, useRouter } from "next/navigation";
+import Link from 'next/link';
 
 const SemesterOverview = () => {
     const { code } = useParams();
+    const router = useRouter();
+    const [courseData, setCourseData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Course data with full details
-    const courseData = {
+    // Fetch course data from API
+    useEffect(() => {
+        const fetchCourseData = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch(`/api/courses/${code}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    setCourseData(data.course);
+                } else {
+                    throw new Error(data.error || 'Failed to fetch course data');
+                }
+            } catch (err) {
+                console.error('Error fetching course data:', err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (code) {
+            fetchCourseData();
+        }
+    }, [code]);
+
+    // Default course data for fallback
+    const defaultCourseData = {
         mca: {
             title: "MCA (Masters of Computer Application)",
             description: "Choose your semester to access relevant study materials",
             totalSemesters: 4,
-            color: {
-                primary: "blue",
-                secondary: "purple"
-            }
+            color: { primary: "blue", secondary: "purple" }
         },
         bca: {
             title: "BCA (Bachelor of Computer Application)",
             description: "Access comprehensive study materials for each semester",
             totalSemesters: 6,
-            color: {
-                primary: "green",
-                secondary: "emerald"
-            }
+            color: { primary: "green", secondary: "emerald" }
         },
         btech: {
             title: "B.Tech (Bachelor of Technology)",
             description: "Engineering study materials and resources",
             totalSemesters: 8,
-            color: {
-                primary: "orange",
-                secondary: "red"
-            }
+            color: { primary: "orange", secondary: "red" }
         }
     };
 
-    // Get current course data or default to MCA
-    const currentCourse = courseData[code] || courseData.mca;
+    // Get current course configuration
+    const getCourseConfig = () => {
+        if (courseData) {
+            return {
+                title: courseData.title,
+                description: courseData.description || "Choose your semester to access relevant study materials",
+                totalSemesters: courseData.semesters?.length || 0,
+                semesters: courseData.semesters || [],
+                color: defaultCourseData[code?.toLowerCase()]?.color || { primary: "blue", secondary: "purple" }
+            };
+        }
+        return defaultCourseData[code?.toLowerCase()] || defaultCourseData.mca;
+    };
 
-    // Generate semesters based on course
-    const generateSemesters = (totalSemesters) => {
+    const currentCourse = getCourseConfig();
+
+    // Generate semesters from database data or fallback
+    const getSemesters = () => {
+        if (courseData?.semesters) {
+            return courseData.semesters.map((semester, index) => ({
+                id: semester.id,
+                name: semester.name,
+                description: semester.description,
+                status: semester.isActive ? 'active' : 'upcoming',
+                subjects: semester.subjects?.length || 0,
+                documents: semester.subjects?.reduce((total, subject) =>
+                    total + (subject.materials?.length || 0), 0) || 0
+            }));
+        }
+
+        // Fallback to generated semesters
         const semesters = [];
-        for (let i = 1; i <= totalSemesters; i++) {
+        for (let i = 1; i <= currentCourse.totalSemesters; i++) {
             semesters.push({
                 id: i,
+                name: `Semester ${i}`,
                 status: i <= 3 ? 'active' : 'upcoming',
                 subjects: code === 'btech' ? 8 : 6,
                 documents: code === 'btech' ? 75 : 50
@@ -54,7 +103,7 @@ const SemesterOverview = () => {
         return semesters;
     };
 
-    const semesters = generateSemesters(currentCourse.totalSemesters);
+    const semesters = getSemesters();
 
     const getStatusConfig = (status) => {
         const primaryColor = currentCourse.color.primary;
@@ -90,6 +139,37 @@ const SemesterOverview = () => {
     };
 
     const colors = getColorClasses();
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+                    <p className="text-lg text-gray-600 dark:text-gray-300">Loading course data...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] flex items-center justify-center">
+                <div className="text-center max-w-md mx-auto p-6">
+                    <div className="text-red-500 mb-4 text-4xl">❌</div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Error Loading Course</h2>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] p-6">
@@ -127,6 +207,11 @@ const SemesterOverview = () => {
                     return (
                         <div
                             key={semester.id}
+                            onClick={() => {
+                                if (semester.status === 'active') {
+                                    router.push(`/library/${code}/semester/${semester.id}`);
+                                }
+                            }}
                             className={`
                                 ${config.cardClass}
                                 border-2 rounded-2xl p-6 transition-all duration-300 
@@ -136,12 +221,13 @@ const SemesterOverview = () => {
                                 before:from-transparent before:via-blue-500/5 before:to-transparent
                                 before:-translate-x-full hover:before:translate-x-full 
                                 before:transition-transform before:duration-700
+                                ${semester.status === 'upcoming' ? 'cursor-not-allowed' : ''}
                             `}
                         >
                             {/* Status Badge */}
                             <div className="flex justify-between items-start mb-4">
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                                    Semester {semester.id}
+                                    {semester.name || `Semester ${semester.id}`}
                                 </h3>
                                 <span className={`
                                     px-3 py-1 rounded-full text-xs font-semibold
@@ -176,22 +262,35 @@ const SemesterOverview = () => {
                             </div>
 
                             {/* Action Button */}
-                            <button className={`
-                                w-full flex items-center justify-between px-4 py-3 rounded-xl
-                                ${config.buttonClass}
-                                font-medium transition-all duration-300
-                                transform group-hover:scale-105 shadow-lg
-                                disabled:opacity-50 disabled:cursor-not-allowed
-                                ${semester.status === 'upcoming' ? 'disabled' : ''}
-                            `}>
-                                <span>
-                                    {semester.status === 'active' ? 'View Material' : 'Coming Soon'}
-                                </span>
-                                <ChevronDown size={20} className={`
-                                    transition-transform duration-300
-                                    ${semester.status === 'active' ? 'group-hover:translate-y-1' : ''}
-                                `} />
-                            </button>
+                            {semester.status === 'active' ? (
+                                <Link
+                                    href={`/library/${code}/semester/${semester.id}`}
+                                    className={`
+                                        w-full flex items-center justify-between px-4 py-3 rounded-xl
+                                        ${config.buttonClass}
+                                        font-medium transition-all duration-300
+                                        transform group-hover:scale-105 shadow-lg
+                                        text-center no-underline
+                                    `}
+                                >
+                                    <span>View Materials</span>
+                                    <ChevronDown size={20} className="transition-transform duration-300 group-hover:translate-y-1" />
+                                </Link>
+                            ) : (
+                                <button
+                                    disabled
+                                    className={`
+                                        w-full flex items-center justify-between px-4 py-3 rounded-xl
+                                        ${config.buttonClass}
+                                        font-medium transition-all duration-300
+                                        transform group-hover:scale-105 shadow-lg
+                                        disabled:opacity-50 disabled:cursor-not-allowed
+                                    `}
+                                >
+                                    <span>Coming Soon</span>
+                                    <ChevronDown size={20} />
+                                </button>
+                            )}
 
                             {/* Decorative Elements */}
                             <div className={`absolute top-4 right-4 w-20 h-20 bg-gradient-to-br ${colors.hoverGradient} rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
