@@ -52,7 +52,7 @@ async function seedDatabase() {
             }
         ]).returning();
 
-        console.log('✅ Courses inserted:', courseData.length);
+        console.log('Courses inserted:', courseData.length);
 
         // Insert semesters for MCA (6 semesters)
         const mcaCourse = courseData.find(c => c.category === 'MCA');
@@ -67,7 +67,7 @@ async function seedDatabase() {
         }
 
         const insertedSemesters = await db.insert(semestersTable).values(semesterData).returning();
-        console.log('✅ Semesters inserted:', insertedSemesters.length);
+        console.log('Semesters inserted:', insertedSemesters.length);
 
         // Insert subjects for 1st semester
         const sem1 = insertedSemesters[0];
@@ -104,7 +104,7 @@ async function seedDatabase() {
             }
         ]).returning();
 
-        console.log('✅ Subjects inserted:', subjectData.length);
+        console.log('Subjects inserted:', subjectData.length);
 
         // Insert study materials
         const progFundamentals = subjectData[0];
@@ -138,7 +138,7 @@ async function seedDatabase() {
             }
         ]);
 
-        console.log('✅ Study materials inserted');
+        console.log('Study materials inserted');
 
         // Insert a sample user
         await db.insert(usersTable).values([
@@ -149,9 +149,9 @@ async function seedDatabase() {
             }
         ]);
 
-        console.log('✅ Sample user inserted');
+        console.log('Sample user inserted');
 
-        console.log('🎉 Database seeding completed successfully!');
+        console.log(' Database seeding completed successfully!');
 
         // Verify by counting records
         const courseCount = await db.select().from(coursesTable);
@@ -168,7 +168,7 @@ async function seedDatabase() {
         console.log(`   Users: ${userCount.length}`);
 
     } catch (error) {
-        console.error('❌ Error seeding database:', error);
+        console.error(' Error seeding database:', error);
     }
 }
 

@@ -67,12 +67,12 @@ async function checkMCAData() {
             .where(eq(coursesTable.category, 'MCA'));
 
         if (mcaCourses.length === 0) {
-            console.log('❌ No MCA course found!');
+            console.log('No MCA course found!');
             return;
         }
 
         const mcaCourse = mcaCourses[0];
-        console.log('✅ MCA Course found:', {
+        console.log('MCA Course found:', {
             id: mcaCourse.id,
             title: mcaCourse.title,
             category: mcaCourse.category,
@@ -83,7 +83,7 @@ async function checkMCAData() {
         const semesters = await db.select().from(semestersTable)
             .where(eq(semestersTable.courseId, mcaCourse.id));
 
-        console.log(`\n📚 Semesters found: ${semesters.length}`);
+        console.log(`\nSemesters found: ${semesters.length}`);
         for (const semester of semesters) {
             console.log(`  - ${semester.name} (ID: ${semester.id})`);
 
@@ -91,25 +91,25 @@ async function checkMCAData() {
             const subjects = await db.select().from(subjectsTable)
                 .where(eq(subjectsTable.semesterId, semester.id));
 
-            console.log(`    Subjects: ${subjects.length}`);
+            console.log(`  Subjects: ${subjects.length}`);
             for (const subject of subjects) {
-                console.log(`      • ${subject.name} (${subject.code})`);
+                console.log(` • ${subject.name} (${subject.code})`);
 
                 // Get materials for this subject
                 const materials = await db.select().from(studyMaterialsTable)
                     .where(eq(studyMaterialsTable.subjectId, subject.id));
 
-                console.log(`        Materials: ${materials.length}`);
+                console.log(`  Materials: ${materials.length}`);
                 materials.forEach(material => {
                     console.log(`          - ${material.title} (${material.type})`);
                 });
             }
         }
 
-        console.log('\n🎉 Data verification complete!');
+        console.log('\n Data verification complete!');
 
     } catch (error) {
-        console.error('❌ Error checking MCA data:', error);
+        console.error(' Error checking MCA data:', error);
     }
 }
 

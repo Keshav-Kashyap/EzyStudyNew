@@ -10,21 +10,21 @@ async function testAdminAPIs() {
         const dashboardRes = await fetch(`${baseUrl}/api/admin/dashboard`);
         const dashboardData = await dashboardRes.json();
         console.log("Dashboard Response:", dashboardData);
-        console.log("✅ Dashboard API working\n");
+        console.log("Dashboard API working\n");
 
         // Test 2: Get Materials
         console.log("2️⃣ Testing Get Materials...");
         const materialsRes = await fetch(`${baseUrl}/api/admin/materials`);
         const materialsData = await materialsRes.json();
         console.log("Materials Response:", materialsData);
-        console.log("✅ Materials API working\n");
+        console.log("Materials API working\n");
 
         // Test 3: Get Subjects
         console.log("3️⃣ Testing Get Subjects...");
         const subjectsRes = await fetch(`${baseUrl}/api/admin/subjects`);
         const subjectsData = await subjectsRes.json();
         console.log("Subjects Response:", subjectsData);
-        console.log("✅ Subjects API working\n");
+        console.log("Subjects API working\n");
 
         // Test 4: Create Course (requires admin auth)
         console.log("4️⃣ Testing Create Course... (Will fail without admin auth)");
@@ -43,7 +43,7 @@ async function testAdminAPIs() {
         console.log("Create Course Response:", createCourseData);
         console.log("ℹ️ Expected to fail without admin authentication\n");
 
-        console.log("🎉 Admin API Tests Completed!");
+        console.log(" Admin API Tests Completed!");
         console.log("\n📋 Setup Instructions:");
         console.log("1. Set up Cloudinary account (free 25GB)");
         console.log("2. Add environment variables to .env.local");
@@ -51,7 +51,7 @@ async function testAdminAPIs() {
         console.log("4. Access admin panel at /admin/library");
 
     } catch (error) {
-        console.error("❌ Error testing APIs:", error);
+        console.error(" Error testing APIs:", error);
     }
 }
 

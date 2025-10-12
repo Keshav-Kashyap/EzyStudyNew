@@ -3,8 +3,11 @@ import { integer, pgTable, varchar, serial, text, timestamp, boolean } from "dri
 // Users Table
 export const usersTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: varchar({ length: 255 }).notNull().unique(), // Clerk user ID
     name: varchar({ length: 255 }).notNull(),
     email: varchar({ length: 255 }).notNull().unique(),
+    role: varchar({ length: 50 }).default('student'), // 'admin' or 'student'
+    isActive: boolean().default(true),
     credits: integer().default(10),
     createdAt: timestamp().defaultNow(),
     updatedAt: timestamp().defaultNow()
@@ -29,7 +32,7 @@ export const coursesTable = pgTable("courses", {
 // Semesters Table
 export const semestersTable = pgTable("semesters", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    courseId: integer().references(() => coursesTable.id),
+    category: text().notNull(), // Links to coursesTable.category
     name: varchar({ length: 100 }).notNull(),
     description: text(),
     isActive: boolean().default(true),
@@ -40,7 +43,8 @@ export const semestersTable = pgTable("semesters", {
 // Subjects Table
 export const subjectsTable = pgTable("subjects", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    semesterId: integer().references(() => semestersTable.id),
+    category: text().notNull(), // Links to coursesTable.category
+    semesterName: varchar({ length: 100 }).notNull(), // Links to semestersTable.name
     name: varchar({ length: 255 }).notNull(),
     code: varchar({ length: 50 }),
     description: text(),
@@ -131,9 +135,10 @@ export const adminMaterials = pgTable("admin_materials", {
     title: varchar({ length: 255 }).notNull(),
     description: text(),
     materialType: varchar({ length: 50 }).notNull(), // notes, assignment, book, presentation, video
-    fileUrl: varchar({ length: 500 }),
-    cloudinaryPublicId: varchar({ length: 255 }), // For Cloudinary management
+    fileUrl: varchar({ length: 500 }), // Supabase public URL
+    fileName: varchar({ length: 255 }), // Supabase file path for deletion
     fileSize: integer(), // in bytes
+    fileType: varchar({ length: 50 }), // MIME type
     downloadCount: integer().default(0),
     isActive: boolean().default(true),
     createdAt: timestamp().defaultNow(),

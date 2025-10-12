@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
     BookOpen,
     Settings,
@@ -22,13 +22,23 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { UserDetailContext } from '@/context/UserDetailContext';
+import { UserButton } from '@clerk/nextjs';
+
 
 // Menu Items Array - Use icon names as strings for Server Components
 
 
 const AppSidebar = ({ menuItems, bottomMenuItems }) => {
+
+
+
+
     const [isCollapsed, setIsCollapsed] = useState(false);
     const pathname = usePathname();
+    console.log("sidebar:", pathname);
+    const { userDetail } = useContext(UserDetailContext);
+    console.log(userDetail);
 
     // Icon mapping for string-based icons
     const iconMap = {
@@ -238,18 +248,16 @@ const AppSidebar = ({ menuItems, bottomMenuItems }) => {
             <div className="p-4 border-t border-gray-200 dark:border-[rgb(50,50,48)] flex-shrink-0">
                 {!isCollapsed ? (
                     <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-[rgb(48,48,46)] transition-all duration-300 cursor-pointer group relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 dark:before:via-white/5 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700">
-                        <div className="relative">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                                <User size={20} className="text-white" />
-                            </div>
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-[rgb(38,38,36)] animate-pulse"></div>
-                        </div>
+
+
+                        <UserButton />
+
                         <div className="flex-1">
                             <div className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors duration-300">
-                                Admin User
+                                {userDetail?.name}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                                admin@eduportal.com
+                                {userDetail?.email}
                             </div>
                         </div>
                         <LogOut size={18} className="text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" />
@@ -258,17 +266,17 @@ const AppSidebar = ({ menuItems, bottomMenuItems }) => {
                     <div className="flex justify-center">
                         <button
                             className="relative p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-[rgb(48,48,46)] transition-all duration-300 group overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 dark:before:via-white/5 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700"
-                            title="Admin User"
+                            title={userDetail?.name}
                         >
-                            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                                <User size={16} className="text-white" />
-                            </div>
+
+                            <UserButton />
+
                             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-[rgb(38,38,36)] animate-pulse"></div>
 
                             {/* Tooltip */}
                             <div className="absolute left-full ml-4 px-3 py-2 bg-gray-900 dark:bg-gray-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-xl">
-                                Admin User
-                                <div className="text-xs text-gray-300">admin@eduportal.com</div>
+                                {userDetail?.name}
+                                <div className="text-xs text-gray-300">{userDetail?.email}</div>
                                 <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-gray-900 dark:bg-gray-800 rotate-45"></div>
                             </div>
                         </button>

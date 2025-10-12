@@ -48,12 +48,12 @@ export async function GET() {
             recentUploads,
             courses: courses.map(course => ({
                 ...course,
-                semesterCount: semesters.filter(sem => sem.courseId === course.id).length
+                semesterCount: semesters.filter(sem => sem.category === course.category).length
             }))
         });
 
     } catch (error) {
-        console.error('❌ Error fetching admin dashboard:', error);
+        console.error(' Error fetching admin dashboard:', error);
         return NextResponse.json({
             success: false,
             error: "Failed to fetch dashboard data",
@@ -109,7 +109,7 @@ export async function POST(request) {
         const semesterData = [];
         for (let i = 1; i <= totalSemesters; i++) {
             semesterData.push({
-                courseId: newCourse[0].id,
+                category: category.toUpperCase(),
                 name: `Semester ${i}`,
                 description: `${category} Semester ${i} - Core subjects and practical learning`,
                 isActive: i <= 2 // Make first 2 semesters active by default
@@ -128,7 +128,7 @@ export async function POST(request) {
         });
 
     } catch (error) {
-        console.error('❌ Error creating course:', error);
+        console.error(' Error creating course:', error);
         return NextResponse.json({
             success: false,
             error: "Failed to create course",

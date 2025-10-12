@@ -1,7 +1,7 @@
 import { db } from "@/config/db";
 import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable } from "@/config/schema";
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export async function GET() {
     try {
@@ -11,9 +11,9 @@ export async function GET() {
         // For each course, get additional statistics
         const coursesWithStats = await Promise.all(
             courses.map(async (course) => {
-                // Count semesters for this course
+                // Count semesters for this course category
                 const semesters = await db.select().from(semestersTable)
-                    .where(eq(semestersTable.courseId, course.id));
+                    .where(eq(semestersTable.category, course.category));
 
                 // Count total subjects across all semesters
                 let totalSubjects = 0;
@@ -21,7 +21,10 @@ export async function GET() {
 
                 for (const semester of semesters) {
                     const subjects = await db.select().from(subjectsTable)
-                        .where(eq(subjectsTable.semesterId, semester.id));
+                        .where(and(
+                            eq(subjectsTable.category, course.category),
+                            eq(subjectsTable.semesterName, semester.name)
+                        ));
                     totalSubjects += subjects.length;
 
                     // Count materials for each subject
@@ -50,7 +53,7 @@ export async function GET() {
         });
 
     } catch (error) {
-        console.error('❌ Error fetching courses:', error);
+        console.error(' Error fetching courses:', error);
         return NextResponse.json({
             success: false,
             error: "Failed to fetch courses",

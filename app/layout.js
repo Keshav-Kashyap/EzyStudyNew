@@ -11,6 +11,8 @@ import {
 import Provider from "./Provider";
 import { ThemeProvider } from './ThemeProvider';
 import { Toaster } from 'sonner';
+import UserAutoRegister from '@/components/UserAutoRegister';
+import RoleBasedRedirect from '@/components/RoleBasedRedirect';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,16 +39,16 @@ export default function RootLayout({ children }) {
         >
           <Provider>
             <ThemeProvider
-
               attribute="class"
               defaultTheme="system"
               enableSystem
               disableTransitionOnChange={false}
             >
+              <UserAutoRegister />
+              <RoleBasedRedirect />
               {children}
               <Toaster position="top-right" />
             </ThemeProvider>
-
           </Provider>
         </body>
       </html>

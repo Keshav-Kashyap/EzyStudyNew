@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useTheme } from 'next-themes';
 import {
     Search,
@@ -11,8 +11,15 @@ import {
     Moon
 } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { UserButton, useUser } from '@clerk/nextjs';
+import { UserDetailContext } from '@/context/UserDetailContext';
+
 
 const Navbar = () => {
+    const { userDetail } = useContext(UserDetailContext);
+
+
+
     const [searchQuery, setSearchQuery] = useState('');
     const [showNotifications, setShowNotifications] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
@@ -132,43 +139,28 @@ const Navbar = () => {
                 </div>
 
                 {/* User Profile */}
+
+
                 <div className="relative profile-dropdown">
                     <button
                         className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 ease-in-out"
                         onClick={() => setShowProfile(!showProfile)}
                     >
-                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                            <span className="text-white text-sm font-bold">A</span>
-                        </div>
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Admin</span>
-                        <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />
+
+
+                        <UserButton />
+
+
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{userDetail?.name}</span>
+
                     </button>
 
-                    {/* Profile Dropdown */}
-                    {showProfile && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 transition-all duration-300 ease-in-out">
-                            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                                <p className="font-semibold text-gray-900 dark:text-white">Admin User</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">admin@eduportal.com</p>
-                            </div>
-                            <div className="py-2">
-                                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                    Profile Settings
-                                </button>
-                                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                    Account Settings
-                                </button>
-                                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                    Help & Support
-                                </button>
-                                <hr className="my-2 border-gray-200 dark:border-gray-700" />
-                                <button className="w-full text-left px-4 py-2 text-sm text-red-500 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                    Logout
-                                </button>
-                            </div>
-                        </div>
-                    )}
+
                 </div>
+
+
+
+
             </div>
         </nav>
     );

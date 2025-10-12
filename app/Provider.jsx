@@ -13,11 +13,15 @@ const Provider = ({ children }) => {
     }, [user])
 
     const CreateNewUser = async () => {
-
-        const result = await axios.post('/api/users');
-        console.log(result.data);
-        setUserDetail(result.data);
-
+        try {
+            const result = await axios.post('/api/users/register');
+            console.log('User Details:', result.data);
+            if (result.data.success) {
+                setUserDetail(result.data.user);
+            }
+        } catch (error) {
+            console.error('Error creating/fetching user:', error);
+        }
     }
 
     return (

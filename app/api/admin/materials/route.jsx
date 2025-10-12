@@ -1,5 +1,5 @@
 import { db } from "@/config/db";
-import { adminMaterials, adminSubjects, adminSemesters, adminCourses } from "@/config/schema";
+import { adminMaterials, adminSubjects, adminSemesters, adminCourses, usersTable } from "@/config/schema";
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
@@ -9,14 +9,25 @@ export async function GET() {
     try {
         const user = await currentUser();
 
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!user) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
-            }, { status: 403 });
+                error: "Please login first"
+            }, { status: 401 });
         }
 
-        // Get all materials with subject and course info
+        // Direct database check for admin role
+        const dbUser = await db.select()
+            .from(usersTable)
+            .where(eq(usersTable.userId, user.id))
+            .limit(1);
+
+        if (dbUser.length === 0 || dbUser[0].role !== 'admin' || !dbUser[0].isActive) {
+            return NextResponse.json({
+                success: false,
+                error: `Admin access required. Your role: ${dbUser[0]?.role || 'not found'}`
+            }, { status: 403 });
+        }        // Get all materials with subject and course info
         const allMaterials = await db.select({
             id: adminMaterials.id,
             title: adminMaterials.title,
@@ -27,8 +38,9 @@ export async function GET() {
             courseId: adminMaterials.courseId,
             semesterId: adminMaterials.semesterId,
             subjectId: adminMaterials.subjectId,
-            cloudinaryPublicId: adminMaterials.cloudinaryPublicId,
+            fileName: adminMaterials.fileName,
             fileSize: adminMaterials.fileSize,
+            fileType: adminMaterials.fileType,
             createdAt: adminMaterials.createdAt,
             subjectName: adminSubjects.name,
             subjectCode: adminSubjects.code,
@@ -48,7 +60,7 @@ export async function GET() {
         });
 
     } catch (error) {
-        console.error('❌ Error fetching materials:', error);
+        console.error(' Error fetching materials:', error);
         return NextResponse.json({
             success: false,
             error: "Failed to fetch materials",
@@ -62,14 +74,31 @@ export async function POST(request) {
     try {
         const user = await currentUser();
 
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!user) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
+                error: "Please login first"
+            }, { status: 401 });
+        }
+
+        // Direct database check for admin role
+        const dbUser = await db.select()
+            .from(usersTable)
+            .where(eq(usersTable.userId, user.id))
+            .limit(1);
+
+        if (dbUser.length === 0 || dbUser[0].role !== 'admin' || !dbUser[0].isActive) {
+            return NextResponse.json({
+                success: false,
+                error: `Admin access required. Your role: ${dbUser[0]?.role || 'not found'}`
             }, { status: 403 });
         }
 
-        const body = await request.json();
+        console.log('Admin user uploading material:', {
+            userId: user.id,
+            email: user.emailAddresses?.[0]?.emailAddress,
+            role: dbUser[0].role
+        }); const body = await request.json();
         const {
             title,
             description,
@@ -78,8 +107,9 @@ export async function POST(request) {
             courseId,
             semesterId,
             subjectId,
-            cloudinaryPublicId,
-            fileSize
+            fileName,
+            fileSize,
+            fileType
         } = body;
 
         if (!title || !fileUrl || !courseId || !semesterId || !subjectId) {
@@ -109,8 +139,9 @@ export async function POST(request) {
             courseId: parseInt(courseId),
             semesterId: parseInt(semesterId),
             subjectId: parseInt(subjectId),
-            cloudinaryPublicId,
+            fileName,
             fileSize: fileSize || null,
+            fileType: fileType || null,
             downloadCount: 0,
             isActive: true,
             createdAt: new Date(),
@@ -124,7 +155,7 @@ export async function POST(request) {
         });
 
     } catch (error) {
-        console.error('❌ Error uploading material:', error);
+        console.error(' Error uploading material:', error);
         return NextResponse.json({
             success: false,
             error: "Failed to upload material",
@@ -165,7 +196,7 @@ export async function DELETE(request) {
         });
 
     } catch (error) {
-        console.error('❌ Error deleting material:', error);
+        console.error(' Error deleting material:', error);
         return NextResponse.json({
             success: false,
             error: "Failed to delete material",

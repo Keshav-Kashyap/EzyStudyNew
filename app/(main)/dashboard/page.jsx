@@ -4,19 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-
+import CoursesCard from "../_components/CoursesCard"
 import {
     Search,
     BookOpen,
     Users,
-    FileText,
-    Home,
     GraduationCap,
     Filter,
     Grid,
     List,
     Star,
-    TrendingUp,
     Loader2
 } from "lucide-react";
 import Link from "next/link";
@@ -114,7 +111,7 @@ export default function CoursesPage() {
         return (
             <div className="min-h-screen bg-white dark:bg-[rgb(38,38,36)] flex items-center justify-center">
                 <div className="text-center max-w-md mx-auto p-6">
-                    <div className="text-red-500 mb-4">❌</div>
+                    <div className="text-red-500 mb-4"></div>
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Error Loading Data</h2>
                     <p className="text-slate-600 dark:text-slate-300 mb-4">{error}</p>
                     <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
@@ -246,125 +243,12 @@ export default function CoursesPage() {
                         )}
 
                         {/* Course Grid */}
-                        <div className={`grid gap-6 ${viewMode === "grid"
-                            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                            : 'grid-cols-1'
-                            }`}>
-                            {filteredCourses.map((course) => (
-                                <Card
-                                    key={course.id}
-                                    className="group overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] shadow-lg border bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
-                                >
-                                    {/* Course Header */}
-                                    <div className="relative h-44 overflow-hidden">
-                                        <img
-                                            src={course.image}
-                                            alt={course.title}
-                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        />
-                                        <div className="absolute inset-0 bg-black/40"></div>
-                                        <div className="relative z-10 flex items-center justify-center h-full text-center text-white p-6">
-                                            <div>
-                                                <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">{course.title}</h3>
-                                                <Badge variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0 shadow-lg">
-                                                    {course.category}
-                                                </Badge>
-                                            </div>
-                                        </div>
+                        <CoursesCard
+                            courses={courses}
+                            viewMode={viewMode}
+                            searchQuery={searchQuery}
+                        />
 
-                                        {/* Trending Badge */}
-                                        <div className="absolute top-4 right-4">
-                                            <Badge className="bg-yellow-400 text-yellow-900 border-0 shadow-lg font-semibold">
-                                                <TrendingUp className="h-3 w-3 mr-1" />
-                                                Popular
-                                            </Badge>
-                                        </div>
-                                    </div>
-
-                                    <CardHeader className="pb-4">
-                                        <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">
-                                            {course.subtitle}
-                                        </CardTitle>
-                                        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                                            {course.description}
-                                        </p>
-                                    </CardHeader>
-
-                                    <CardContent className="pt-0">
-                                        {/* Course Stats */}
-                                        <div className="flex items-center justify-between mb-6 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600">
-                                            <div className="flex items-center space-x-6">
-                                                <div className="flex items-center space-x-2">
-                                                    <div className="p-1 rounded bg-blue-100 dark:bg-blue-900/20">
-                                                        <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                                    </div>
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                        {course.documents} docs
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <div className="p-1 rounded bg-green-100 dark:bg-green-900/20">
-                                                        <Users className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                                    </div>
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                        {course.students}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center space-x-1">
-                                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                    4.8
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Action Button */}
-                                        <div className="flex">
-                                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-200">
-                                                Start Learning
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-
-                        {/* Empty State */}
-                        {filteredCourses.length === 0 && searchQuery && (
-                            <div className="text-center py-20">
-                                <div className="p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                                    <Search className="h-12 w-12 text-slate-500" />
-                                </div>
-                                <h3 className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-300">
-                                    No courses found
-                                </h3>
-                                <p className="text-slate-600 dark:text-slate-400 mb-6 max-w-md mx-auto">
-                                    We couldn't find any courses matching your search. Try different keywords or browse all courses.
-                                </p>
-                                <Button
-                                    onClick={() => setSearchQuery("")}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 shadow-lg"
-                                >
-                                    Clear Search
-                                </Button>
-                            </div>
-                        )}
-
-                        {/* Back to Home */}
-                        <div className="mt-20 text-center border-t border-gray-200 dark:border-gray-700 pt-12">
-                            <Link href="/">
-                                <Button
-                                    variant="outline"
-                                    size="lg"
-                                    className="inline-flex items-center space-x-3 px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-200 text-lg font-medium border-gray-300 dark:border-gray-600 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-transparent"
-                                >
-                                    <Home className="h-5 w-5" />
-                                    <span>Back to Home</span>
-                                </Button>
-                            </Link>
-                        </div>
                     </div>
                 </main>
             </div>

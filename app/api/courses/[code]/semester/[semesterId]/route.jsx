@@ -1,15 +1,18 @@
 import { db } from "@/config/db";
-import { semestersTable, subjectsTable, studyMaterialsTable } from "@/config/schema";
+import { semestersTable, subjectsTable, studyMaterialsTable, coursesTable } from "@/config/schema";
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export async function GET(request, { params }) {
     try {
-        const { code, semesterId } = params;
+        const { code, semesterId } = await params;
 
-        // Get semester details
+        // Get semester details by name and course category
         const semesters = await db.select().from(semestersTable)
-            .where(eq(semestersTable.id, parseInt(semesterId)));
+            .where(and(
+                eq(semestersTable.category, code.toUpperCase()),
+                eq(semestersTable.name, `Semester ${semesterId}`)
+            ));
 
         if (semesters.length === 0) {
             return NextResponse.json({
@@ -20,9 +23,12 @@ export async function GET(request, { params }) {
 
         const semester = semesters[0];
 
-        // Get subjects for this semester
+        // Get subjects for this semester using category and semesterName
         const subjects = await db.select().from(subjectsTable)
-            .where(eq(subjectsTable.semesterId, semester.id));
+            .where(and(
+                eq(subjectsTable.category, code.toUpperCase()),
+                eq(subjectsTable.semesterName, semester.name)
+            ));
 
         // Get study materials for each subject
         const subjectsWithMaterials = await Promise.all(
@@ -55,7 +61,7 @@ export async function GET(request, { params }) {
         });
 
     } catch (error) {
-        console.error('❌ Error fetching semester details:', error);
+        console.error(' Error fetching semester details:', error);
         return NextResponse.json({
             success: false,
             error: "Failed to fetch semester details",

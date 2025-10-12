@@ -92,7 +92,7 @@ async function seedDatabase() {
             }
         ]).returning();
 
-        console.log('✅ Courses inserted:', courseData.length);
+        console.log('Courses inserted:', courseData.length);
 
         // Insert semesters for MCA course (6 semesters)
         const mcaCourse = courseData.find(c => c.category === 'MCA');
@@ -107,7 +107,7 @@ async function seedDatabase() {
         }
 
         const insertedSemesters = await db.insert(semestersTable).values(semesterData).returning();
-        console.log('✅ Semesters inserted:', insertedSemesters.length);
+        console.log('Semesters inserted:', insertedSemesters.length);
 
         // Insert sample subjects for MCA 1st semester
         const mcaSem1 = insertedSemesters[0]; // First semester
@@ -146,7 +146,7 @@ async function seedDatabase() {
                 }
             ]).returning();
 
-            console.log('✅ Subjects inserted:', subjectData.length);
+            console.log('Subjects inserted:', subjectData.length);
 
             // Insert sample study materials for Programming Fundamentals
             const progFundamentals = subjectData.find(s => s.code === 'MCA101');
@@ -181,7 +181,7 @@ async function seedDatabase() {
                     }
                 ]);
 
-                console.log('✅ Study materials inserted for Programming Fundamentals');
+                console.log('Study materials inserted for Programming Fundamentals');
             }
         }
 
@@ -191,7 +191,7 @@ async function seedDatabase() {
         const finalSubjectCount = await db.select().from(subjectsTable);
         const finalMaterialCount = await db.select().from(studyMaterialsTable);
 
-        console.log('🎉 Database seeding completed successfully!');
+        console.log(' Database seeding completed successfully!');
         console.log('📊 Final counts:');
         console.log(`   Courses: ${finalCourseCount.length}`);
         console.log(`   Semesters: ${finalSemesterCount.length}`);
@@ -201,7 +201,7 @@ async function seedDatabase() {
         process.exit(0);
 
     } catch (error) {
-        console.error('❌ Error seeding database:', error);
+        console.error(' Error seeding database:', error);
         process.exit(1);
     }
 }

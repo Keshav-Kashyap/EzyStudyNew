@@ -90,7 +90,7 @@ export async function POST(request) {
         });
 
     } catch (error) {
-        console.error('❌ Error adding subject:', error);
+        console.error(' Error adding subject:', error);
         return NextResponse.json({
             success: false,
             error: "Failed to add subject",

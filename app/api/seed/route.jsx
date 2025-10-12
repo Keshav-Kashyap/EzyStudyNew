@@ -40,7 +40,7 @@ async function seedDatabase() {
             }
         ]).returning();
 
-        console.log('✅ Courses inserted:', courseData);
+        console.log('Courses inserted:', courseData);
 
         // Insert semesters for each course
         const semesterData = [];
@@ -55,7 +55,7 @@ async function seedDatabase() {
         }
 
         const insertedSemesters = await db.insert(semesters).values(semesterData).returning();
-        console.log('✅ Semesters inserted:', insertedSemesters.length);
+        console.log('Semesters inserted:', insertedSemesters.length);
 
         // Insert sample subjects for MCA 1st semester
         const mcaCourse = courseData.find(c => c.code === 'mca');
@@ -101,7 +101,7 @@ async function seedDatabase() {
                 }
             ]).returning();
 
-            console.log('✅ Subjects inserted:', subjectData);
+            console.log('Subjects inserted:', subjectData);
 
             // Insert sample resources for Programming Fundamentals
             const progFundamentals = subjectData.find(s => s.code === 'MCA101');
@@ -130,12 +130,12 @@ async function seedDatabase() {
                     }
                 ]);
 
-                console.log('✅ Resources inserted for Programming Fundamentals');
+                console.log('Resources inserted for Programming Fundamentals');
             }
         }
 
         return NextResponse.json({
-            message: "🎉 Database seeding completed successfully!",
+            message: " Database seeding completed successfully!",
             data: {
                 courses: courseData.length,
                 semesters: insertedSemesters.length,
@@ -145,7 +145,7 @@ async function seedDatabase() {
         });
 
     } catch (error) {
-        console.error('❌ Error seeding database:', error);
+        console.error(' Error seeding database:', error);
         return NextResponse.json({
             error: "Failed to seed database",
             details: error.message

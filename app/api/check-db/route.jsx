@@ -38,7 +38,7 @@ export async function GET() {
         });
 
     } catch (error) {
-        console.error('❌ Error checking database:', error);
+        console.error(' Error checking database:', error);
         return NextResponse.json({
             error: "Failed to check database",
             details: error.message

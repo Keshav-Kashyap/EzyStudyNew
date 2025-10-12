@@ -1,16 +1,16 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from '../config/schema.jsx'
+import * as schema from '../config/schema.jsx';
 
 const sql = neon(process.env.DATABASE_URL);
 const db = drizzle({ client: sql });
 
 async function migrate() {
-    try {
-        console.log('🚀 Starting database migration...')
+  try {
+    console.log('🚀 Starting database migration...')
 
-        // Create admin_courses table
-        await sql`
+    // Create admin_courses table
+    await sql`
       CREATE TABLE IF NOT EXISTS admin_courses (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -23,10 +23,10 @@ async function migrate() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `
-        console.log('✅ admin_courses table created')
+    console.log('admin_courses table created')
 
-        // Create admin_semesters table
-        await sql`
+    // Create admin_semesters table
+    await sql`
       CREATE TABLE IF NOT EXISTS admin_semesters (
         id SERIAL PRIMARY KEY,
         course_id INTEGER NOT NULL REFERENCES admin_courses(id) ON DELETE CASCADE,
@@ -39,10 +39,10 @@ async function migrate() {
         UNIQUE(course_id, semester_number)
       )
     `
-        console.log('✅ admin_semesters table created')
+    console.log('admin_semesters table created')
 
-        // Create admin_subjects table
-        await sql`
+    // Create admin_subjects table
+    await sql`
       CREATE TABLE IF NOT EXISTS admin_subjects (
         id SERIAL PRIMARY KEY,
         course_id INTEGER NOT NULL REFERENCES admin_courses(id) ON DELETE CASCADE,
@@ -56,10 +56,10 @@ async function migrate() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `
-        console.log('✅ admin_subjects table created')
+    console.log('admin_subjects table created')
 
-        // Create admin_materials table
-        await sql`
+    // Create admin_materials table
+    await sql`
       CREATE TABLE IF NOT EXISTS admin_materials (
         id SERIAL PRIMARY KEY,
         course_id INTEGER NOT NULL REFERENCES admin_courses(id) ON DELETE CASCADE,
@@ -67,50 +67,24 @@ async function migrate() {
         subject_id INTEGER NOT NULL REFERENCES admin_subjects(id) ON DELETE CASCADE,
         title VARCHAR(255) NOT NULL,
         description TEXT,
+        material_type VARCHAR(50) NOT NULL,
         file_url VARCHAR(500),
-        file_type VARCHAR(50),
-        cloudinary_public_id VARCHAR(255),
+        file_name VARCHAR(255),
         file_size INTEGER,
-        upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        file_type VARCHAR(50),
+        download_count INTEGER DEFAULT 0,
         is_active BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `
-        console.log('✅ admin_materials table created')
+    console.log('admin_materials table created')
 
-        // Insert sample data
-        const sampleCourse = await sql`
-      INSERT INTO admin_courses (name, code, description, duration, total_semesters)
-      VALUES ('Computer Science Engineering', 'CSE', 'Complete CS program with all semesters', 4, 8)
-      ON CONFLICT DO NOTHING
-      RETURNING id
-    `
+    console.log(' Database migration completed successfully!')
 
-        if (sampleCourse.rows.length > 0) {
-            const courseId = sampleCourse.rows[0].id
-
-            // Insert sample semesters
-            await sql`
-        INSERT INTO admin_semesters (course_id, semester_number, name, description)
-        VALUES 
-          (${courseId}, 1, 'Semester 1', 'Foundation courses'),
-          (${courseId}, 2, 'Semester 2', 'Core programming concepts')
-        ON CONFLICT DO NOTHING
-      `;
-
-            console.log('✅ Sample data inserted')
-        }
-
-        console.log('🎉 Database migration completed successfully!')
-        console.log('\n📋 Next steps:')
-        console.log('1. Add Cloudinary environment variables')
-        console.log('2. Make a user admin in Clerk dashboard')
-        console.log('3. Start uploading courses and materials!')
-
-    } catch (error) {
-        console.error('❌ Migration failed:', error)
-    }
+  } catch (error) {
+    console.error(' Migration failed:', error)
+  }
 }
 
-migrate()
+migrate();

@@ -1,11 +1,11 @@
 import { db } from "@/config/db";
 import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable } from "@/config/schema";
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export async function GET(request, { params }) {
     try {
-        const { code } = params;
+        const { code } = await params;
 
         // Find course by category/code
         const courses = await db.select().from(coursesTable)
@@ -20,15 +20,18 @@ export async function GET(request, { params }) {
 
         const course = courses[0];
 
-        // Get semesters for this course
+        // Get semesters for this course category
         const semesters = await db.select().from(semestersTable)
-            .where(eq(semestersTable.courseId, course.id));
+            .where(eq(semestersTable.category, course.category));
 
         // Get subjects for each semester
         const semestersWithSubjects = await Promise.all(
             semesters.map(async (semester) => {
                 const subjects = await db.select().from(subjectsTable)
-                    .where(eq(subjectsTable.semesterId, semester.id));
+                    .where(and(
+                        eq(subjectsTable.category, course.category),
+                        eq(subjectsTable.semesterName, semester.name)
+                    ));
 
                 // Get study materials for each subject
                 const subjectsWithMaterials = await Promise.all(
@@ -70,7 +73,7 @@ export async function GET(request, { params }) {
         });
 
     } catch (error) {
-        console.error('❌ Error fetching course details:', error);
+        console.error(' Error fetching course details:', error);
         return NextResponse.json({
             success: false,
             error: "Failed to fetch course details",

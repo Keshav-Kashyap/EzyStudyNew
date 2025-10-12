@@ -1,17 +1,29 @@
 import { NextResponse } from "next/server";
 import { db } from "@/config/db";
-import { adminCourses } from '@/config/schema'
+import { adminCourses, usersTable } from '@/config/schema'
 import { eq } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs/server";
 
 export async function GET() {
     try {
         const user = await currentUser();
-
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!user) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
+                error: "Authentication required"
+            }, { status: 401 });
+        }
+
+        // Check if user is admin from database
+        const dbUser = await db.select()
+            .from(usersTable)
+            .where(eq(usersTable.userId, user.id))
+            .limit(1);
+
+        if (!dbUser[0] || dbUser[0].role !== 'admin') {
+            return NextResponse.json({
+                success: false,
+                error: "Admin access required"
             }, { status: 403 });
         }
 
@@ -21,7 +33,7 @@ export async function GET() {
             courses: allCourses
         });
     } catch (error) {
-        console.error("Error fetching courses:", error);
+        console.error("Error fetching admin courses:", error);
         return NextResponse.json({
             success: false,
             error: "Failed to fetch courses"
@@ -32,11 +44,23 @@ export async function GET() {
 export async function POST(request) {
     try {
         const user = await currentUser();
-
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!user) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
+                error: "Authentication required"
+            }, { status: 401 });
+        }
+
+        // Check if user is admin from database
+        const dbUser = await db.select()
+            .from(usersTable)
+            .where(eq(usersTable.userId, user.id))
+            .limit(1);
+
+        if (!dbUser[0] || dbUser[0].role !== 'admin') {
+            return NextResponse.json({
+                success: false,
+                error: "Admin access required"
             }, { status: 403 });
         }
 
@@ -75,14 +99,29 @@ export async function POST(request) {
     }
 }
 
+
+
+
 export async function DELETE(request) {
     try {
         const user = await currentUser();
-
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!user) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
+                error: "Authentication required"
+            }, { status: 401 });
+        }
+
+        // Check if user is admin from database
+        const dbUser = await db.select()
+            .from(usersTable)
+            .where(eq(usersTable.userId, user.id))
+            .limit(1);
+
+        if (!dbUser[0] || dbUser[0].role !== 'admin') {
+            return NextResponse.json({
+                success: false,
+                error: "Admin access required"
             }, { status: 403 });
         }
 
@@ -110,3 +149,4 @@ export async function DELETE(request) {
         }, { status: 500 });
     }
 }
+

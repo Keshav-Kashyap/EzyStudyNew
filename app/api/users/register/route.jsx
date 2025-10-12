@@ -1,0 +1,63 @@
+import { NextResponse } from "next/server";
+import { db } from "@/config/db";
+import { usersTable } from "@/config/schema";
+import { currentUser } from "@clerk/nextjs/server";
+import { eq } from "drizzle-orm";
+
+export async function POST() {
+    try {
+        const user = await currentUser();
+
+        if (!user) {
+            return NextResponse.json({
+                success: false,
+                error: "Not logged in"
+            }, { status: 401 });
+        }
+
+        // Check if user already exists
+        const existingUser = await db.select()
+            .from(usersTable)
+            .where(eq(usersTable.userId, user.id))
+            .limit(1);
+
+        if (existingUser.length > 0) {
+            return NextResponse.json({
+                success: true,
+                message: "User already exists",
+                user: existingUser[0],
+                isNew: false
+            });
+        }
+
+        // Create new user in database
+        const newUser = await db.insert(usersTable).values({
+            userId: user.id,
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User',
+            email: user.emailAddresses?.[0]?.emailAddress || '',
+            role: 'student', // Default role
+            isActive: true,
+            credits: 10 // Default credits
+        }).returning();
+
+        console.log('New user created in database:', {
+            userId: user.id,
+            email: user.emailAddresses?.[0]?.emailAddress,
+            name: newUser[0].name
+        });
+
+        return NextResponse.json({
+            success: true,
+            message: "User created successfully",
+            user: newUser[0],
+            isNew: true
+        });
+
+    } catch (error) {
+        console.error(' Error creating user:', error);
+        return NextResponse.json({
+            success: false,
+            error: error.message
+        }, { status: 500 });
+    }
+}
