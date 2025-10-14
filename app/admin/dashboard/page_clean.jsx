@@ -175,11 +175,11 @@ export default function AdminDashboard() {
                         <div className="space-y-4">
                             {recentActivity.length > 0 ? (
                                 recentActivity.map((activity, index) => (
-                                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-[rgb(45,45,44)]/50">
                                         <div className="flex items-center gap-3">
                                             <div className={`p-2 rounded-full ${activity.type === 'upload' ? 'bg-blue-100 text-blue-600' :
-                                                    activity.type === 'user' ? 'bg-green-100 text-green-600' :
-                                                        'bg-purple-100 text-purple-600'
+                                                activity.type === 'user' ? 'bg-green-100 text-green-600' :
+                                                    'bg-purple-100 text-purple-600'
                                                 }`}>
                                                 {activity.type === 'upload' && <Upload className="h-4 w-4" />}
                                                 {activity.type === 'user' && <Users className="h-4 w-4" />}

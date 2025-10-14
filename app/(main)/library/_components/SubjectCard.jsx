@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 const SubjectCard = ({ subject, onDownload }) => {
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-[rgb(24,24,24)] rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow">
             <div className="mb-4">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                     {subject.name}
@@ -20,12 +20,12 @@ const SubjectCard = ({ subject, onDownload }) => {
             </div>
 
             {/* Materials List */}
-            <div className="space-y-3">
+            <div className="space-y-3  ">
                 {subject.materials && subject.materials.length > 0 ? (
                     subject.materials.map((material) => (
                         <div
                             key={material.id}
-                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                            className="flex items-center flex-wrap justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
                         >
                             <div className="flex-1">
                                 <p className="font-medium text-gray-900 dark:text-white">

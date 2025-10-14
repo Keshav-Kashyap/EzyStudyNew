@@ -40,7 +40,7 @@ const CoursesCard = ({ courses, viewMode, searchQuery, isAdmin = false, baseRout
                     {filteredCourses.map((course) => (
                         <Card
                             key={course.id}
-                            className="group overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] shadow-lg border bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
+                            className="group overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] shadow-lg border bg-white dark:bg-[rgb(24,24,24)]/50 border-gray-200 dark:border-gray-700"
                         >
                             {/* Course Header */}
                             <div className="relative h-44 overflow-hidden">
@@ -112,20 +112,20 @@ const CoursesCard = ({ courses, viewMode, searchQuery, isAdmin = false, baseRout
                                     {isAdmin ? (
                                         <>
                                             <Link href={`/admin/library/${course.category}`} className="flex-1">
-                                                <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-200">
+                                                <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300">
                                                     <Upload className="h-4 w-4 mr-2" />
                                                     Upload Materials
                                                 </Button>
                                             </Link>
                                             <Link href={`/ admin / courses / ${course.category} /edit`} className="w-auto">
-                                                <Button variant="outline" className="px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-200">
+                                                <Button variant="outline" className="px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300">
                                                     <Settings className="h-4 w-4" />
                                                 </Button>
                                             </Link>
                                         </>
                                     ) : (
                                         <Link href={`${baseRoute}/${course.category}`} className="w-full">
-                                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-200">
+                                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300">
                                                 Start Learning
                                             </Button>
                                         </Link>

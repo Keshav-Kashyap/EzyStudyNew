@@ -6,8 +6,14 @@ import { adminMenuItems, adminbottomMenuItems } from '@/services/constant'
 const DashboardProvider = ({ children }) => {
     return (
         <SidebarProvider>
+
+
+
             <div className="flex h-screen w-full  overflow-hidden">
                 {/* Sidebar - Hidden on mobile, collapsed on medium, full on large */}
+
+
+
                 <AppSidebar menuItems={adminMenuItems} bottomMenuItems={adminbottomMenuItems} />
 
                 {/* Main Content Area */}

@@ -113,7 +113,7 @@ export default function AdminLibraryPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center dark:bg-[rgb(38,38,36)] justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Loading library data...</p>
@@ -123,7 +123,7 @@ export default function AdminLibraryPage() {
     }
 
     return (
-        <div className="container mx-auto p-6 space-y-6">
+        <div className="container dark:bg-[rgb(38,38,36)] mx-auto p-6 space-y-6">
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Library Management System</h1>
@@ -190,7 +190,7 @@ export default function AdminLibraryPage() {
             {/* Course Grid - Admin */}
             <div className="mt-8">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Course Management</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Course Management</h2>
                     <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
                         {transformedCourses.length} course{transformedCourses.length !== 1 ? 's' : ''} found
                     </div>

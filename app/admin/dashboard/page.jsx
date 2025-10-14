@@ -112,9 +112,9 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 ">
                 {statCards.map((card, index) => (
-                    <Card key={index}>
+                    <Card key={index} className="dark:hover:bg-[rgb(45,45,44)]">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">
                                 {card.title}
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4">
+                <Card className="col-span-4  dark:hover:bg-[rgb(45,45,44)] ">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <TrendingUp className="h-5 w-5" />
@@ -143,11 +143,11 @@ export default function AdminDashboard() {
                         <div className="space-y-4">
                             {recentActivity.length > 0 ? (
                                 recentActivity.map((activity, index) => (
-                                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-[rgb(50,50,44)]/50">
                                         <div className="flex items-center gap-3">
                                             <div className={`p-2 rounded-full ${activity.type === 'upload' ? 'bg-blue-100 text-blue-600' :
-                                                    activity.type === 'user' ? 'bg-green-100 text-green-600' :
-                                                        'bg-purple-100 text-purple-600'
+                                                activity.type === 'user' ? 'bg-green-100 text-green-600' :
+                                                    'bg-purple-100 text-purple-600'
                                                 }`}>
                                                 {activity.type === 'upload' && <Upload className="h-4 w-4" />}
                                                 {activity.type === 'user' && <Users className="h-4 w-4" />}
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                <Card className="col-span-3">
+                <Card className="col-span-3 dark:hover:bg-[rgb(45,45,44)]">
                     <CardHeader>
                         <CardTitle>Quick Stats</CardTitle>
                     </CardHeader>

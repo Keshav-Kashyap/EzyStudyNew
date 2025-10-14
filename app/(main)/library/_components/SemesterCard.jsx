@@ -27,7 +27,7 @@ const SemesterCard = ({ basePath, semester, code }) => {
         <div
             onClick={() => isActive && router.push(`/${finalBasePath}/${code}/semester/${semester.id}`)}
             className={`
-                group relative bg-white dark:bg-gray-800 rounded-2xl p-6 
+                group relative bg-white dark:bg-[rgb(24,24,24)] rounded-2xl p-6 
                 border-2 transition-all duration-300 overflow-hidden
                 ${isActive
                     ? 'border-blue-200 dark:border-blue-700 hover:shadow-2xl hover:-translate-y-1 cursor-pointer'

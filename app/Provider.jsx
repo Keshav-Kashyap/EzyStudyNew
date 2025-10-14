@@ -27,7 +27,11 @@ const Provider = ({ children }) => {
     return (
         <div>
 
+
+
             <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
+
+
                 {children}
 
             </UserDetailContext.Provider>

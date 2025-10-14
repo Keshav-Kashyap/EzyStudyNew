@@ -147,7 +147,7 @@ export default function CoursesPage() {
 
                                 {/* Stats */}
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
-                                    <div className="flex items-center gap-3 p-4 rounded-xl shadow-md border bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200">
+                                    <div className="flex items-center gap-3 p-4 rounded-xl shadow-md border bg-white dark:bg-[rgb(24,24,24)]/50 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
                                         <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
                                             <BookOpen className="h-5 w-5 text-green-600 dark:text-green-400" />
                                         </div>
@@ -158,7 +158,7 @@ export default function CoursesPage() {
                                             <div className="text-sm text-slate-600 dark:text-slate-400">Courses</div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 p-4 rounded-xl shadow-md border bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200">
+                                    <div className="flex items-center gap-3 p-4 rounded-xl shadow-md border bg-white dark:bg-[rgb(24,24,24)]/50 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
                                         <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                                             <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                         </div>
@@ -169,7 +169,7 @@ export default function CoursesPage() {
                                             <div className="text-sm text-slate-600 dark:text-slate-400">Students</div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 p-4 rounded-xl shadow-md border bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200">
+                                    <div className="flex items-center gap-3 p-4 rounded-xl shadow-md border bg-white dark:bg-[rgb(24,24,24)]/50 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
                                         <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
                                             <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                                         </div>
@@ -192,7 +192,7 @@ export default function CoursesPage() {
                                     placeholder="Search courses, categories, or topics..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-12 h-14 text-lg border shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 border-gray-300 dark:border-gray-600"
+                                    className="pl-12 h-14 text-lg border shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-[rgb(24,24,24)] text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 border-gray-300 dark:border-gray-600"
                                 />
                             </div>
 

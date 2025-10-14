@@ -100,7 +100,7 @@ const SemesterOverview = () => {
 
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 shadow-lg mb-8">
+                <div className="bg-white dark:bg-[rgb(24,24,24)] rounded-2xl p-8 border border-gray-200 dark:border-gray-700 shadow-lg mb-8">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
                         Course Overview
                     </h2>
@@ -120,7 +120,7 @@ const SemesterOverview = () => {
                 </div>
 
                 <div className="mt-12 text-center">
-                    <div className="inline-flex items-center gap-3 px-6 py-3 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 shadow-lg">
+                    <div className="inline-flex items-center gap-3 px-6 py-3 bg-white dark:bg-[rgb(24,24,24)] rounded-full border border-gray-200 dark:border-gray-700 shadow-lg">
                         <Calendar size={20} className="text-blue-600 dark:text-blue-400" />
                         <span className="text-gray-700 dark:text-gray-300 font-medium">
                             Academic Year 2024-25

@@ -6,12 +6,18 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import EzyLoader from './(main)/_components/Loading'
+import { useContext, useEffect } from "react";
+import { UserDetailContext } from "@/context/UserDetailContext";
 
 export default function HeroSectionOne() {
   const { user } = useUser();
+  const { userDetail } = useContext(UserDetailContext);
+
+
 
   const router = useRouter();
+
   const onDashboard = () => {
 
     if (user) {
@@ -22,6 +28,14 @@ export default function HeroSectionOne() {
 
 
 
+  }
+
+
+
+  if (!user) {
+    return (
+      <EzyLoader />
+    )
   }
 
 
