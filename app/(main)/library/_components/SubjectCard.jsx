@@ -4,18 +4,28 @@ import React, { useState, useEffect } from 'react';
 import { Download, ArrowLeft, Loader2 } from 'lucide-react';
 import { useParams } from "next/navigation";
 import Link from 'next/link';
+import SubjectActions from '@/app/admin/library/_components/SubjectActions';
 
-const SubjectCard = ({ subject, onDownload }) => {
+const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
     return (
         <div className="bg-white dark:bg-[rgb(24,24,24)] rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow">
-            <div className="mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    {subject.name}
-                </h3>
-                {subject.code && (
-                    <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                        {subject.code}
-                    </span>
+            <div className="mb-4 flex items-start justify-between gap-2">
+                <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        {subject.name}
+                    </h3>
+                    {subject.code && (
+                        <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                            {subject.code}
+                        </span>
+                    )}
+                </div>
+
+                {/* Admin Actions */}
+                {isAdmin && (
+                    <div className="flex-shrink-0">
+                        <SubjectActions subject={subject} onUpdate={onUpdate} />
+                    </div>
                 )}
             </div>
 

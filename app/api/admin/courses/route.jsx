@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/config/db";
-import { adminCourses, usersTable } from '@/config/schema'
+import { coursesTable, usersTable, semestersTable } from '@/config/schema'
 import { eq } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs/server";
 
@@ -27,7 +27,7 @@ export async function GET() {
             }, { status: 403 });
         }
 
-        const allCourses = await db.select().from(adminCourses);
+        const allCourses = await db.select().from(coursesTable);
         return NextResponse.json({
             success: true,
             courses: allCourses
@@ -64,31 +64,114 @@ export async function POST(request) {
             }, { status: 403 });
         }
 
-        const body = await request.json();
-        const { name, code, description, duration, totalSemesters } = body;
+        // Handle FormData from FormCreateCourse
+        const formData = await request.formData();
+        const title = formData.get('title');
+        const subtitle = formData.get('subtitle');
+        const description = formData.get('description');
+        const category = formData.get('category');
+        const duration = formData.get('duration');
+        const imageFile = formData.get('image');
 
-        if (!name || !code || !duration) {
+        if (!title || !category || !duration) {
             return NextResponse.json({
                 success: false,
-                error: "Name, code, and duration are required"
+                error: "Title, category, and duration are required"
             }, { status: 400 });
         }
 
-        const newCourse = await db.insert(adminCourses).values({
-            name,
-            code: code.toLowerCase(),
-            description,
+        // Check if course already exists
+        const existingCourse = await db.select()
+            .from(coursesTable)
+            .where(eq(coursesTable.category, category.toLowerCase()))
+            .limit(1);
+
+        if (existingCourse.length > 0) {
+            return NextResponse.json({
+                success: false,
+                error: "Course with this category already exists"
+            }, { status: 409 });
+        }
+
+        // Handle image upload to Supabase
+        let imageUrl = null;
+        if (imageFile && imageFile.size > 0) {
+            try {
+                const { createClient } = await import('@supabase/supabase-js');
+                const supabase = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL,
+                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+                );
+
+                const fileExt = imageFile.name.split('.').pop();
+                const fileName = `course-${category.toLowerCase()}-${Date.now()}.${fileExt}`;
+                const filePath = `courses/${fileName}`;
+
+                const arrayBuffer = await imageFile.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
+
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('course-images')
+                    .upload(filePath, buffer, {
+                        contentType: imageFile.type,
+                        upsert: false
+                    });
+
+                if (uploadError) {
+                    console.error('Supabase upload error:', uploadError);
+                } else {
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('course-images')
+                        .getPublicUrl(filePath);
+                    imageUrl = publicUrl;
+                    console.log('✅ Image uploaded successfully:', imageUrl);
+                }
+            } catch (error) {
+                console.error('❌ Error uploading image:', error);
+            }
+        }
+
+        // Create the course
+        const newCourse = await db.insert(coursesTable).values({
+            title: title.trim(),
+            subtitle: subtitle?.trim() || null,
+            description: description?.trim() || null,
+            category: category.toLowerCase(),
             duration: parseInt(duration),
-            totalSemesters: totalSemesters ? parseInt(totalSemesters) : null,
+            image: imageUrl,
             isActive: true,
+            documentsCount: 0,
             createdAt: new Date(),
             updatedAt: new Date()
         }).returning();
 
+        // Automatically create semesters based on duration
+        const courseDuration = parseInt(duration);
+        const totalSemesters = courseDuration * 2; // 2 semesters per year
+        const createdSemesters = [];
+
+        for (let i = 1; i <= totalSemesters; i++) {
+            const semesterName = `Semester ${i}`;
+            const year = Math.ceil(i / 2);
+            const semesterInYear = i % 2 === 1 ? 'First' : 'Second';
+
+            const semester = await db.insert(semestersTable).values({
+                category: category.toLowerCase(),
+                name: semesterName,
+                description: `${semesterInYear} semester of year ${year}`,
+                isActive: true,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }).returning();
+
+            createdSemesters.push(semester[0]);
+        }
+
         return NextResponse.json({
             success: true,
             course: newCourse[0],
-            message: "Course created successfully"
+            semesters: createdSemesters,
+            message: `Course created successfully with ${totalSemesters} semesters!`
         });
     } catch (error) {
         console.error("Error creating course:", error);
@@ -135,7 +218,7 @@ export async function DELETE(request) {
             }, { status: 400 });
         }
 
-        await db.delete(adminCourses).where(eq(adminCourses.id, id));
+        await db.delete(coursesTable).where(eq(coursesTable.id, id));
 
         return NextResponse.json({
             success: true,

@@ -21,7 +21,7 @@ import {
 import { Upload, ImageIcon, Loader2, X } from 'lucide-react'
 import { toast } from 'sonner'
 
-const FormCreateCourse = ({ onClose }) => {
+const FormCreateCourse = ({ onClose, onSuccess }) => {
     const [courseTitle, setCourseTitle] = useState('')
     const [subtitle, setSubtitle] = useState('')
     const [description, setDescription] = useState('')
@@ -113,7 +113,7 @@ const FormCreateCourse = ({ onClose }) => {
             formData.append('fileType', selectedImage.type)
 
             // Upload to Supabase via API
-            const response = await fetch('/api/admin/course', {
+            const response = await fetch('/api/admin/courses', {
                 method: 'POST',
                 body: formData
             })
@@ -130,6 +130,9 @@ const FormCreateCourse = ({ onClose }) => {
                 setCategory('')
                 setSelectedImage(null)
                 setImagePreview('')
+
+                // Call onSuccess callback to refresh data
+                onSuccess?.()
 
                 // Close dialog
                 onClose?.()
@@ -193,23 +196,16 @@ const FormCreateCourse = ({ onClose }) => {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="category" className="text-white">Category *</Label>
-                    <Select value={category} onValueChange={setCategory} disabled={uploading}>
-                        <SelectTrigger className="bg-[#1a1a18] border-[#3a3a38] text-white focus:border-gray-500">
-                            <SelectValue placeholder="Select course category" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#2a2a28] border-[#3a3a38] text-white">
-                            {categories.map((cat) => (
-                                <SelectItem
-                                    key={cat.value}
-                                    value={cat.value}
-                                    className="focus:bg-[#3a3a38] focus:text-white"
-                                >
-                                    {cat.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Label htmlFor="category" className="text-white">Course Code *</Label>
+                    <Input
+                        id="category"
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value.toUpperCase())}
+                        placeholder="e.g., MCA, BCA, BTECH"
+                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                        disabled={uploading}
+                    />
+                    <p className="text-xs text-gray-500">Enter a unique course code (will be auto-converted to uppercase)</p>
                 </div>
 
                 <div className="space-y-2">

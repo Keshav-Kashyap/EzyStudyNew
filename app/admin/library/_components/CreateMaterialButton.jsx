@@ -11,7 +11,7 @@ import FormCreateMaterial from './formCreateMaterail'
 import FormCreateCourse from './FormCreateCourse'
 import FormCreateSemester from './FormCreateSemester'
 import FormCreateSubject from './FormCreateSubject'
-const CreateMaterialButton = ({ formtype, buttonText, icon: IconComponent }) => {
+const CreateMaterialButton = ({ formtype, buttonText, icon: IconComponent, onSuccess }) => {
     console.log("formType", formtype);
     const [isOpen, setIsOpen] = useState(false)
 
@@ -65,10 +65,10 @@ const CreateMaterialButton = ({ formtype, buttonText, icon: IconComponent }) => 
                 </DialogTrigger>
 
                 {/* Render different forms based on formtype */}
-                {formtype === "material" && <FormCreateMaterial onClose={() => setIsOpen(false)} />}
-                {formtype === "course" && <FormCreateCourse onClose={() => setIsOpen(false)} />}
-                {formtype === "semester" && <FormCreateSemester onClose={() => setIsOpen(false)} />}
-                {formtype === "subject" && <FormCreateSubject onClose={() => setIsOpen(false)} />}
+                {formtype === "material" && <FormCreateMaterial onClose={() => setIsOpen(false)} onSuccess={onSuccess} />}
+                {formtype === "course" && <FormCreateCourse onClose={() => setIsOpen(false)} onSuccess={onSuccess} />}
+                {formtype === "semester" && <FormCreateSemester onClose={() => setIsOpen(false)} onSuccess={onSuccess} />}
+                {formtype === "subject" && <FormCreateSubject onClose={() => setIsOpen(false)} onSuccess={onSuccess} />}
             </Dialog>
         </div>
     )

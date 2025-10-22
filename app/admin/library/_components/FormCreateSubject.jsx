@@ -11,34 +11,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-const FormCreateSubject = ({ onClose }) => {
+const FormCreateSubject = ({ onClose, courseId, semesterId }) => {
     const [subjectName, setSubjectName] = useState('')
     const [subjectCode, setSubjectCode] = useState('')
     const [description, setDescription] = useState('')
-    const [courseCategory, setCourseCategory] = useState('')
+    const [credits, setCredits] = useState(4)
     const [uploading, setUploading] = useState(false)
 
-    const categories = [
-        { value: 'mca', label: 'MCA (Master of Computer Applications)' },
-        { value: 'bca', label: 'BCA (Bachelor of Computer Applications)' },
-        { value: 'btech', label: 'B.Tech (Bachelor of Technology)' },
-        { value: 'mtech', label: 'M.Tech (Master of Technology)' },
-        { value: 'bsc', label: 'B.Sc (Bachelor of Science)' },
-        { value: 'msc', label: 'M.Sc (Master of Science)' }
-    ]
-
     const handleSubmit = async () => {
-        // Validation
         if (!subjectName.trim()) {
             toast.error('Please enter subject name')
             return
@@ -49,29 +32,24 @@ const FormCreateSubject = ({ onClose }) => {
             return
         }
 
-        if (!description.trim()) {
-            toast.error('Please enter subject description')
-            return
-        }
-
-        if (!courseCategory) {
-            toast.error('Please select a course category')
+        if (!courseId || !semesterId) {
+            toast.error('Course ID and Semester ID are required')
             return
         }
 
         setUploading(true)
 
         try {
-            // Create request body
             const requestBody = {
+                courseId: courseId,
+                semesterId: semesterId,
                 name: subjectName.trim(),
                 code: subjectCode.trim().toUpperCase(),
-                description: description.trim(),
-                courseCategory: courseCategory
+                description: description.trim() || null,
+                credits: parseInt(credits)
             }
 
-            // Submit to API
-            const response = await fetch('/api/admin/subject', {
+            const response = await fetch('/api/admin/subjects', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -83,19 +61,14 @@ const FormCreateSubject = ({ onClose }) => {
 
             if (result.success) {
                 toast.success('Subject created successfully!')
-
-                // Reset form
                 setSubjectName('')
                 setSubjectCode('')
                 setDescription('')
-                setCourseCategory('')
-
-                // Close dialog
+                setCredits(4)
                 onClose?.()
             } else {
                 throw new Error(result.error || 'Subject creation failed')
             }
-
         } catch (error) {
             console.error('Submit error:', error)
             toast.error(error.message || 'Failed to create subject')
@@ -109,7 +82,7 @@ const FormCreateSubject = ({ onClose }) => {
             <DialogHeader>
                 <DialogTitle className="text-2xl text-white">Create New Subject</DialogTitle>
                 <DialogDescription className="text-gray-400">
-                    Add a new subject with code, description and course category
+                    Add a new subject to this semester
                 </DialogDescription>
             </DialogHeader>
 
@@ -131,46 +104,39 @@ const FormCreateSubject = ({ onClose }) => {
                     <Input
                         id="subject-code"
                         value={subjectCode}
-                        onChange={(e) => setSubjectCode(e.target.value)}
-                        placeholder="e.g., CS101, MATH201, ENG101"
-                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500 uppercase"
+                        onChange={(e) => setSubjectCode(e.target.value.toUpperCase())}
+                        placeholder="e.g., CS101"
+                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
                         disabled={uploading}
                     />
-                    <p className="text-xs text-gray-500">Unique code to identify this subject</p>
+                    <p className="text-xs text-gray-500">Unique code for this subject</p>
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="description" className="text-white">Description *</Label>
+                    <Label htmlFor="credits" className="text-white">Credits *</Label>
+                    <Input
+                        id="credits"
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={credits}
+                        onChange={(e) => setCredits(parseInt(e.target.value) || 1)}
+                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                        disabled={uploading}
+                    />
+                    <p className="text-xs text-gray-500">Number of credits (1-10)</p>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="description" className="text-white">Description</Label>
                     <Textarea
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Enter subject description and overview..."
+                        placeholder="Enter subject description (optional)..."
                         className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500 min-h-[120px] resize-none"
                         disabled={uploading}
                     />
-                    <p className="text-xs text-gray-500">Provide details about what this subject covers</p>
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="course-category" className="text-white">Course Category *</Label>
-                    <Select value={courseCategory} onValueChange={setCourseCategory} disabled={uploading}>
-                        <SelectTrigger className="bg-[#1a1a18] border-[#3a3a38] text-white focus:border-gray-500">
-                            <SelectValue placeholder="Select course category" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#2a2a28] border-[#3a3a38] text-white">
-                            {categories.map((cat) => (
-                                <SelectItem
-                                    key={cat.value}
-                                    value={cat.value}
-                                    className="focus:bg-[#3a3a38] focus:text-white"
-                                >
-                                    {cat.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <p className="text-xs text-gray-500">Select which course this subject belongs to</p>
                 </div>
 
                 <div className="flex gap-3 pt-4">
@@ -185,7 +151,7 @@ const FormCreateSubject = ({ onClose }) => {
                     <Button
                         className="flex-1 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
                         onClick={handleSubmit}
-                        disabled={uploading || !subjectName.trim() || !subjectCode.trim() || !description.trim() || !courseCategory}
+                        disabled={uploading || !subjectName.trim() || !subjectCode.trim() || !courseId || !semesterId}
                     >
                         {uploading ? (
                             <>

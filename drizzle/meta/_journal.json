@@ -36,6 +36,13 @@
       "when": 1760170461067,
       "tag": "0004_previous_wolverine",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1760692303489,
+      "tag": "0005_curly_the_hunter",
+      "breakpoints": true
     }
   ]
 }

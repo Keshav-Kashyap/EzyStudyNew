@@ -80,6 +80,24 @@ export const menuItems = [
         isActive: true,
     },
     {
+        title: "Popular Notes",
+        icon: "TrendingUp",
+        href: "/dashboard/popular",
+    },
+    {
+        title: "All Courses",
+        icon: "BookOpen",
+        href: "/dashboard/allCourses",
+    },
+
+
+
+];
+
+
+export const LibraryItems = [
+
+    {
         title: "MCA Library",
         icon: "Code",
         href: "/library/mca",
@@ -94,17 +112,13 @@ export const menuItems = [
         icon: "Cpu",
         href: "/library/btech",
     },
-    {
-        title: "General Library",
-        icon: "BookOpen",
-        href: "/general-library",
-    },
-    {
-        title: "Study Materials",
-        icon: "GraduationCap",
-        href: "/study-materials",
-    },
+
+
 ];
+
+
+
+
 
 export const adminMenuItems = [
     {
@@ -117,6 +131,11 @@ export const adminMenuItems = [
         title: "Library Manager",
         icon: "Upload",
         href: "/admin/library",
+    },
+    {
+        title: "Popular Notes",
+        icon: "TrendingUp",
+        href: "/admin/popularNotes",
     },
     {
         title: "Analytics",
@@ -139,7 +158,7 @@ export const bottomMenuItems = [
     {
         title: 'Settings',
         icon: "Settings",
-        href: '/settings'
+        // No href - opens UserProfile dialog
     },
     {
         title: 'Billing',
@@ -162,7 +181,7 @@ export const adminbottomMenuItems = [
     {
         title: 'Settings',
         icon: "Settings",
-        href: '/settings'
+        // No href - opens UserProfile dialog
     },
     {
         title: 'Billing',

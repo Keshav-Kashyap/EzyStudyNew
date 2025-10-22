@@ -19,27 +19,32 @@ const SemesterOverview = () => {
     const isAdmin = userDetail?.role === "admin";
     // console.log(user);
 
-    useEffect(() => {
-        const fetchCourseData = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch(`/api/courses/${code}`);
-                const data = await response.json();
+    const handleUpdate = () => {
+        // Refetch the data after update/delete
+        fetchCourseData();
+    };
+
+    const fetchCourseData = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`/api/courses/${code}`);
+            const data = await response.json();
 
 
-                if (data.success) {
-                    setCourseData(data.course);
-                } else {
-                    throw new Error(data.error || 'Failed to fetch course data');
-                }
-            } catch (err) {
-                console.error('Error fetching course data:', err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
+            if (data.success) {
+                setCourseData(data.course);
+            } else {
+                throw new Error(data.error || 'Failed to fetch course data');
             }
-        };
+        } catch (err) {
+            console.error('Error fetching course data:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         if (code) {
             fetchCourseData();
         }
@@ -115,6 +120,8 @@ const SemesterOverview = () => {
                             key={semester.id}
                             semester={semester}
                             code={code}
+                            isAdmin={isAdmin}
+                            onUpdate={handleUpdate}
                         />
                     ))}
                 </div>

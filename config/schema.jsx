@@ -20,11 +20,11 @@ export const coursesTable = pgTable("courses", {
     subtitle: varchar({ length: 255 }),
     description: text(),
     category: varchar({ length: 100 }).notNull(),
+    duration: integer().default(3), // Duration in years (e.g., 3 for BCA)
     image: varchar({ length: 255 }),
     bgColor: varchar({ length: 100 }),
     isActive: boolean().default(true),
     documentsCount: integer().default(0),
-    studentsCount: integer().default(0),
     createdAt: timestamp().defaultNow(),
     updatedAt: timestamp().defaultNow()
 });
@@ -62,6 +62,8 @@ export const studyMaterialsTable = pgTable("study_materials", {
     fileUrl: varchar({ length: 500 }),
     description: text(),
     tags: text(), // JSON array as text
+    likes: integer("likes").default(0),
+    imageUrl: text(),
     downloadCount: integer().default(0),
     isActive: boolean().default(true),
     createdAt: timestamp().defaultNow(),
@@ -85,63 +87,20 @@ export const downloadsTable = pgTable("downloads", {
     downloadedAt: timestamp().defaultNow()
 });
 
-// New Enhanced Tables for Admin System
-
-// Enhanced Courses Table (for new admin system)
-export const adminCourses = pgTable("admin_courses", {
+// Notifications Table
+export const notificationsTable = pgTable("notifications", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    name: varchar({ length: 255 }).notNull(),
-    code: varchar({ length: 50 }).notNull().unique(),
-    description: text(),
-    duration: integer().notNull(), // in years
-    totalSemesters: integer(),
-    isActive: boolean().default(true),
-    createdAt: timestamp().defaultNow(),
-    updatedAt: timestamp().defaultNow()
-});
-
-// Enhanced Semesters Table (for new admin system)
-export const adminSemesters = pgTable("admin_semesters", {
-    id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    courseId: integer().references(() => adminCourses.id),
-    name: varchar({ length: 100 }).notNull(),
-    semesterNumber: integer().notNull(),
-    description: text(),
-    isActive: boolean().default(true),
-    createdAt: timestamp().defaultNow(),
-    updatedAt: timestamp().defaultNow()
-});
-
-// Enhanced Subjects Table (for new admin system)  
-export const adminSubjects = pgTable("admin_subjects", {
-    id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    courseId: integer().references(() => adminCourses.id),
-    semesterId: integer().references(() => adminSemesters.id),
-    name: varchar({ length: 255 }).notNull(),
-    code: varchar({ length: 50 }).notNull(),
-    description: text(),
-    credits: integer().notNull(),
-    isActive: boolean().default(true),
-    createdAt: timestamp().defaultNow(),
-    updatedAt: timestamp().defaultNow()
-});
-
-// Enhanced Materials Table (for new admin system)
-export const adminMaterials = pgTable("admin_materials", {
-    id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    courseId: integer().references(() => adminCourses.id),
-    semesterId: integer().references(() => adminSemesters.id),
-    subjectId: integer().references(() => adminSubjects.id),
+    userId: integer().references(() => usersTable.id), // null means notification for all users
+    type: varchar({ length: 50 }).notNull(), // 'course_created', 'semester_created', 'subject_created', 'material_uploaded'
     title: varchar({ length: 255 }).notNull(),
-    description: text(),
-    materialType: varchar({ length: 50 }).notNull(), // notes, assignment, book, presentation, video
-    fileUrl: varchar({ length: 500 }), // Supabase public URL
-    fileName: varchar({ length: 255 }), // Supabase file path for deletion
-    fileSize: integer(), // in bytes
-    fileType: varchar({ length: 50 }), // MIME type
-    downloadCount: integer().default(0),
-    isActive: boolean().default(true),
-    createdAt: timestamp().defaultNow(),
-    updatedAt: timestamp().defaultNow()
+    message: text().notNull(),
+    courseCode: varchar({ length: 50 }),
+    courseName: varchar({ length: 255 }),
+    semesterName: varchar({ length: 100 }),
+    subjectName: varchar({ length: 255 }),
+    materialTitle: varchar({ length: 255 }),
+    actionUrl: varchar({ length: 500 }), // URL to navigate when clicked
+    isRead: boolean().default(false),
+    createdAt: timestamp().defaultNow()
 });
 

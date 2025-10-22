@@ -4,6 +4,8 @@ import { useUser } from '@clerk/nextjs'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { UserDetailContext } from '../context/UserDetailContext'
+import { NotificationProvider } from '../context/NotificationContext'
+
 const Provider = ({ children }) => {
 
     const { user } = useUser();
@@ -26,18 +28,11 @@ const Provider = ({ children }) => {
 
     return (
         <div>
-
-
-
             <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
-
-
-                {children}
-
+                <NotificationProvider>
+                    {children}
+                </NotificationProvider>
             </UserDetailContext.Provider>
-
-
-
         </div>
     )
 }

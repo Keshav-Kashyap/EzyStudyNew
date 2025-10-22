@@ -9,7 +9,7 @@ import { menuItems, bottomMenuItems } from '../../services/constant'
 
 const DashboardProvider = ({ children }) => {
     return (
-        <SidebarProvider>
+        <SidebarProvider defaultOpen={false}>
             <div className="flex h-screen w-full overflow-hidden">
                 {/* Sidebar */}
                 <AppSidebar menuItems={menuItems} bottomMenuItems={bottomMenuItems} />
@@ -21,7 +21,7 @@ const DashboardProvider = ({ children }) => {
 
                     {/* Scrollable Content Area */}
                     <main className="flex-1 overflow-y-auto bg-white dark:bg-[rgb(38,38,36)]">
-                        <div className="w-full h-full">
+                        <div className="w-full">
                             <div className="p-4 md:p-6 w-full">
                                 <WelcomeContainer />
                             </div>

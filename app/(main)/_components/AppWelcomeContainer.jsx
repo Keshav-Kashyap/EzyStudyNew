@@ -5,6 +5,9 @@ import { useUser } from '@clerk/nextjs';
 import { UserDetailContext } from '@/context/UserDetailContext';
 import EzyLoader from './Loading'
 
+
+import WelcomeSkeletion from './skeletons/WelcomeSkeletion'
+
 const WelcomeContainer = () => {
     const { userDetail } = useContext(UserDetailContext);
     const currentDate = new Date();
@@ -32,7 +35,7 @@ const WelcomeContainer = () => {
     };
 
     if (!userDetail) {
-        return <EzyLoader />;
+        return <WelcomeSkeletion />;
     }
 
     return (

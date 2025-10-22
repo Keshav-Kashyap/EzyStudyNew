@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { useTheme } from 'next-themes';
+import GlobalSearchDialog from './GlobalSearchDialog';
 
 import {
     Search,
@@ -14,6 +15,7 @@ import {
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { UserButton, useUser } from '@clerk/nextjs';
 import { UserDetailContext } from '@/context/UserDetailContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const Navbar = () => {
@@ -23,6 +25,7 @@ const Navbar = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showNotifications, setShowNotifications] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
+    const [showSearchDialog, setShowSearchDialog] = useState(false);
     const [mounted, setMounted] = useState(false);
     const { theme, setTheme } = useTheme();
 
@@ -73,23 +76,31 @@ const Navbar = () => {
                 </div>
 
                 <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-                    EduPortal
+                    EzyLearn
                 </h1>
             </div>
 
             {/* Center - Search Bar */}
             <div className="flex-1 max-w-[120px] md:max-w-md mx-2 md:mx-8">
                 <div className="relative w-full">
-                    <Search className="absolute left-2 md:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
+                    <Search className="absolute left-2 md:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" size={16} />
                     <input
                         type="text"
                         placeholder="Search..."
                         value={searchQuery}
+                        onFocus={() => setShowSearchDialog(true)}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 md:pl-10 pr-2 md:pr-4 py-1.5 md:py-2 rounded-lg bg-gray-50 dark:bg-[#30302E] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs md:text-sm"
+                        className="w-full pl-8 md:pl-10 pr-2 md:pr-4 py-1.5 md:py-2 rounded-lg bg-gray-50 dark:bg-[#30302E] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs md:text-sm cursor-pointer"
+                        readOnly
                     />
                 </div>
             </div>
+
+            {/* Global Search Dialog */}
+            <GlobalSearchDialog
+                isOpen={showSearchDialog}
+                onClose={() => setShowSearchDialog(false)}
+            />
 
             {/* Right Side - Theme Toggle, Notifications & Profile */}
             <div className="flex items-center gap-1 md:gap-2">
@@ -136,7 +147,7 @@ const Navbar = () => {
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">1 day ago</p>
                                 </div>
                                 <div className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-                                    <p className="text-sm text-gray-900 dark:text-white">Welcome to EduPortal!</p>
+                                    <p className="text-sm text-gray-900 dark:text-white">Welcome to EzyLearn!</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">3 days ago</p>
                                 </div>
                             </div>
@@ -150,12 +161,29 @@ const Navbar = () => {
                         className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[rgb(45,45,44)] transition-colors duration-300 ease-in-out"
                         onClick={() => setShowProfile(!showProfile)}
                     >
-                        <UserButton />
+                        <UserButton
+                            appearance={{
+                                baseTheme: undefined,
+                                elements: {
+                                    avatarBox: "border-2 border-transparent",
+                                },
+                                variables: {
+                                    colorPrimary: "black",   // default for light mode
+                                },
+                            }}
+                            afterSignOutUrl="/"
+                        />
 
                         {/* Name hidden on mobile, visible on md and up */}
-                        <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-200">
-                            {userDetail?.name}
-                        </span>
+                        {userDetail === undefined ? (
+                            <div className="hidden md:block">
+                                <Skeleton className="h-4 w-20 rounded-md" />
+                            </div>
+                        ) : (
+                            <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                {userDetail?.name}
+                            </span>
+                        )}
                     </button>
                 </div>
 

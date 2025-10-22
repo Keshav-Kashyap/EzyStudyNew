@@ -1,5 +1,5 @@
 import { db } from "@/config/db";
-import { adminSubjects, adminSemesters, adminCourses } from "@/config/schema";
+import { subjectsTable, semestersTable, coursesTable } from "@/config/schema";
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
@@ -16,7 +16,7 @@ export async function GET() {
             }, { status: 403 });
         }
 
-        const allSubjects = await db.select().from(adminSubjects);
+        const allSubjects = await db.select().from(subjectsTable);
         return NextResponse.json({
             success: true,
             subjects: allSubjects
@@ -44,24 +44,23 @@ export async function POST(request) {
 
         const body = await request.json();
         const {
-            courseId,
-            semesterId,
+            category,
+            semesterName,
             name,
             code,
-            description,
-            credits
+            description
         } = body;
 
-        if (!courseId || !semesterId || !name || !code || !credits) {
+        if (!category || !semesterName || !name || !code) {
             return NextResponse.json({
                 success: false,
-                error: "Course ID, semester ID, name, code, and credits are required"
+                error: "Category, semester name, name, and code are required"
             }, { status: 400 });
         }
 
         // Verify semester exists
-        const semester = await db.select().from(adminSemesters)
-            .where(eq(adminSemesters.id, parseInt(semesterId)));
+        const semester = await db.select().from(semestersTable)
+            .where(eq(semestersTable.name, semesterName));
 
         if (semester.length === 0) {
             return NextResponse.json({
@@ -71,13 +70,12 @@ export async function POST(request) {
         }
 
         // Create new subject
-        const newSubject = await db.insert(adminSubjects).values({
-            courseId: parseInt(courseId),
-            semesterId: parseInt(semesterId),
+        const newSubject = await db.insert(subjectsTable).values({
+            category,
+            semesterName,
             name,
             code: code.toUpperCase(),
             description: description || `Comprehensive study of ${name}`,
-            credits: parseInt(credits),
             isActive: true,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -121,7 +119,7 @@ export async function DELETE(request) {
             }, { status: 400 });
         }
 
-        await db.delete(adminSubjects).where(eq(adminSubjects.id, parseInt(id)));
+        await db.delete(subjectsTable).where(eq(subjectsTable.id, parseInt(id)));
 
         return NextResponse.json({
             success: true,

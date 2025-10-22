@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/config/db";
-import { adminSemesters } from "@/config/schema";
+import { semestersTable } from "@/config/schema";
 import { eq } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs/server";
 
@@ -15,7 +15,7 @@ export async function GET() {
             }, { status: 403 });
         }
 
-        const allSemesters = await db.select().from(adminSemesters);
+        const allSemesters = await db.select().from(semestersTable);
         return NextResponse.json({
             success: true,
             semesters: allSemesters
@@ -41,19 +41,18 @@ export async function POST(request) {
         }
 
         const body = await request.json();
-        const { name, courseId, semesterNumber, description } = body;
+        const { name, category, description } = body;
 
-        if (!name || !courseId || !semesterNumber) {
+        if (!name || !category) {
             return NextResponse.json({
                 success: false,
-                error: "Name, course ID, and semester number are required"
+                error: "Name and category are required"
             }, { status: 400 });
         }
 
-        const newSemester = await db.insert(adminSemesters).values({
+        const newSemester = await db.insert(semestersTable).values({
             name,
-            courseId: parseInt(courseId),
-            semesterNumber: parseInt(semesterNumber),
+            category,
             description,
             isActive: true,
             createdAt: new Date(),
@@ -95,7 +94,7 @@ export async function DELETE(request) {
             }, { status: 400 });
         }
 
-        await db.delete(adminSemesters).where(eq(adminSemesters.id, parseInt(id)));
+        await db.delete(semestersTable).where(eq(semestersTable.id, parseInt(id)));
 
         return NextResponse.json({
             success: true,

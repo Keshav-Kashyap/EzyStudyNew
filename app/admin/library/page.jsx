@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Filter, Grid, List } from "lucide-react";
 import CreateCourseForm from "./_components/CreateNewCourse";
 import StatsCards from "./_components/StatusCards";
-import CoursesCard from "../../(main)/_components/CoursesCard";
+import CoursesCard from "../../(main)/dashboard/allCourses/_components/CoursesCard";
 
 export default function AdminLibraryPage() {
     const [courses, setCourses] = useState([]);
@@ -23,57 +23,31 @@ export default function AdminLibraryPage() {
 
     const fetchData = async () => {
         try {
-            // Fetch admin courses
-            const adminCoursesRes = await fetch("/api/admin/courses");
-            const adminCoursesData = await adminCoursesRes.json();
-            console.log("Admin courses data:", adminCoursesData);
+            // Fetch only admin courses (main courses table)
+            const coursesRes = await fetch("/api/admin/courses");
+            const coursesData = await coursesRes.json();
+            console.log("Courses data:", coursesData);
 
-            // Fetch user courses (for display purposes)
-            const userCoursesRes = await fetch("/api/courses");
-            const userCoursesData = await userCoursesRes.json();
-            console.log("User courses data:", userCoursesData);
-
-            // Combine both admin and user courses
-            let allCourses = [];
-            if (adminCoursesData.success && adminCoursesData.courses) {
-                allCourses = [...allCourses, ...adminCoursesData.courses];
+            if (coursesData.success && coursesData.courses) {
+                setCourses(coursesData.courses);
             }
-            if (userCoursesData.success && userCoursesData.courses) {
-                // Transform user courses to match admin format
-                const transformedUserCourses = userCoursesData.courses.map(course => ({
-                    id: `user_${course.id}`, // Add prefix to avoid ID conflicts
-                    name: course.title,
-                    code: course.category,
-                    description: course.description,
-                    category: course.category,
-                    duration: course.category === 'MCA' ? 2 : course.category === 'BCA' ? 3 : 4,
-                    totalSemesters: course.semesters || 0,
-                    isActive: course.isActive,
-                    createdAt: course.createdAt,
-                    updatedAt: course.updatedAt,
-                    isUserCourse: true // Flag to identify user courses
-                }));
-                allCourses = [...allCourses, ...transformedUserCourses];
-            }
-
-            setCourses(allCourses);
 
             // Fetch semesters
             const semestersRes = await fetch("/api/admin/semesters");
             const semestersData = await semestersRes.json();
-            console.log("Admin semesters data:", semestersData);
+            console.log("Semesters data:", semestersData);
             if (semestersData.success) setSemesters(semestersData.semesters || []);
 
             // Fetch subjects
             const subjectsRes = await fetch("/api/admin/subjects");
             const subjectsData = await subjectsRes.json();
-            console.log("Admin subjects data:", subjectsData);
+            console.log("Subjects data:", subjectsData);
             if (subjectsData.success) setSubjects(subjectsData.subjects || []);
 
-            // Fetch materials
-            const materialsRes = await fetch("/api/admin/materials");
+            // Fetch materials from main API
+            const materialsRes = await fetch("/api/materials");
             const materialsData = await materialsRes.json();
-            console.log("Admin materials data:", materialsData);
+            console.log("Materials data:", materialsData);
             if (materialsData.success) setMaterials(materialsData.materials || []);
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -95,17 +69,17 @@ export default function AdminLibraryPage() {
     // Transform courses data to match CoursesCard format
     const transformedCourses = courses.map(course => ({
         id: course.id,
-        title: course.category || course.name || course.title,
-        subtitle: course.name || course.title,
+        title: course.title || course.name,
+        subtitle: course.subtitle || course.description?.substring(0, 100),
         description: course.description || "Course management and material upload.",
-        category: course.category || course.code || 'General',
-        documents: materials.filter(m => m.courseId === course.id).length || 0,
-        students: course.isUserCourse ? `${Math.floor(Math.random() * 500)}+` : `${Math.floor(Math.random() * 100)}+`,
-        semesters: course.totalSemesters || semesters.filter(s => s.category === course.category).length || 0,
-        duration: course.duration ? `${course.duration} Year${course.duration > 1 ? 's' : ''}` : '1 Year',
-        image: getDefaultImage(course.category || course.code || 'General'),
+        category: course.category,
+        documents: materials.filter(m => m.subjectId && subjects.find(s => s.category === course.category)).length || 0,
+        students: `${Math.floor(Math.random() * 500) + 100}+`,
+        semesters: semesters.filter(s => s.category === course.category).length || 0,
+        duration: course.category === 'mca' ? '2 Years' : course.category === 'bca' ? '3 Years' : '4 Years',
+        image: getDefaultImage(course.category || 'General'),
         bgColor: 'bg-blue-500',
-        isUserCourse: course.isUserCourse || false
+        isUserCourse: false
     }));
 
     // Function to get default images based on category
@@ -129,7 +103,7 @@ export default function AdminLibraryPage() {
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Library Management System</h1>
                     <p className="text-gray-600 mt-2 ">Complete course, semester, subject & material management</p>
                 </div>
-
+                <CreateCourseForm onCourseCreated={fetchData} />
             </div>
 
             <StatsCards
@@ -200,7 +174,8 @@ export default function AdminLibraryPage() {
                     viewMode={viewMode}
                     searchQuery={searchQuery}
                     isAdmin={true}
-                    baseRoute="/admin/courses"
+                    baseRoute="/admin/library"
+                    onUpdate={fetchData}
                 />
             </div>
         </div>

@@ -1,12 +1,15 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BookOpen, FileText, Download, Calendar, ArrowLeft, ExternalLink, Loader2 } from 'lucide-react';
 import { useParams, useRouter } from "next/navigation";
 import Link from 'next/link';
 import SubjectCard from './SubjectCard'
+import { UserDetailContext } from '@/context/UserDetailContext';
 
 
 const SemesterDetail = ({ basePath }) => {
+    const { userDetail } = useContext(UserDetailContext);
+    const isAdmin = userDetail?.role === "admin";
 
     console.log("base path:", basePath);
 
@@ -15,26 +18,31 @@ const SemesterDetail = ({ basePath }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchSemesterData = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch(`/api/courses/${code}/semester/${semesterId}`);
-                const data = await response.json();
+    const handleUpdate = () => {
+        // Refetch the data after update/delete
+        fetchSemesterData();
+    };
 
-                if (data.success) {
-                    setSemesterData(data.semester);
-                } else {
-                    throw new Error(data.error || 'Failed to fetch semester data');
-                }
-            } catch (err) {
-                console.error('Error fetching semester data:', err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
+    const fetchSemesterData = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`/api/courses/${code}/semester/${semesterId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                setSemesterData(data.semester);
+            } else {
+                throw new Error(data.error || 'Failed to fetch semester data');
             }
-        };
+        } catch (err) {
+            console.error('Error fetching semester data:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         if (code && semesterId) {
             fetchSemesterData();
         }
@@ -106,6 +114,8 @@ const SemesterDetail = ({ basePath }) => {
                             subject={subject}
                             base={basePath || 'library'}
                             onDownload={handleDownload}
+                            isAdmin={isAdmin}
+                            onUpdate={handleUpdate}
                         />
                     ))}
                 </div>

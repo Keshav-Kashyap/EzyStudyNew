@@ -5,8 +5,9 @@ import { BookOpen, FileText, ChevronRight, Lock } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { UserDetailContext } from '@/context/UserDetailContext';
+import SemesterActions from '@/app/admin/library/_components/SemesterActions';
 
-const SemesterCard = ({ basePath, semester, code }) => {
+const SemesterCard = ({ basePath, semester, code, isAdmin, onUpdate }) => {
     const router = useRouter();
     const { userDetail } = useContext(UserDetailContext);
     const isActive = semester.isActive;
@@ -83,23 +84,32 @@ const SemesterCard = ({ basePath, semester, code }) => {
                     </div>
                 </div>
 
-                {isActive ? (
-                    <Link
-                        href={`/${finalBasePath}/${code}/semester/${semester.id}`}
-                        className="flex items-center justify-between w-full px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all duration-300 group-hover:shadow-lg no-underline"
-                    >
-                        <span>View Materials</span>
-                        <ChevronRight size={20} className="transition-transform group-hover:translate-x-1" />
-                    </Link>
-                ) : (
-                    <button
-                        disabled
-                        className="flex items-center justify-between w-full px-5 py-3 bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-xl font-medium cursor-not-allowed"
-                    >
-                        <span>Coming Soon</span>
-                        <Lock size={18} />
-                    </button>
-                )}
+                <div className="flex items-center gap-2">
+                    {isActive ? (
+                        <Link
+                            href={`/${finalBasePath}/${code}/semester/${semester.id}`}
+                            className="flex-1 flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all duration-300 group-hover:shadow-lg no-underline"
+                        >
+                            <span>View Materials</span>
+                            <ChevronRight size={20} className="transition-transform group-hover:translate-x-1" />
+                        </Link>
+                    ) : (
+                        <button
+                            disabled
+                            className="flex-1 flex items-center justify-between px-5 py-3 bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-xl font-medium cursor-not-allowed"
+                        >
+                            <span>Coming Soon</span>
+                            <Lock size={18} />
+                        </button>
+                    )}
+
+                    {/* Admin Actions */}
+                    {isAdmin && (
+                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <SemesterActions semester={semester} onUpdate={onUpdate} />
+                        </div>
+                    )}
+                </div>
             </div>
 
             {isActive && (
