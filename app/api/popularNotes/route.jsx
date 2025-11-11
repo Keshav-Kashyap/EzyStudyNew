@@ -3,7 +3,10 @@ import { db } from "@/config/db";
 import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable } from "@/config/schema";
 import { NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
+<<<<<<< HEAD
 
+=======
+>>>>>>> f9fb03752a3e7f7ce48d0e4f077714e5ccf47286
 
 export async function GET() {
 
