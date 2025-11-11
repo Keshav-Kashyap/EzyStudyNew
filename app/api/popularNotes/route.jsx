@@ -3,7 +3,7 @@ import { db } from "@/config/db";
 import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable } from "@/config/schema";
 import { NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
-import { response } from "express";
+
 
 export async function GET() {
 
