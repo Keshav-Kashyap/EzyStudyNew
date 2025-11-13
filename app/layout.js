@@ -32,6 +32,7 @@ export const metadata = generateSeoMetadata({
   title: siteConfig.title,
   description: siteConfig.description,
   url: "/",
+  keywords: siteConfig.keywords,
 });
 
 export default function RootLayout({ children }) {
@@ -45,6 +46,13 @@ export default function RootLayout({ children }) {
           <link rel="manifest" href="/site.webmanifest" />
           <meta name="theme-color" content="#3b82f6" />
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+          <meta name="google-site-verification" content="your-verification-code" />
+          <meta name="application-name" content="Ezy Learn" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="apple-mobile-web-app-title" content="Ezy Learn" />
+          <meta name="format-detection" content="telephone=no" />
+          <meta name="mobile-web-app-capable" content="yes" />
         </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}

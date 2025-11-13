@@ -3,12 +3,19 @@
 import { UserButton, useUser } from "@clerk/nextjs";
 import { motion } from "motion/react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import EzyLoader from './(main)/_components/Loading'
 import { useContext, useEffect, useState } from "react";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import JsonLd from '@/components/JsonLd';
-import { generateOrganizationJsonLd, generateBreadcrumbJsonLd, siteConfig } from '@/lib/seo-config';
+import { 
+  generateOrganizationJsonLd, 
+  generateBreadcrumbJsonLd, 
+  generateWebsiteJsonLd,
+  generateEducationalPlatformJsonLd,
+  siteConfig 
+} from '@/lib/seo-config';
 import { BookOpen, FileText, Download, Users, Star, ArrowRight, CheckCircle, Zap, Shield, TrendingUp, Award } from 'lucide-react';
 import { usePopularNotes, usePopularCourses } from '@/hooks/useCourses';
 
@@ -32,32 +39,48 @@ export default function HeroSectionOne() {
     }
   }
 
-  // Structured data
+  // Structured data for SEO
   const organizationData = generateOrganizationJsonLd();
-  const websiteData = {
+  const websiteData = generateWebsiteJsonLd();
+  const platformData = generateEducationalPlatformJsonLd();
+  
+  const faqData = {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": siteConfig.name,
-    "url": siteConfig.url,
-    "description": siteConfig.description,
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": `${siteConfig.url}/library?q={search_term_string}`
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Ezy Learn?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ezy Learn is a free educational platform providing comprehensive study materials, notes, and PDF documents for MCA, BCA, and BTech courses. We offer 500+ materials with proper study structure and YouTube channel recommendations."
+        }
       },
-      "query-input": "required name=search_term_string"
-    }
-  };
-
-  const educationalData = {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    "name": siteConfig.name,
-    "description": siteConfig.description,
-    "url": siteConfig.url,
-    "areaServed": "IN",
-    "availableLanguage": "en"
+      {
+        "@type": "Question",
+        "name": "Is Ezy Learn free to use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, Ezy Learn is completely free. You can access all study materials, download PDFs, and use all features without any payment."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What courses are available on Ezy Learn?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We currently offer study materials for MCA (Master of Computer Applications), BCA (Bachelor of Computer Applications), and BTech (Bachelor of Technology) courses with semester-wise organized content."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I download study materials?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Simply sign up for a free account, browse to your course and semester, select the subject, and click the download button for any study material you need."
+        }
+      }
+    ]
   };
 
   if (!user) {
@@ -68,10 +91,19 @@ export default function HeroSectionOne() {
 
   return (
     <div className="relative bg-white dark:bg-[rgb(38,38,36)] min-h-screen">
-      {/* JSON-LD Structured Data */}
+      {/* JSON-LD Structured Data for SEO */}
       <JsonLd data={organizationData} />
       <JsonLd data={websiteData} />
-      <JsonLd data={educationalData} />
+      <JsonLd data={platformData} />
+      <JsonLd data={faqData} />
+
+      {/* SEO Meta Tags */}
+      <head>
+        <title>{siteConfig.title}</title>
+        <meta name="description" content={siteConfig.description} />
+        <meta name="keywords" content={siteConfig.keywords.join(', ')} />
+        <link rel="canonical" href={siteConfig.url} />
+      </head>
 
       <Navbar />
 
@@ -170,10 +202,13 @@ export default function HeroSectionOne() {
               <div className="relative w-full max-w-lg mx-auto">
                 <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur-2xl opacity-20" />
                 <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                  <img
+                  <Image
                     src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop"
                     alt="Students studying"
+                    width={800}
+                    height={600}
                     className="w-full h-auto"
+                    priority
                   />
                 </div>
                 {/* Floating Cards */}
@@ -277,7 +312,7 @@ export default function HeroSectionOne() {
             <button
               onClick={onDashboard}
               className="px-10 py-5 bg-white text-blue-600 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl">
-              Get Started Now - It's Free!
+              Get Started Now - It&apos;s Free!
             </button>
           </motion.div>
         </div>
@@ -505,9 +540,11 @@ const CoursesSection = ({ courses, loading }) => {
                   transition={{ delay: i * 0.1 }}
                   className="group bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700">
                   <div className="h-48 relative overflow-hidden">
-                    <img
+                    <Image
                       src={courseImage}
                       alt={course.title}
+                      width={600}
+                      height={400}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
                         e.target.style.display = 'none';
@@ -567,9 +604,11 @@ const CoursesSection = ({ courses, loading }) => {
                 transition={{ delay: i * 0.1 }}
                 className="group bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700">
                 <div className="h-48 relative overflow-hidden">
-                  <img
+                  <Image
                     src={course.img}
                     alt={course.title}
+                    width={600}
+                    height={400}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
@@ -676,7 +715,7 @@ const ReviewsSection = () => {
                   <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
-              <p className="text-gray-600 dark:text-gray-400 italic">"{review.text}"</p>
+              <p className="text-gray-600 dark:text-gray-400 italic">&quot;{review.text}&quot;</p>
             </motion.div>
           ))}
         </div>

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs'
+import { currentUser } from '@clerk/nextjs/server'
 import { sql } from '@vercel/postgres'
 
 export async function GET() {
     try {
-        const { userId } = auth()
+        const user = await currentUser()
+        const userId = user?.id
 
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

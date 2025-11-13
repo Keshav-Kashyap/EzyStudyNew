@@ -1,14 +1,21 @@
-# Allow all crawlers
+# https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
+Allow: /library/
+Allow: /dashboard/
 
-# Disallow admin pages
+# Disallow admin and API routes
 Disallow: /admin/
 Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
 
-# Disallow auth pages
-Disallow: /sign-in
-Disallow: /sign-up
+# Allow sign-in/sign-up for SEO
+Allow: /sign-in
+Allow: /sign-up
 
 # Sitemap location
-Sitemap: https://ezylearn.com/sitemap.xml
+Sitemap: https://ezylearn.vercel.app/sitemap.xml
+
+# Crawl-delay for better server performance
+Crawl-delay: 5
