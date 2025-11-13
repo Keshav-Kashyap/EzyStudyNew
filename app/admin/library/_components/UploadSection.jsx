@@ -1,8 +1,26 @@
 "use client"
 import React from 'react'
+import { useParams } from 'next/navigation'
 import CreateMaterialButton from './CreateMaterialButton'
 
 const UploadSection = () => {
+    const params = useParams();
+
+    // Extract category (code) and semester from URL if present
+    const category = params?.code || null; // e.g., "MCA"
+    const semesterIdParam = params?.semesterId || null; // e.g., "semester-1"
+
+    // Convert semester ID back to semester name (semester-1 -> Semester 1)
+    const semesterName = semesterIdParam
+        ? semesterIdParam
+            .split('-')
+            .map((word, index) =>
+                index === 0
+                    ? word.charAt(0).toUpperCase() + word.slice(1)
+                    : word
+            )
+            .join(' ')
+        : null;
     return (
         <div className=' bg-[rgb(38,38,36)]  shadow-2xl'>
             <div className='px-8 py-6 border-b border-slate-700/50'>
@@ -26,9 +44,9 @@ const UploadSection = () => {
 
             <div className='px-8 py-6'>
                 <div className='flex flex-wrap gap-3'>
-                    <CreateMaterialButton formtype={"material"} />
-                    <CreateMaterialButton formtype={"subject"} />
-                    <CreateMaterialButton formtype={"semester"} />
+                    <CreateMaterialButton formtype={"material"} category={category} semesterName={semesterName} />
+                    <CreateMaterialButton formtype={"subject"} category={category} semesterName={semesterName} />
+                    <CreateMaterialButton formtype={"semester"} category={category} />
                     <CreateMaterialButton formtype={"course"} />
                 </div>
             </div>

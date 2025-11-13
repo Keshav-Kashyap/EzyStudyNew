@@ -6,92 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, Search, UserPlus, Shield, Mail, Calendar } from "lucide-react";
+import { useAdminUsers } from '@/hooks/useAdminData';
 
 export default function AdminUsers() {
-    const [users, setUsers] = useState([]);
-    const [filteredUsers, setFilteredUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { data: usersData, isLoading } = useAdminUsers();
     const [searchTerm, setSearchTerm] = useState("");
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
+    const users = usersData || [];
 
-    useEffect(() => {
-        if (searchTerm) {
-            setFilteredUsers(
-                users.filter(user =>
-                    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-            );
-        } else {
-            setFilteredUsers(users);
-        }
-    }, [searchTerm, users]);
-
-    const fetchUsers = async () => {
-        try {
-            const response = await fetch('/api/users');
-            const data = await response.json();
-
-            if (data.success) {
-                setUsers(data.users || []);
-                setFilteredUsers(data.users || []);
-            } else {
-                // Mock data if API doesn't exist yet
-                const mockUsers = [
-                    {
-                        id: 1,
-                        name: "Keshav Kashyap",
-                        email: "keshav@example.com",
-                        role: "admin",
-                        status: "active",
-                        createdAt: "2024-01-15",
-                        lastLogin: "2024-01-20"
-                    },
-                    {
-                        id: 2,
-                        name: "John Doe",
-                        email: "john@example.com",
-                        role: "student",
-                        status: "active",
-                        createdAt: "2024-01-10",
-                        lastLogin: "2024-01-19"
-                    },
-                    {
-                        id: 3,
-                        name: "Jane Smith",
-                        email: "jane@example.com",
-                        role: "student",
-                        status: "active",
-                        createdAt: "2024-01-08",
-                        lastLogin: "2024-01-18"
-                    }
-                ];
-                setUsers(mockUsers);
-                setFilteredUsers(mockUsers);
-            }
-        } catch (error) {
-            console.error('Error fetching users:', error);
-            // Fallback to mock data
-            const mockUsers = [
-                {
-                    id: 1,
-                    name: "Admin User",
-                    email: "admin@ezylearn.com",
-                    role: "admin",
-                    status: "active",
-                    createdAt: "2024-01-01",
-                    lastLogin: "2024-01-20"
-                }
-            ];
-            setUsers(mockUsers);
-            setFilteredUsers(mockUsers);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const filteredUsers = searchTerm
+        ? users.filter(user =>
+            user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        : users;
 
     const getUserRoleBadge = (role) => {
         const roleColors = {
@@ -117,7 +45,7 @@ export default function AdminUsers() {
         );
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="p-6">
                 <div className="animate-pulse">

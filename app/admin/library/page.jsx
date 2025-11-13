@@ -1,59 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Grid, List } from "lucide-react";
 import CreateCourseForm from "./_components/CreateNewCourse";
 import StatsCards from "./_components/StatusCards";
 import CoursesCard from "../../(main)/dashboard/allCourses/_components/CoursesCard";
+import { useAdminCourses, useInvalidateAdminData } from '@/hooks/useAdminData';
 
 export default function AdminLibraryPage() {
-    const [courses, setCourses] = useState([]);
-    const [semesters, setSemesters] = useState([]);
-    const [subjects, setSubjects] = useState([]);
-    const [materials, setMaterials] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { data: adminData, isLoading } = useAdminCourses();
+    const { invalidateCourses } = useInvalidateAdminData();
+
     const [searchQuery, setSearchQuery] = useState("");
     const [viewMode, setViewMode] = useState("grid");
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+    const courses = adminData || [];
+    const semesters = [];
+    const subjects = [];
+    const materials = [];
 
-    const fetchData = async () => {
-        try {
-            // Fetch only admin courses (main courses table)
-            const coursesRes = await fetch("/api/admin/courses");
-            const coursesData = await coursesRes.json();
-            console.log("Courses data:", coursesData);
-
-            if (coursesData.success && coursesData.courses) {
-                setCourses(coursesData.courses);
-            }
-
-            // Fetch semesters
-            const semestersRes = await fetch("/api/admin/semesters");
-            const semestersData = await semestersRes.json();
-            console.log("Semesters data:", semestersData);
-            if (semestersData.success) setSemesters(semestersData.semesters || []);
-
-            // Fetch subjects
-            const subjectsRes = await fetch("/api/admin/subjects");
-            const subjectsData = await subjectsRes.json();
-            console.log("Subjects data:", subjectsData);
-            if (subjectsData.success) setSubjects(subjectsData.subjects || []);
-
-            // Fetch materials from main API
-            const materialsRes = await fetch("/api/materials");
-            const materialsData = await materialsRes.json();
-            console.log("Materials data:", materialsData);
-            if (materialsData.success) setMaterials(materialsData.materials || []);
-        } catch (error) {
-            console.error("Error fetching data:", error);
-        } finally {
-            setLoading(false);
-        }
+    const fetchData = () => {
+        invalidateCourses();
     };
 
     const getDefaultImage = (category) => {
@@ -85,7 +54,7 @@ export default function AdminLibraryPage() {
     // Function to get default images based on category
 
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="flex items-center dark:bg-[rgb(38,38,36)] justify-center min-h-screen">
                 <div className="text-center">

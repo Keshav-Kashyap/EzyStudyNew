@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import GenericCard from '../../../_components/shared/GenericCard';
 import { toast } from 'sonner';
+import { usePopularNotes } from '@/hooks/useCourses';
 
 import {
     Download,
@@ -16,14 +17,9 @@ import {
 import HeroHeader from '../../_components/HeroHeader';
 
 const PopularNotesGrid = () => {
-    const [popularNotes, setPopularNotes] = useState([]);
-    console.log(popularNotes);
-    const [loading, setLoading] = useState(true);
+    // Use React Query hook for caching
+    const { data: popularNotes = [], isLoading, isError } = usePopularNotes();
     const [likedNotes, setLikedNotes] = useState(new Set());
-
-    useEffect(() => {
-        fetchNotes();
-    }, []);
 
     // Load liked notes from localStorage (persist per-browser)
     useEffect(() => {
@@ -37,25 +33,6 @@ const PopularNotesGrid = () => {
             console.warn('Failed to load liked notes from localStorage', e);
         }
     }, []);
-
-    const fetchNotes = async () => {
-        try {
-            setLoading(true);
-            const res = await fetch("/api/popularNotes");
-            const data = await res.json();
-
-            if (res.ok) {
-                setPopularNotes(data);
-            } else {
-                setPopularNotes([]);
-            }
-        } catch (err) {
-            console.error("Error fetching notes:", err);
-            setPopularNotes([]);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleDownload = (note) => {
         const link = document.createElement('a');
@@ -85,65 +62,44 @@ const PopularNotesGrid = () => {
 
 
     const handleToggleLike = async (noteId) => {
+        const isLiked = likedNotes.has(noteId);
         const newLiked = new Set(likedNotes);
 
-        let liked;
-        if (newLiked.has(noteId)) {
+        if (isLiked) {
             newLiked.delete(noteId);
-            liked = false;
         } else {
             newLiked.add(noteId);
-            liked = true;
         }
 
         setLikedNotes(newLiked);
 
-        // Persist liked IDs to localStorage so state survives refresh (per-browser)
+        // Persist liked IDs to localStorage
         try {
             localStorage.setItem('likedNotes', JSON.stringify(Array.from(newLiked)));
         } catch (e) {
             console.warn('Failed to save liked notes to localStorage', e);
         }
 
-        // Optimistic UI update
-        setPopularNotes(prev =>
-            prev.map(note =>
-                note.id === noteId
-                    ? { ...note, likes: liked ? note.likes + 1 : note.likes - 1 }
-                    : note
-            )
-        );
-
         try {
             await fetch("/api/likeNote", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: noteId, liked }),
+                body: JSON.stringify({ id: noteId, liked: !isLiked }),
             });
         } catch (err) {
             console.error("Error toggling like:", err);
             // Revert on error
-            setLikedNotes(prev => {
-                const reverted = new Set(prev);
-                if (liked) {
-                    reverted.delete(noteId);
-                } else {
-                    reverted.add(noteId);
-                }
-                try {
-                    localStorage.setItem('likedNotes', JSON.stringify(Array.from(reverted)));
-                } catch (e) {
-                    console.warn('Failed to save liked notes to localStorage', e);
-                }
-                return reverted;
-            });
-            setPopularNotes(prev =>
-                prev.map(note =>
-                    note.id === noteId
-                        ? { ...note, likes: liked ? note.likes - 1 : note.likes + 1 }
-                        : note
-                )
-            );
+            if (isLiked) {
+                newLiked.add(noteId);
+            } else {
+                newLiked.delete(noteId);
+            }
+            setLikedNotes(newLiked);
+            try {
+                localStorage.setItem('likedNotes', JSON.stringify(Array.from(newLiked)));
+            } catch (e) {
+                console.warn('Failed to save liked notes to localStorage', e);
+            }
         }
     };
 
@@ -154,7 +110,7 @@ const PopularNotesGrid = () => {
             <HeroHeader heading="Popular Notes" subHeading=" Discover comprehensive learning materials designed for academic excellence" icon={TrendingUp} />
 
             <div className="grid gap-2 grid-cols-1 mb-15 md:grid-cols-2 lg:grid-cols-3">
-                {loading ? (
+                {isLoading ? (
                     // Improved loading skeleton
                     Array.from({ length: 6 }).map((_, idx) => (
                         <Card key={idx} className="overflow-hidden">

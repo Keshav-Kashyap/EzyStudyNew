@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from 'react';
+import { useCourses } from '@/hooks/useCourses';
 import {
     Users,
     FileText,
@@ -27,56 +27,12 @@ import CourseActions from "@/app/admin/library/_components/CourseActions";
 const CoursesCard = ({ courses, viewMode, searchQuery = '', isAdmin = false, baseRoute = "/library", onUpdate }) => {
     const router = useRouter();
 
-    // Local state when component should fetch its own data
-    const [localCourses, setLocalCourses] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    // Use React Query hook only if courses prop is not provided
+    const { data: fetchedCourses, isLoading, isError } = useCourses();
 
-    // If no `courses` prop is provided, fetch courses locally so this component
-    // can be used standalone on other pages.
-    useEffect(() => {
-        if (courses !== undefined) return; // parent supplied data
+    // Use provided courses or fetched courses
+    const effectiveCourses = courses ?? fetchedCourses ?? [];
 
-        let mounted = true;
-        const fetchCourses = async () => {
-            try {
-                setLoading(true);
-                const res = await fetch('/api/courses');
-                const data = await res.json();
-                if (!mounted) return;
-
-                if (data && data.success) {
-                    const transformed = data.courses.map(course => ({
-                        id: course.id,
-                        title: course.category,
-                        subtitle: course.title,
-                        description: course.description || "Comprehensive learning materials and resources.",
-                        category: course.category,
-                        documents: course.documentsCount || course.totalMaterials || 0,
-                        students: course.studentsCount || 0,
-                        semesters: course.semesters || 0,
-                        duration: course.duration,
-                        image: course.image || getDefaultImage(course.category),
-                        bgColor: course.bgColor || 'bg-blue-500'
-                    }));
-                    setLocalCourses(transformed);
-                } else {
-                    setLocalCourses([]);
-                }
-            } catch (err) {
-                console.error('Error fetching courses in CoursesCard:', err);
-                setError(err?.message || 'Failed to load courses');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCourses();
-
-        return () => { mounted = false; };
-    }, [courses]);
-
-    const effectiveCourses = courses ?? localCourses ?? [];
     const filteredCourses = effectiveCourses.filter(course =>
         (course.title || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
         (course.category || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
@@ -89,7 +45,7 @@ const CoursesCard = ({ courses, viewMode, searchQuery = '', isAdmin = false, bas
             <HeroHeader className="mt-14" heading="Courses Library" subHeading=" Discover comprehensive learning materials designed for academic excellence" icon={GraduationCap} />
 
 
-            {loading && courses === undefined ? (
+            {isLoading && courses === undefined ? (
                 <div className="grid mb-15 gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <GenericCardSkeleton key={i} />

@@ -7,12 +7,14 @@ import { useUser } from '@clerk/nextjs';
 import { UserDetailContext } from '@/context/UserDetailContext';
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import SemesterBulkActions from '../_components/SemesterBulkActions';
 
 const SemesterOverview = () => {
     const { code } = useParams();
     const [courseData, setCourseData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedSemesters, setSelectedSemesters] = useState([]);
     const { user } = useUser();
     const { userDetail } = useContext(UserDetailContext);
     console.log("Context deatails", userDetail);
@@ -21,7 +23,24 @@ const SemesterOverview = () => {
 
     const handleUpdate = () => {
         // Refetch the data after update/delete
+        setSelectedSemesters([]);
         fetchCourseData();
+    };
+
+    const handleSelectSemester = (semesterId) => {
+        setSelectedSemesters(prev =>
+            prev.includes(semesterId)
+                ? prev.filter(id => id !== semesterId)
+                : [...prev, semesterId]
+        );
+    };
+
+    const handleSelectAll = () => {
+        if (selectedSemesters.length === courseData?.semesters?.length) {
+            setSelectedSemesters([]);
+        } else {
+            setSelectedSemesters(courseData?.semesters?.map(s => s.id) || []);
+        }
     };
 
     const fetchCourseData = async () => {
@@ -114,6 +133,16 @@ const SemesterOverview = () => {
                     </p>
                 </div>
 
+                {/* Bulk Actions for Admin */}
+                {isAdmin && courseData.semesters?.length > 0 && (
+                    <SemesterBulkActions
+                        semesters={courseData.semesters}
+                        selectedSemesters={selectedSemesters}
+                        onSelectAll={handleSelectAll}
+                        onUpdate={handleUpdate}
+                    />
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {courseData.semesters?.map((semester) => (
                         <SemesterCard
@@ -122,6 +151,8 @@ const SemesterOverview = () => {
                             code={code}
                             isAdmin={isAdmin}
                             onUpdate={handleUpdate}
+                            isSelected={selectedSemesters.includes(semester.id)}
+                            onSelect={() => handleSelectSemester(semester.id)}
                         />
                     ))}
                 </div>

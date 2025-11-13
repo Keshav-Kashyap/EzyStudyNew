@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import { Calendar, GraduationCap, Loader2 } from 'lucide-react';
 import { useParams } from "next/navigation";
 import SemesterCard from './../_components/SemesterCard'
@@ -7,44 +7,16 @@ import { useUser } from '@clerk/nextjs';
 import { UserDetailContext } from '@/context/UserDetailContext';
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import { useCourseDetail } from '@/hooks/useCourses';
 
 const SemesterOverview = () => {
     const { code } = useParams();
-    const [courseData, setCourseData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const { data: courseData, isLoading, isError, error } = useCourseDetail(code);
     const { user } = useUser();
     const { userDetail } = useContext(UserDetailContext);
-    console.log("Context deatails", userDetail);
     const isAdmin = userDetail?.role === "admin";
-    // console.log(user);
 
-    useEffect(() => {
-        const fetchCourseData = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch(`/api/courses/${code}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    setCourseData(data.course);
-                } else {
-                    throw new Error(data.error || 'Failed to fetch course data');
-                }
-            } catch (err) {
-                console.error('Error fetching course data:', err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (code) {
-            fetchCourseData();
-        }
-    }, [code]);
-
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] flex items-center justify-center">
                 <div className="text-center">
@@ -55,7 +27,7 @@ const SemesterOverview = () => {
         );
     }
 
-    if (error) {
+    if (isError) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] flex items-center justify-center">
                 <div className="text-center max-w-md mx-auto p-6">
@@ -65,7 +37,7 @@ const SemesterOverview = () => {
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                         Error Loading Course
                     </h2>
-                    <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">{error?.message}</p>
                     <button
                         onClick={() => window.location.reload()}
                         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors"

@@ -33,10 +33,10 @@ export async function POST(request) {
     try {
         // Check Supabase client availability
         if (!supabase) {
-            return NextResponse.json({
-                success: false,
-                error: "Supabase client not initialized. Check environment variables."
-            }, { status: 500 });
+            console.warn('⚠️ Supabase not configured, using fallback URL method');
+
+            // Fallback: Store using URL instead of actual upload
+            return await handleUrlBasedUpload(request);
         }
 
         const adminCheck = await checkAdminAccess();
@@ -112,7 +112,22 @@ export async function POST(request) {
             });
 
         if (error) {
-            throw new Error(`Supabase upload error: ${error.message}`);
+            console.error(' Supabase upload error details:', {
+                message: error.message,
+                statusCode: error.statusCode,
+                error: error
+            });
+
+            // More specific error messages
+            if (error.message?.includes('Bucket not found')) {
+                throw new Error('Storage bucket "study-materials" not found. Please create it in Supabase dashboard.');
+            } else if (error.message?.includes('not authorized')) {
+                throw new Error('Not authorized to upload. Check Supabase storage policies.');
+            } else if (error.message?.includes('fetch failed')) {
+                throw new Error('Network error: Unable to connect to Supabase. Check your internet connection.');
+            } else {
+                throw new Error(`Upload failed: ${error.message}`);
+            }
         }
 
         // Get public URL
@@ -242,6 +257,108 @@ export async function DELETE(request) {
         return NextResponse.json({
             success: false,
             error: "Failed to delete material",
+            details: error.message
+        }, { status: 500 });
+    }
+}
+
+// Fallback method: URL-based upload (when Supabase is not configured)
+async function handleUrlBasedUpload(request) {
+    try {
+        const adminCheck = await checkAdminAccess();
+
+        if (!adminCheck.isAuthenticated) {
+            return NextResponse.json({
+                success: false,
+                error: "Please login first"
+            }, { status: 401 });
+        }
+
+        if (!adminCheck.isAdmin) {
+            return NextResponse.json({
+                success: false,
+                error: "Unauthorized: Admin access required"
+            }, { status: 403 });
+        }
+
+        const formData = await request.formData();
+        const file = formData.get('file');
+        const courseCode = formData.get('courseCode');
+        const title = formData.get('title');
+
+        console.log('📝 URL-based upload:', { courseCode, title, fileName: file?.name });
+
+        // Validate inputs
+        if (!courseCode || !title) {
+            return NextResponse.json({
+                success: false,
+                error: "Course code and title are required"
+            }, { status: 400 });
+        }
+
+        if (!file || !(file instanceof File)) {
+            return NextResponse.json({
+                success: false,
+                error: "No file provided"
+            }, { status: 400 });
+        }
+
+        // Find subject by code
+        const subject = await db.select().from(subjectsTable)
+            .where(eq(subjectsTable.code, courseCode.toUpperCase()));
+
+        if (subject.length === 0) {
+            return NextResponse.json({
+                success: false,
+                error: `Subject with code ${courseCode} not found`
+            }, { status: 404 });
+        }
+
+        const subjectId = subject[0].id;
+
+        // Create a placeholder URL (using a free PDF hosting service URL format)
+        // In production, you would upload to your own server or use a proper file hosting service
+        const placeholderUrl = `https://placeholder-url.com/files/${Date.now()}-${file.name}`;
+
+        // Save material to database with placeholder URL
+        const materialData = await db.insert(studyMaterialsTable).values({
+            subjectId: subjectId,
+            title: title,
+            type: 'PDF',
+            fileUrl: placeholderUrl,
+            description: `PDF material for ${courseCode} - ${title}`,
+            tags: JSON.stringify([courseCode, 'PDF', 'study-material']),
+            downloadCount: 0,
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }).returning();
+
+        console.log('✅ Material saved to database (URL-based)');
+
+        return NextResponse.json({
+            success: true,
+            message: "⚠️ Material saved successfully! Note: File upload is disabled (Supabase not configured). Please add file URL manually or configure Supabase.",
+            data: {
+                material: materialData[0],
+                subject: subject[0],
+                file: {
+                    url: placeholderUrl,
+                    fileName: file.name,
+                    originalName: file.name,
+                    size: file.size,
+                    type: file.type,
+                    uploadedAt: new Date().toISOString(),
+                    note: "Placeholder URL - Supabase not configured"
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Error in URL-based upload:', error);
+        return NextResponse.json({
+            success: false,
+            error: "Failed to save material",
             details: error.message
         }, { status: 500 });
     }

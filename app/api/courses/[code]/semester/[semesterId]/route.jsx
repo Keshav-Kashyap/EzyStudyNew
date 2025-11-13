@@ -7,11 +7,18 @@ export async function GET(request, { params }) {
     try {
         const { code, semesterId } = await params;
 
+        // Convert URL format back to database format
+        // "semester-1" -> "Semester 1"
+        const semesterName = semesterId
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+
         // Get semester details by name and course category
         const semesters = await db.select().from(semestersTable)
             .where(and(
                 eq(semestersTable.category, code.toUpperCase()),
-                eq(semestersTable.name, `Semester ${semesterId}`)
+                eq(semestersTable.name, semesterName)
             ));
 
         if (semesters.length === 0) {

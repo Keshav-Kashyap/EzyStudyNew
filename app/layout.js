@@ -13,43 +13,57 @@ import { ThemeProvider } from './ThemeProvider';
 import { Toaster } from 'sonner';
 import UserAutoRegister from '@/components/UserAutoRegister';
 import RoleBasedRedirect from '@/components/RoleBasedRedirect';
+import ReactQueryProvider from '@/providers/ReactQueryProvider';
+import { siteConfig, generateMetadata as generateSeoMetadata } from '@/lib/seo-config';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
-export const metadata = {
-  title: "EzyLearn - Your Learning Companion",
-  description: "An interactive learning platform to help you master new skills",
-};
+export const metadata = generateSeoMetadata({
+  title: siteConfig.title,
+  description: siteConfig.description,
+  url: "/",
+});
 
 export default function RootLayout({ children }) {
   return (
 
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
+        <head>
+          <link rel="icon" href="/favicon.ico" sizes="any" />
+          <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+          <link rel="manifest" href="/site.webmanifest" />
+          <meta name="theme-color" content="#3b82f6" />
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <Provider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange={false}
-            >
-              <UserAutoRegister />
-              <RoleBasedRedirect />
-              {children}
-              <Toaster position="top-right" />
-            </ThemeProvider>
-          </Provider>
+          <ReactQueryProvider>
+            <Provider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange={false}
+              >
+                <UserAutoRegister />
+                <RoleBasedRedirect />
+                {children}
+                <Toaster position="top-right" />
+              </ThemeProvider>
+            </Provider>
+          </ReactQueryProvider>
         </body>
       </html>
     </ClerkProvider>

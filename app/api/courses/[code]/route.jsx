@@ -1,11 +1,23 @@
 import { db } from "@/config/db";
-import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable } from "@/config/schema";
+import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable, usersTable } from "@/config/schema";
 import { NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
+import { auth } from '@clerk/nextjs/server';
 
 export async function GET(request, { params }) {
     try {
         const { code } = await params;
+        const { userId: clerkUserId } = await auth();
+
+        // Get user role if authenticated
+        let isAdmin = false;
+        if (clerkUserId) {
+            const [user] = await db.select()
+                .from(usersTable)
+                .where(eq(usersTable.userId, clerkUserId));
+
+            isAdmin = user?.role === 'admin';
+        }
 
         // Find course by category/code
         const courses = await db.select().from(coursesTable)
@@ -20,7 +32,8 @@ export async function GET(request, { params }) {
 
         const course = courses[0];
 
-        // Get semesters for this course category
+        // Get ALL semesters for this course category (both active and inactive)
+        // Users can see all semesters but cannot access inactive ones
         const semesters = await db.select().from(semestersTable)
             .where(eq(semestersTable.category, course.category));
 
@@ -53,9 +66,20 @@ export async function GET(request, { params }) {
             })
         );
 
+        // Sort semesters in ascending order (1, 2, 3, 4...)
+        // Extract number from semester name and sort
+        const sortedSemesters = semestersWithSubjects.sort((a, b) => {
+            // Extract numbers from semester names like "Semester 1", "Sem 1", "1st Semester", etc.
+            const getNumber = (name) => {
+                const match = name.match(/\d+/);
+                return match ? parseInt(match[0]) : 0;
+            };
+            return getNumber(a.name) - getNumber(b.name);
+        });
+
         // Calculate totals
-        const totalSubjects = semestersWithSubjects.reduce((sum, sem) => sum + sem.subjects.length, 0);
-        const totalMaterials = semestersWithSubjects.reduce((sum, sem) =>
+        const totalSubjects = sortedSemesters.reduce((sum, sem) => sum + sem.subjects.length, 0);
+        const totalMaterials = sortedSemesters.reduce((sum, sem) =>
             sum + sem.subjects.reduce((subSum, sub) => subSum + sub.materials.length, 0), 0
         );
 
@@ -63,7 +87,7 @@ export async function GET(request, { params }) {
             success: true,
             course: {
                 ...course,
-                semesters: semestersWithSubjects,
+                semesters: sortedSemesters,
                 stats: {
                     totalSemesters: semesters.length,
                     totalSubjects,

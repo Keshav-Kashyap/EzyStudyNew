@@ -1,0 +1,310 @@
+'use client';
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// ==================== QUERY KEYS ====================
+export const courseKeys = {
+    all: ['courses'],
+    list: () => [...courseKeys.all, 'list'],
+    detail: (code) => [...courseKeys.all, 'detail', code],
+    byCategory: (category) => [...courseKeys.all, 'category', category],
+    stats: () => [...courseKeys.all, 'stats'],
+    popularNotes: ['popularNotes'],
+    popularCourses: ['popularCourses'],
+    semester: (code, semesterId) => [...courseKeys.all, 'semester', code, semesterId],
+};
+
+// ==================== API FUNCTIONS ====================
+const fetchCourses = async () => {
+    const response = await fetch('/api/courses');
+    if (!response.ok) {
+        throw new Error('Failed to fetch courses');
+    }
+    const data = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch courses');
+    }
+
+    // Transform courses data
+    const transformedCourses = data.courses.map(course => ({
+        id: course.id,
+        title: course.title,
+        subtitle: course.category,
+        description: course.description || "Comprehensive learning materials and resources.",
+        category: course.category,
+        code: course.code,
+        documents: course.documentsCount || course.totalMaterials || 0,
+        students: course.studentsCount || 0,
+        semesters: course.semesters || 0,
+        duration: course.duration,
+        image: course.image || getDefaultImage(course.category),
+        bgColor: course.bgColor || 'bg-blue-500'
+    }));
+
+    return transformedCourses;
+};
+
+const fetchDashboardStats = async () => {
+    const response = await fetch('/api/dashboard/stats');
+    if (!response.ok) {
+        throw new Error('Failed to fetch dashboard stats');
+    }
+    const data = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch stats');
+    }
+
+    return data;
+};
+
+const fetchPopularNotes = async () => {
+    const response = await fetch('/api/popularNotes');
+    if (!response.ok) {
+        throw new Error('Failed to fetch popular notes');
+    }
+    const data = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch popular notes');
+    }
+
+    return data;
+};
+
+const fetchPopularCourses = async () => {
+    const response = await fetch('/api/popular-courses');
+    if (!response.ok) {
+        throw new Error('Failed to fetch popular courses');
+    }
+    const data = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch popular courses');
+    }
+
+    return data.courses;
+};
+
+const fetchCourseDetail = async (code) => {
+    const response = await fetch(`/api/courses/${code}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch course details');
+    }
+    const data = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch course details');
+    }
+
+    return data.course;
+};
+
+const fetchSemesters = async (category) => {
+    if (!category) {
+        return { semesters: [] };
+    }
+
+    const response = await fetch(`/api/courses/${category}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch semesters');
+    }
+    const data = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch semesters');
+    }
+
+    return { semesters: data.course.semesters || [] };
+};
+
+const fetchSemesterDetail = async (code, semesterId) => {
+    const response = await fetch(`/api/courses/${code}/semester/${semesterId}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch semester details');
+    }
+    const data = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch semester details');
+    }
+
+    return data.semester;
+};
+
+const getDefaultImage = (category) => {
+    const images = {
+        'MCA': "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=300&fit=crop",
+        'BCA': "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop",
+        'BTech': "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop"
+    };
+    return images[category] || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop";
+};
+
+// ==================== CUSTOM HOOKS ====================
+
+/**
+ * Hook to fetch all courses with caching
+ * Data will be cached for 5 minutes, preventing unnecessary API calls
+ */
+export function useCourses() {
+    return useQuery({
+        queryKey: courseKeys.list(),
+        queryFn: fetchCourses,
+        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    });
+}
+
+/**
+ * Hook to fetch dashboard statistics with caching
+ */
+export function useDashboardStats() {
+    return useQuery({
+        queryKey: courseKeys.stats(),
+        queryFn: fetchDashboardStats,
+        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    });
+}
+
+/**
+ * Hook to fetch popular notes with caching
+ * Data cached for 5 minutes to prevent unnecessary API calls
+ */
+export function usePopularNotes() {
+    return useQuery({
+        queryKey: courseKeys.popularNotes,
+        queryFn: fetchPopularNotes,
+        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    });
+}
+
+/**
+ * Hook to fetch popular courses with caching
+ * Data cached for 5 minutes to prevent unnecessary API calls
+ */
+export function usePopularCourses() {
+    return useQuery({
+        queryKey: courseKeys.popularCourses,
+        queryFn: fetchPopularCourses,
+        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    });
+}
+
+/**
+ * Hook to fetch course detail by code with caching
+ * Data cached for 5 minutes
+ */
+export function useCourseDetail(code) {
+    return useQuery({
+        queryKey: courseKeys.detail(code),
+        queryFn: () => fetchCourseDetail(code),
+        enabled: !!code, // Only run if code is provided
+        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    });
+}
+
+/**
+ * Hook to fetch semesters for a specific course category
+ * Data cached for 5 minutes
+ */
+export function useSemesters(category) {
+    return useQuery({
+        queryKey: courseKeys.byCategory(category),
+        queryFn: () => fetchSemesters(category),
+        enabled: !!category, // Only run if category is provided
+        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    });
+}
+
+/**
+ * Hook to fetch semester detail with caching
+ * Data cached for 5 minutes
+ */
+export function useSemesterDetail(code, semesterId) {
+    return useQuery({
+        queryKey: courseKeys.semester(code, semesterId),
+        queryFn: () => fetchSemesterDetail(code, semesterId),
+        enabled: !!code && !!semesterId, // Only run if both params are provided
+        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    });
+}
+
+/**
+ * Hook to get both courses and stats together
+ * Useful for dashboard pages
+ */
+export function useDashboardData() {
+    const coursesQuery = useCourses();
+    const statsQuery = useDashboardStats();
+    const popularNotesQuery = usePopularNotes();
+
+    return {
+        courses: coursesQuery.data || [],
+        stats: statsQuery.data || {},
+        popularNotes: popularNotesQuery.data || [],
+        isLoading: coursesQuery.isLoading || statsQuery.isLoading || popularNotesQuery.isLoading,
+        isError: coursesQuery.isError || statsQuery.isError || popularNotesQuery.isError,
+        error: coursesQuery.error || statsQuery.error || popularNotesQuery.error,
+        refetch: () => {
+            coursesQuery.refetch();
+            statsQuery.refetch();
+            popularNotesQuery.refetch();
+        }
+    };
+}
+
+/**
+ * Hook to invalidate (refresh) course cache
+ * Use this after creating/updating/deleting courses
+ */
+export function useInvalidateCourses() {
+    const queryClient = useQueryClient();
+
+    return () => {
+        queryClient.invalidateQueries({ queryKey: courseKeys.all });
+    };
+}
+
+/**
+ * Hook to invalidate (refresh) popular notes cache
+ * Use this after liking/updating popular notes
+ */
+export function useInvalidatePopularNotes() {
+    const queryClient = useQueryClient();
+
+    return () => {
+        queryClient.invalidateQueries({ queryKey: courseKeys.popularNotes });
+    };
+}
+
+/**
+ * Hook to invalidate (refresh) course detail cache
+ * Use this after updating course details
+ */
+export function useInvalidateCourseDetail(code) {
+    const queryClient = useQueryClient();
+
+    return () => {
+        queryClient.invalidateQueries({ queryKey: courseKeys.detail(code) });
+    };
+}
+
+/**
+ * Hook to invalidate (refresh) semester detail cache
+ * Use this after updating semester details
+ */
+export function useInvalidateSemesterDetail(code, semesterId) {
+    const queryClient = useQueryClient();
+
+    return () => {
+        queryClient.invalidateQueries({ queryKey: courseKeys.semester(code, semesterId) });
+    };
+}

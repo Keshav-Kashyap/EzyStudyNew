@@ -1,44 +1,26 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, BarChart3, PieChart, Activity } from "lucide-react";
+import { useAdminAnalytics } from '@/hooks/useAdminData';
 
 export default function AdminAnalytics() {
-    const [analytics, setAnalytics] = useState({
-        storageUsed: 0,
-        totalDownloads: 0,
-        popularFileTypes: [],
-        activeUsers: 0
-    });
-    const [loading, setLoading] = useState(true);
+    const { data: analyticsData, isLoading } = useAdminAnalytics();
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, []);
-
-    const fetchAnalytics = async () => {
-        try {
-            // Mock data - you can replace with real API calls
-            setAnalytics({
-                storageUsed: 2.4,
-                totalDownloads: 1234,
-                popularFileTypes: [
-                    { type: 'PDF', percentage: 65, count: 450 },
-                    { type: 'DOC', percentage: 20, count: 138 },
-                    { type: 'PPT', percentage: 15, count: 103 }
-                ],
-                activeUsers: 89
-            });
-        } catch (error) {
-            console.error('Error fetching analytics:', error);
-        } finally {
-            setLoading(false);
-        }
+    const analytics = analyticsData || {
+        storageUsed: 2.4,
+        totalDownloads: 1234,
+        popularFileTypes: [
+            { type: 'PDF', percentage: 65, count: 450 },
+            { type: 'DOC', percentage: 20, count: 138 },
+            { type: 'PPT', percentage: 15, count: 103 }
+        ],
+        activeUsers: 89
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="p-6">
                 <div className="animate-pulse">
@@ -128,8 +110,8 @@ export default function AdminAnalytics() {
                                 <div key={index} className="flex items-center justify-between">
                                     <div className="flex items-center space-x-3">
                                         <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-blue-500' :
-                                                index === 1 ? 'bg-green-500' :
-                                                    'bg-yellow-500'
+                                            index === 1 ? 'bg-green-500' :
+                                                'bg-yellow-500'
                                             }`}></div>
                                         <span className="font-medium">{fileType.type}</span>
                                     </div>

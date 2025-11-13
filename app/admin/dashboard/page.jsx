@@ -1,60 +1,29 @@
 ﻿"use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Users, FileText, Upload, TrendingUp, Activity, Plus, Eye } from "lucide-react";
+import { useAdminAnalytics } from '@/hooks/useAdminData';
 
 export default function AdminDashboard() {
-    const [stats, setStats] = useState({
+    const { data: dashboardData, isLoading } = useAdminAnalytics();
+
+    const stats = dashboardData?.stats || {
         totalCourses: 5,
         totalUsers: 152,
         totalMaterials: 89,
         totalUploads: 234
-    });
+    };
 
-    const [recentActivity, setRecentActivity] = useState([
+    const recentActivity = dashboardData?.recentActivity || [
         { action: "New material uploaded", timestamp: "2 hours ago", type: "upload" },
         { action: "User registered", timestamp: "4 hours ago", type: "user" },
         { action: "Course updated", timestamp: "6 hours ago", type: "course" }
-    ]);
+    ];
 
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetchDashboardData();
-    }, []);
-
-    const fetchDashboardData = async () => {
-        try {
-            setLoading(true);
-
-            const response = await fetch('/api/admin/dashboard');
-            const data = await response.json();
-
-            if (data.success) {
-                setStats(data.stats || {
-                    totalCourses: 5,
-                    totalUsers: 152,
-                    totalMaterials: 89,
-                    totalUploads: 234
-                });
-
-                setRecentActivity(data.recentActivity || [
-                    { action: "New material uploaded", timestamp: "2 hours ago", type: "upload" },
-                    { action: "User registered", timestamp: "4 hours ago", type: "user" },
-                    { action: "Course updated", timestamp: "6 hours ago", type: "course" }
-                ]);
-            }
-        } catch (error) {
-            console.error('Error fetching dashboard stats:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
                 <div className="animate-pulse">

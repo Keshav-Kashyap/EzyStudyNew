@@ -43,6 +43,13 @@
       "when": 1760692303489,
       "tag": "0005_curly_the_hunter",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1762886594639,
+      "tag": "0006_careless_outlaw_kid",
+      "breakpoints": true
     }
   ]
 }

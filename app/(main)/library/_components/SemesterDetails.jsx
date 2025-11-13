@@ -1,52 +1,33 @@
 "use client"
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import { BookOpen, FileText, Download, Calendar, ArrowLeft, ExternalLink, Loader2 } from 'lucide-react';
 import { useParams, useRouter } from "next/navigation";
 import Link from 'next/link';
 import SubjectCard from './SubjectCard'
 import { UserDetailContext } from '@/context/UserDetailContext';
+import { useSemesterDetail, useInvalidateSemesterDetail } from '@/hooks/useCourses';
 
 
 const SemesterDetail = ({ basePath }) => {
     const { userDetail } = useContext(UserDetailContext);
     const isAdmin = userDetail?.role === "admin";
 
-    console.log("base path:", basePath);
-
     const { code, semesterId } = useParams();
-    const [semesterData, setSemesterData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+
+    // Convert URL format back to database format
+    // "semester-1" -> "Semester 1"
+    const semesterName = semesterId
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+
+    const { data: semesterData, isLoading, isError, error } = useSemesterDetail(code, semesterName);
+    const invalidateSemester = useInvalidateSemesterDetail(code, semesterName);
 
     const handleUpdate = () => {
         // Refetch the data after update/delete
-        fetchSemesterData();
+        invalidateSemester();
     };
-
-    const fetchSemesterData = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch(`/api/courses/${code}/semester/${semesterId}`);
-            const data = await response.json();
-
-            if (data.success) {
-                setSemesterData(data.semester);
-            } else {
-                throw new Error(data.error || 'Failed to fetch semester data');
-            }
-        } catch (err) {
-            console.error('Error fetching semester data:', err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (code && semesterId) {
-            fetchSemesterData();
-        }
-    }, [code, semesterId]);
 
     const handleDownload = (material) => {
         console.log('Downloading:', material.title);
@@ -55,7 +36,7 @@ const SemesterDetail = ({ basePath }) => {
         }
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] flex items-center justify-center">
                 <div className="text-center">
@@ -66,12 +47,12 @@ const SemesterDetail = ({ basePath }) => {
         );
     }
 
-    if (error) {
+    if (isError) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] flex items-center justify-center">
                 <div className="text-center max-w-md mx-auto p-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Error</h2>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">{error?.message}</p>
                     <Link
                         href={`/library/${code}`}
                         className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium inline-block"
@@ -97,7 +78,7 @@ const SemesterDetail = ({ basePath }) => {
                         </Link>
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                                {semesterData?.name || `Semester ${semesterId}`}
+                                {semesterData?.name || semesterName}
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400">
                                 {code.toUpperCase()} • {semesterData?.subjects?.length || 0} Subjects

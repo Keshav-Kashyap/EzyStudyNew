@@ -1,18 +1,18 @@
 import { db } from "@/config/db";
 import { subjectsTable, semestersTable, coursesTable } from "@/config/schema";
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { checkAdminAccess } from "@/lib/admin-auth";
 import { eq } from "drizzle-orm";
 
 // GET - Get all subjects
 export async function GET() {
     try {
-        const user = await currentUser();
+        const { isAdmin, error } = await checkAdminAccess();
 
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!isAdmin) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
+                error: error || "Unauthorized access"
             }, { status: 403 });
         }
 
@@ -33,12 +33,12 @@ export async function GET() {
 // POST - Add subject to semester
 export async function POST(request) {
     try {
-        const user = await currentUser();
+        const { isAdmin, error } = await checkAdminAccess();
 
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!isAdmin) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
+                error: error || "Unauthorized access"
             }, { status: 403 });
         }
 
@@ -100,12 +100,12 @@ export async function POST(request) {
 // DELETE - Delete subject
 export async function DELETE(request) {
     try {
-        const user = await currentUser();
+        const { isAdmin, error } = await checkAdminAccess();
 
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!isAdmin) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
+                error: error || "Unauthorized access"
             }, { status: 403 });
         }
 

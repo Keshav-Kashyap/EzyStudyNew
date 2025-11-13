@@ -2,16 +2,16 @@ import { NextResponse } from "next/server";
 import { db } from "@/config/db";
 import { semestersTable } from "@/config/schema";
 import { eq } from "drizzle-orm";
-import { currentUser } from "@clerk/nextjs/server";
+import { checkAdminAccess } from "@/lib/admin-auth";
 
 export async function GET() {
     try {
-        const user = await currentUser();
+        const { isAdmin, error } = await checkAdminAccess();
 
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!isAdmin) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
+                error: error || "Unauthorized access"
             }, { status: 403 });
         }
 
@@ -31,12 +31,12 @@ export async function GET() {
 
 export async function POST(request) {
     try {
-        const user = await currentUser();
+        const { isAdmin, error } = await checkAdminAccess();
 
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!isAdmin) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
+                error: error || "Unauthorized access"
             }, { status: 403 });
         }
 
@@ -75,12 +75,12 @@ export async function POST(request) {
 
 export async function DELETE(request) {
     try {
-        const user = await currentUser();
+        const { isAdmin, error } = await checkAdminAccess();
 
-        if (!user || !user.publicMetadata?.isAdmin) {
+        if (!isAdmin) {
             return NextResponse.json({
                 success: false,
-                error: "Unauthorized access"
+                error: error || "Unauthorized access"
             }, { status: 403 });
         }
 
