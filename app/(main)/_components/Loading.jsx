@@ -3,7 +3,7 @@ import React from 'react';
 const EzyLoader = () => {
     return (
         <div
-            className=" flex items-center justify-center dark:text-white text-black transition-colors duration-500"
+            className=" flex items-center justify-center min-h-screen dark:text-white text-black transition-colors duration-500"
             style={{ backgroundColor: 'rgb(38,38,36)' }}
         >
             <div className="text-center">
