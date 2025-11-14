@@ -18,7 +18,8 @@ import HeroHeader from '../../_components/HeroHeader';
 
 const PopularNotesGrid = () => {
     // Use React Query hook for caching
-    const { data: popularNotes = [], isLoading, isError } = usePopularNotes();
+    const { data, isLoading, isError } = usePopularNotes();
+    const popularNotes = data?.notes || [];
     const [likedNotes, setLikedNotes] = useState(new Set());
 
     // Load liked notes from localStorage (persist per-browser)

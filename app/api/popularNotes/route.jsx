@@ -2,11 +2,11 @@
 import { db } from "@/config/db";
 import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable } from "@/config/schema";
 import { NextResponse } from "next/server";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, like } from "drizzle-orm";
 
 export async function GET() {
     try {
-        // Fetch popular notes - either tagged as popular or sort by download count
+        // Fetch popular notes - materials tagged with "popular"
         const notes = await db
             .select({
                 id: studyMaterialsTable.id,
@@ -14,13 +14,15 @@ export async function GET() {
                 description: studyMaterialsTable.description,
                 fileUrl: studyMaterialsTable.fileUrl,
                 downloadCount: studyMaterialsTable.downloadCount,
+                likes: studyMaterialsTable.likes,
+                type: studyMaterialsTable.type,
+                imageUrl: studyMaterialsTable.imageUrl,
                 tags: studyMaterialsTable.tags,
                 createdAt: studyMaterialsTable.createdAt,
-                subjectCode: studyMaterialsTable.subjectCode,
-                semesterId: studyMaterialsTable.semesterId,
+                subjectId: studyMaterialsTable.subjectId,
             })
             .from(studyMaterialsTable)
-            .where(eq(studyMaterialsTable.tags, "popular"))
+            .where(like(studyMaterialsTable.tags, '%popular%'))
             .orderBy(desc(studyMaterialsTable.downloadCount))
             .limit(10);
 
