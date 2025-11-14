@@ -208,7 +208,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                                                 <span className="text-sm font-bold text-blue-400">{uploadProgress}%</span>
                                             </div>
                                             <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                                                <div 
+                                                <div
                                                     className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
                                                     style={{ width: `${uploadProgress}%` }}
                                                 />

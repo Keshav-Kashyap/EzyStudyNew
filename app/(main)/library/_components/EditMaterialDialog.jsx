@@ -19,7 +19,7 @@ const EditMaterialForm = ({ material, onUpdate, onCancel }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!formData.title.trim()) {
             toast.error('Title is required');
             return;

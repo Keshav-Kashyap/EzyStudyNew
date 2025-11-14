@@ -9,12 +9,12 @@ import EzyLoader from './(main)/_components/Loading'
 import { useContext, useEffect, useState } from "react";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import JsonLd from '@/components/JsonLd';
-import { 
-  generateOrganizationJsonLd, 
-  generateBreadcrumbJsonLd, 
+import {
+  generateOrganizationJsonLd,
+  generateBreadcrumbJsonLd,
   generateWebsiteJsonLd,
   generateEducationalPlatformJsonLd,
-  siteConfig 
+  siteConfig
 } from '@/lib/seo-config';
 import { BookOpen, FileText, Download, Users, Star, ArrowRight, CheckCircle, Zap, Shield, TrendingUp, Award } from 'lucide-react';
 import { usePopularNotes, usePopularCourses } from '@/hooks/useCourses';
@@ -43,7 +43,7 @@ export default function HeroSectionOne() {
   const organizationData = generateOrganizationJsonLd();
   const websiteData = generateWebsiteJsonLd();
   const platformData = generateEducationalPlatformJsonLd();
-  
+
   const faqData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",

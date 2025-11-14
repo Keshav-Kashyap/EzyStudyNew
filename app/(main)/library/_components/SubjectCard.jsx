@@ -57,7 +57,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
         setDeletingMaterialId(materialToDelete.id);
         setLocalMaterials(prev => prev.filter(m => m.id !== materialToDelete.id));
         setDeleteDialogOpen(false);
-        
+
         const toastId = toast.loading('Deleting material...');
 
         try {
@@ -138,9 +138,8 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                     localMaterials.map((material) => (
                         <div
                             key={material.id}
-                            className={`flex items-center flex-wrap justify-between gap-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-all duration-300 ${
-                                deletingMaterialId === material.id ? 'opacity-50 animate-pulse' : ''
-                            }`}
+                            className={`flex items-center flex-wrap justify-between gap-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-all duration-300 ${deletingMaterialId === material.id ? 'opacity-50 animate-pulse' : ''
+                                }`}
                         >
                             <div className="flex-1 min-w-0">
                                 <p className="font-medium text-gray-900 dark:text-white truncate">
@@ -162,7 +161,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                 {isAdmin && (
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button 
+                                            <button
                                                 disabled={deletingMaterialId === material.id}
                                                 className="flex items-center justify-center w-9 h-9 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                                 <MoreVertical className="h-5 w-5" />
@@ -213,13 +212,13 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                             onUpdate={() => {
                                 setEditDialogOpen(false);
                                 setMaterialToEdit(null);
-                                
+
                                 // Show loading toast
                                 const toastId = toast.loading('Refreshing materials...');
-                                
+
                                 // Refresh data
                                 onUpdate();
-                                
+
                                 // Dismiss loading after a short delay
                                 setTimeout(() => {
                                     toast.dismiss(toastId);
