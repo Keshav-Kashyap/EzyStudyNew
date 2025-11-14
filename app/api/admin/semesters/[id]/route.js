@@ -1,5 +1,5 @@
 import { db } from '@/config/db';
-import { adminSemesters } from '@/config/schema';
+import { semestersTable } from '@/config/schema';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
@@ -19,8 +19,8 @@ export async function PUT(req, { params }) {
 
         // Check if semester exists
         const existing = await db.select()
-            .from(adminSemesters)
-            .where(eq(adminSemesters.id, parseInt(id)))
+            .from(semestersTable)
+            .where(eq(semestersTable.id, parseInt(id)))
             .limit(1);
 
         if (existing.length === 0) {
@@ -30,13 +30,13 @@ export async function PUT(req, { params }) {
             );
         }
 
-        // Check for duplicate semester number in same course
+        // Check for duplicate semester name in same category
         const duplicate = await db.select()
-            .from(adminSemesters)
-            .where(eq(adminSemesters.semesterNumber, semesterNumber))
+            .from(semestersTable)
+            .where(eq(semestersTable.name, name.trim()))
             .limit(1);
 
-        if (duplicate.length > 0 && duplicate[0].id !== parseInt(id) && duplicate[0].courseId === existing[0].courseId) {
+        if (duplicate.length > 0 && duplicate[0].id !== parseInt(id) && duplicate[0].category === existing[0].category) {
             return NextResponse.json(
                 { success: false, error: 'A semester with this number already exists in this course' },
                 { status: 400 }
@@ -44,14 +44,13 @@ export async function PUT(req, { params }) {
         }
 
         // Update semester
-        const updated = await db.update(adminSemesters)
+        const updated = await db.update(semestersTable)
             .set({
                 name: name.trim(),
-                semesterNumber: semesterNumber || 1,
                 description: description?.trim() || null,
                 updatedAt: new Date()
             })
-            .where(eq(adminSemesters.id, parseInt(id)))
+            .where(eq(semestersTable.id, parseInt(id)))
             .returning();
 
         return NextResponse.json({
@@ -75,8 +74,8 @@ export async function DELETE(req, { params }) {
 
         // Check if semester exists
         const existing = await db.select()
-            .from(adminSemesters)
-            .where(eq(adminSemesters.id, parseInt(id)))
+            .from(semestersTable)
+            .where(eq(semestersTable.id, parseInt(id)))
             .limit(1);
 
         if (existing.length === 0) {
@@ -87,8 +86,8 @@ export async function DELETE(req, { params }) {
         }
 
         // Delete semester (cascade will handle related subjects and materials)
-        await db.delete(adminSemesters)
-            .where(eq(adminSemesters.id, parseInt(id)));
+        await db.delete(semestersTable)
+            .where(eq(semestersTable.id, parseInt(id)));
 
         return NextResponse.json({
             success: true,
