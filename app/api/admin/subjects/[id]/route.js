@@ -1,5 +1,5 @@
 import { db } from '@/config/db';
-import { adminSubjects } from '@/config/schema';
+import { subjectsTable } from '@/config/schema';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
@@ -19,8 +19,8 @@ export async function PUT(req, { params }) {
 
         // Check if subject exists
         const existing = await db.select()
-            .from(adminSubjects)
-            .where(eq(adminSubjects.id, parseInt(id)))
+            .from(subjectsTable)
+            .where(eq(subjectsTable.id, parseInt(id)))
             .limit(1);
 
         if (existing.length === 0) {
@@ -32,11 +32,11 @@ export async function PUT(req, { params }) {
 
         // Check for duplicate subject code in same semester
         const duplicate = await db.select()
-            .from(adminSubjects)
-            .where(eq(adminSubjects.code, code.trim().toUpperCase()))
+            .from(subjectsTable)
+            .where(eq(subjectsTable.code, code.trim().toUpperCase()))
             .limit(1);
 
-        if (duplicate.length > 0 && duplicate[0].id !== parseInt(id) && duplicate[0].semesterId === existing[0].semesterId) {
+        if (duplicate.length > 0 && duplicate[0].id !== parseInt(id) && duplicate[0].semesterName === existing[0].semesterName) {
             return NextResponse.json(
                 { success: false, error: 'A subject with this code already exists in this semester' },
                 { status: 400 }
@@ -44,15 +44,14 @@ export async function PUT(req, { params }) {
         }
 
         // Update subject
-        const updated = await db.update(adminSubjects)
+        const updated = await db.update(subjectsTable)
             .set({
                 name: name.trim(),
                 code: code.trim().toUpperCase(),
                 description: description?.trim() || null,
-                credits: credits || 4,
                 updatedAt: new Date()
             })
-            .where(eq(adminSubjects.id, parseInt(id)))
+            .where(eq(subjectsTable.id, parseInt(id)))
             .returning();
 
         return NextResponse.json({
@@ -76,8 +75,8 @@ export async function DELETE(req, { params }) {
 
         // Check if subject exists
         const existing = await db.select()
-            .from(adminSubjects)
-            .where(eq(adminSubjects.id, parseInt(id)))
+            .from(subjectsTable)
+            .where(eq(subjectsTable.id, parseInt(id)))
             .limit(1);
 
         if (existing.length === 0) {
@@ -88,8 +87,8 @@ export async function DELETE(req, { params }) {
         }
 
         // Delete subject (cascade will handle related materials)
-        await db.delete(adminSubjects)
-            .where(eq(adminSubjects.id, parseInt(id)));
+        await db.delete(subjectsTable)
+            .where(eq(subjectsTable.id, parseInt(id)));
 
         return NextResponse.json({
             success: true,
