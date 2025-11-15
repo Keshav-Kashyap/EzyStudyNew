@@ -43,7 +43,6 @@ const subjectsTable = pgTable("subjects", {
 
 const studyMaterialsTable = pgTable("study_materials", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    subjectId: integer().references(() => subjectsTable.id),
     title: varchar({ length: 255 }).notNull(),
     type: varchar({ length: 50 }).notNull(),
     fileUrl: varchar({ length: 500 }),
@@ -53,6 +52,13 @@ const studyMaterialsTable = pgTable("study_materials", {
     isActive: boolean().default(true),
     createdAt: timestamp().defaultNow(),
     updatedAt: timestamp().defaultNow()
+});
+
+const materialSubjectMappingTable = pgTable("material_subject_mapping", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    materialId: integer().references(() => studyMaterialsTable.id),
+    subjectId: integer().references(() => subjectsTable.id),
+    createdAt: timestamp().defaultNow()
 });
 
 const sql = neon(process.env.DATABASE_URL);
@@ -96,8 +102,18 @@ async function checkMCAData() {
                 console.log(` • ${subject.name} (${subject.code})`);
 
                 // Get materials for this subject
-                const materials = await db.select().from(studyMaterialsTable)
-                    .where(eq(studyMaterialsTable.subjectId, subject.id));
+                const materials = await db
+                    .select({
+                        id: studyMaterialsTable.id,
+                        title: studyMaterialsTable.title,
+                        type: studyMaterialsTable.type
+                    })
+                    .from(studyMaterialsTable)
+                    .innerJoin(
+                        materialSubjectMappingTable,
+                        eq(studyMaterialsTable.id, materialSubjectMappingTable.materialId)
+                    )
+                    .where(eq(materialSubjectMappingTable.subjectId, subject.id));
 
                 console.log(`  Materials: ${materials.length}`);
                 materials.forEach(material => {

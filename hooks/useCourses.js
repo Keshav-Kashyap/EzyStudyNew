@@ -11,6 +11,7 @@ export const courseKeys = {
     stats: () => [...courseKeys.all, 'stats'],
     popularNotes: ['popularNotes'],
     popularCourses: ['popularCourses'],
+    reviews: ['reviews'],
     semester: (code, semesterId) => [...courseKeys.all, 'semester', code, semesterId],
 };
 
@@ -85,6 +86,20 @@ const fetchPopularCourses = async () => {
     }
 
     return data.courses;
+};
+
+const fetchReviews = async () => {
+    const response = await fetch('/api/reviews');
+    if (!response.ok) {
+        throw new Error('Failed to fetch reviews');
+    }
+    const data = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch reviews');
+    }
+
+    return data.reviews;
 };
 
 const fetchCourseDetail = async (code) => {
@@ -190,6 +205,19 @@ export function usePopularCourses() {
     return useQuery({
         queryKey: courseKeys.popularCourses,
         queryFn: fetchPopularCourses,
+        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    });
+}
+
+/**
+ * Hook to fetch reviews with caching
+ * Data cached for 5 minutes to prevent unnecessary API calls
+ */
+export function useReviews() {
+    return useQuery({
+        queryKey: courseKeys.reviews,
+        queryFn: fetchReviews,
         staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
         gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
     });

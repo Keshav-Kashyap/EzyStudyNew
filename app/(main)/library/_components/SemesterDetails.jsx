@@ -6,6 +6,8 @@ import Link from 'next/link';
 import SubjectCard from './SubjectCard'
 import { UserDetailContext } from '@/context/UserDetailContext';
 import { useSemesterDetail, useInvalidateSemesterDetail } from '@/hooks/useCourses';
+import DownloadAllMaterialsButton from '@/components/DownloadAllMaterialsButton';
+import DownloadSyllabusButton from '@/components/DownloadSyllabusButton';
 
 
 const SemesterDetail = ({ basePath }) => {
@@ -65,24 +67,42 @@ const SemesterDetail = ({ basePath }) => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] p-6">
+        <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] p-3 sm:p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-8">
-                    <div className="flex items-center gap-4 mb-4">
-                        <Link
-                            href={`/library/${code}`}
-                            className="p-2 rounded-lg bg-white dark:bg-[rgb(24,24,24)] border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750"
-                        >
-                            <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                        </Link>
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                                {semesterData?.name || semesterName}
-                            </h1>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                {code.toUpperCase()} • {semesterData?.subjects?.length || 0} Subjects
-                            </p>
+                <div className="mb-6 sm:mb-8">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 mb-4">
+                        <div className="flex items-center gap-3 sm:gap-4">
+                            <Link
+                                href={`/library/${code}`}
+                                className="p-2 rounded-lg bg-white dark:bg-[rgb(24,24,24)] border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 flex-shrink-0"
+                            >
+                                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-400" />
+                            </Link>
+                            <div className="min-w-0 flex-1">
+                                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">
+                                    {semesterData?.name || semesterName}
+                                </h1>
+                                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                    {code.toUpperCase()} • {semesterData?.subjects?.length || 0} Subjects
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                            <DownloadAllMaterialsButton
+                                category={code}
+                                semesterName={semesterName}
+                                variant="default"
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2"
+                            />
+                            <DownloadSyllabusButton
+                                semesterId={semesterData?.id}
+                                semesterName={semesterData?.name || semesterName}
+                                variant="default"
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2"
+                            />
                         </div>
                     </div>
                 </div>

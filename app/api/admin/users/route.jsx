@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { currentUser } from '@clerk/nextjs/server'
-import { sql } from '@vercel/postgres'
+import { db } from '@/config/db'
+import { usersTable, enrollmentsTable } from '@/config/schema'
+import { sql, desc, eq, count } from 'drizzle-orm'
 
 export async function GET() {
     try {
@@ -11,24 +13,35 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Get all users from database
-        const users = await sql`
-      SELECT 
-        u.id,
-        u.user_id as clerk_user_id,
-        u.name,
-        u.email,
-        u.role,
-        u.is_active,
-        u.created_at,
-        COUNT(CASE WHEN e.status = 'active' THEN 1 END) as active_enrollments
-      FROM users u
-      LEFT JOIN enrollments e ON u.id = e.user_id
-      GROUP BY u.id, u.user_id, u.name, u.email, u.role, u.is_active, u.created_at
-      ORDER BY u.created_at DESC
-    `
+        // Get all users from database using Drizzle
+        const users = await db.select({
+            id: usersTable.id,
+            clerkUserId: usersTable.userId,
+            name: usersTable.name,
+            email: usersTable.email,
+            role: usersTable.role,
+            status: usersTable.isActive,
+            createdAt: usersTable.createdAt,
+        })
+            .from(usersTable)
+            .orderBy(desc(usersTable.createdAt))
 
-        return NextResponse.json(users.rows)
+        // Transform data to match expected format
+        const transformedUsers = users.map(user => ({
+            id: user.id,
+            clerkUserId: user.clerkUserId,
+            name: user.name,
+            email: user.email,
+            role: user.role || 'student',
+            status: user.status ? 'active' : 'inactive',
+            createdAt: user.createdAt,
+            activeEnrollments: 0
+        }))
+
+        return NextResponse.json({
+            success: true,
+            users: transformedUsers
+        })
     } catch (error) {
         console.error('Error fetching users:', error)
         return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
@@ -37,7 +50,8 @@ export async function GET() {
 
 export async function PUT(request) {
     try {
-        const { userId } = auth()
+        const user = await currentUser()
+        const userId = user?.id
 
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -45,24 +59,24 @@ export async function PUT(request) {
 
         const { id, role, isActive } = await request.json()
 
-        // Update user role and status
-        const result = await sql`
-      UPDATE users 
-      SET 
-        role = ${role},
-        is_active = ${isActive},
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${id}
-      RETURNING *
-    `
+        // Update user role and status using Drizzle
+        const result = await db.update(usersTable)
+            .set({
+                role: role,
+                isActive: isActive,
+                updatedAt: new Date()
+            })
+            .where(eq(usersTable.id, id))
+            .returning()
 
-        if (result.rows.length === 0) {
+        if (result.length === 0) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 })
         }
 
         return NextResponse.json({
+            success: true,
             message: 'User updated successfully',
-            user: result.rows[0]
+            user: result[0]
         })
     } catch (error) {
         console.error('Error updating user:', error)

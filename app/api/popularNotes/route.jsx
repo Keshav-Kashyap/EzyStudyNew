@@ -1,13 +1,13 @@
 
 import { db } from "@/config/db";
-import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable } from "@/config/schema";
+import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable, materialSubjectMappingTable } from "@/config/schema";
 import { NextResponse } from "next/server";
 import { eq, desc, sql, like } from "drizzle-orm";
 
 export async function GET() {
     try {
-        // Fetch popular notes - materials tagged with "popular"
-        const notes = await db
+        // Fetch popular notes with their subjects through mapping table
+        const notesWithSubjects = await db
             .select({
                 id: studyMaterialsTable.id,
                 title: studyMaterialsTable.title,
@@ -19,12 +19,49 @@ export async function GET() {
                 imageUrl: studyMaterialsTable.imageUrl,
                 tags: studyMaterialsTable.tags,
                 createdAt: studyMaterialsTable.createdAt,
-                subjectId: studyMaterialsTable.subjectId,
+                subjectId: subjectsTable.id,
+                subjectName: subjectsTable.name,
             })
             .from(studyMaterialsTable)
+            .leftJoin(
+                materialSubjectMappingTable,
+                eq(studyMaterialsTable.id, materialSubjectMappingTable.materialId)
+            )
+            .leftJoin(
+                subjectsTable,
+                eq(materialSubjectMappingTable.subjectId, subjectsTable.id)
+            )
             .where(like(studyMaterialsTable.tags, '%popular%'))
             .orderBy(desc(studyMaterialsTable.downloadCount))
             .limit(10);
+
+        // Group materials with their subjects
+        const notesMap = new Map();
+        notesWithSubjects.forEach(row => {
+            if (!notesMap.has(row.id)) {
+                notesMap.set(row.id, {
+                    id: row.id,
+                    title: row.title,
+                    description: row.description,
+                    fileUrl: row.fileUrl,
+                    downloadCount: row.downloadCount,
+                    likes: row.likes,
+                    type: row.type,
+                    imageUrl: row.imageUrl,
+                    tags: row.tags,
+                    createdAt: row.createdAt,
+                    subjects: []
+                });
+            }
+            if (row.subjectId) {
+                notesMap.get(row.id).subjects.push({
+                    id: row.subjectId,
+                    name: row.subjectName
+                });
+            }
+        });
+
+        const notes = Array.from(notesMap.values());
 
         return NextResponse.json({
             success: true,

@@ -9,8 +9,9 @@ import SemesterActions from '@/app/admin/library/_components/SemesterActions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import DownloadAllMaterialsButton from '@/components/DownloadAllMaterialsButton';
 
-const SemesterCard = ({ basePath, semester, code, isAdmin, onUpdate, isSelected, onSelect }) => {
+const SemesterCard = ({ basePath, semester, code, isAdmin, onUpdate, isSelected, onSelect, showDownloadInCard = false }) => {
     const router = useRouter();
     const { userDetail } = useContext(UserDetailContext);
     const [isToggling, setIsToggling] = useState(false);
@@ -100,9 +101,11 @@ const SemesterCard = ({ basePath, semester, code, isAdmin, onUpdate, isSelected,
             <div className="relative z-10">
                 <div className="flex items-start justify-between mb-6">
                     <div className={isAdmin && onSelect ? 'pl-8' : ''}>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                            {semester.name}
-                        </h3>
+                        <div className="flex items-center gap-3 mb-1">
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                {semester.name}
+                            </h3>
+                        </div>
                         {semester.description && (
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {semester.description}
@@ -152,14 +155,27 @@ const SemesterCard = ({ basePath, semester, code, isAdmin, onUpdate, isSelected,
 
                 <div className="flex items-center gap-2">
                     {isActive ? (
-                        <Link
-                            href={`/${finalBasePath}/${code}/semester/${semester.name.toLowerCase().replace(/\s+/g, '-')}`}
-                            className="flex-1 flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all duration-300 group-hover:shadow-lg no-underline"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <span>View Materials</span>
-                            <ChevronRight size={20} className="transition-transform group-hover:translate-x-1" />
-                        </Link>
+                        <>
+                            <Link
+                                href={`/${finalBasePath}/${code}/semester/${semester.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                className="flex-1 flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all duration-300 group-hover:shadow-lg no-underline"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <span>View Materials</span>
+                                <ChevronRight size={20} className="transition-transform group-hover:translate-x-1" />
+                            </Link>
+                            {showDownloadInCard && (
+                                <div onClick={(e) => e.stopPropagation()}>
+                                    <DownloadAllMaterialsButton
+                                        category={code}
+                                        semesterName={semester.name}
+                                        variant="outline"
+                                        size="default"
+                                        className="h-12 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                    />
+                                </div>
+                            )}
+                        </>
                     ) : (
                         <button
                             disabled

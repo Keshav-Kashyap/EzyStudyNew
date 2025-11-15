@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
     DialogContent,
     DialogDescription,
@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Upload, FileText, Loader2 } from 'lucide-react'
+import { Upload, FileText, Loader2, Check, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
@@ -21,6 +21,81 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
     const [uploading, setUploading] = useState(false)
     const [uploadProgress, setUploadProgress] = useState(0)
 
+    // Multi-select state
+    const [allSubjects, setAllSubjects] = useState([])
+    const [selectedSubjects, setSelectedSubjects] = useState([])
+    const [loadingSubjects, setLoadingSubjects] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [showDropdown, setShowDropdown] = useState(false)
+
+    // Fetch all subjects on mount
+    useEffect(() => {
+        fetchAllSubjects()
+    }, [])
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (!e.target.closest('.subject-dropdown-container')) {
+                setShowDropdown(false)
+            }
+        }
+        document.addEventListener('click', handleClickOutside)
+        return () => document.removeEventListener('click', handleClickOutside)
+    }, [])
+
+    const fetchAllSubjects = async () => {
+        setLoadingSubjects(true)
+        try {
+            const response = await fetch('/api/admin/subjects/all')
+            const result = await response.json()
+
+            if (result.success) {
+                setAllSubjects(result.subjects || [])
+
+                // Auto-select if prefilled subject code
+                if (prefilledSubjectCode) {
+                    const matchingSubject = result.subjects.find(
+                        s => s.code.toUpperCase() === prefilledSubjectCode.toUpperCase()
+                    )
+                    if (matchingSubject) {
+                        setSelectedSubjects([matchingSubject])
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching subjects:', error)
+            toast.error('Failed to load subjects')
+        } finally {
+            setLoadingSubjects(false)
+        }
+    }
+
+    const toggleSubjectSelection = (subject) => {
+        setSelectedSubjects(prev => {
+            const exists = prev.find(s => s.id === subject.id)
+            if (exists) {
+                return prev.filter(s => s.id !== subject.id)
+            } else {
+                return [...prev, subject]
+            }
+        })
+    }
+
+    const removeSubject = (subjectId) => {
+        setSelectedSubjects(prev => prev.filter(s => s.id !== subjectId))
+    }
+
+    const filteredSubjects = allSubjects.filter(subject => {
+        const search = searchTerm.toLowerCase()
+        return (
+            subject.name.toLowerCase().includes(search) ||
+            subject.code.toLowerCase().includes(search) ||
+            subject.category.toLowerCase().includes(search) ||
+            subject.semesterName.toLowerCase().includes(search)
+        )
+    })
+
     const handleFileChange = (e) => {
         const file = e.target.files?.[0]
         if (file) {
@@ -30,24 +105,15 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                 return
             }
 
-            // Validate file size (max 10MB)
-            if (file.size > 10 * 1024 * 1024) {
-                toast.error('File size should be less than 10MB')
-                return
-            }
-
+            // No file size limit for admin - they can upload any size
             setFileName(file.name)
             setSelectedFile(file)
+            toast.success(`Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`)
         }
     }
 
     const handleSubmit = async () => {
         // Validation
-        if (!courseCode.trim()) {
-            toast.error('Please enter subject code')
-            return
-        }
-
         if (!docTitle.trim()) {
             toast.error('Please enter document title')
             return
@@ -58,6 +124,11 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
             return
         }
 
+        if (selectedSubjects.length === 0) {
+            toast.error('Please select at least one subject')
+            return
+        }
+
         setUploading(true)
         setUploadProgress(0)
 
@@ -65,11 +136,19 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
             // Create FormData for file upload
             const formData = new FormData()
             formData.append('file', selectedFile)
-            formData.append('courseCode', courseCode.trim()) // This will be treated as subjectCode in API
             formData.append('title', docTitle.trim())
             formData.append('fileName', selectedFile.name)
             formData.append('fileSize', selectedFile.size.toString())
             formData.append('fileType', selectedFile.type)
+
+            // Add selected subject IDs as JSON array
+            const subjectIds = selectedSubjects.map(s => s.id)
+            formData.append('subjectIds', JSON.stringify(subjectIds))
+
+            // Add first subject code for backward compatibility
+            if (selectedSubjects.length > 0) {
+                formData.append('courseCode', selectedSubjects[0].code)
+            }
 
             // Create XMLHttpRequest for progress tracking
             const xhr = new XMLHttpRequest()
@@ -113,15 +192,16 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
 
             if (result.success) {
                 setUploadProgress(100)
-                toast.success('Material uploaded successfully!')
+                toast.success(`Material uploaded and assigned to ${selectedSubjects.length} subject(s)!`)
 
-                // Reset form (only if not prefilled)
-                if (!prefilledSubjectCode) {
-                    setCourseCode('')
-                }
+                // Reset form
                 setDocTitle('')
                 setFileName('')
                 setSelectedFile(null)
+                if (!prefilledSubjectCode) {
+                    setSelectedSubjects([])
+                    setCourseCode('')
+                }
 
                 // Call success callback
                 onSuccess?.()
@@ -151,23 +231,86 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
             </DialogHeader>
 
             <div className="space-y-6 mt-4">
+                {/* Subject Multi-Select */}
                 <div className="space-y-2">
-                    <Label htmlFor="course-code" className="text-white">
-                        Subject Code * {prefilledSubjectCode && <span className="text-gray-500 text-xs">(Auto-filled)</span>}
+                    <Label className="text-white">
+                        Select Subjects *
+                        {prefilledSubjectCode && <span className="text-gray-500 text-xs ml-2">(Pre-selected)</span>}
                     </Label>
-                    <Input
-                        id="course-code"
-                        value={courseCode}
-                        onChange={(e) => setCourseCode(e.target.value.toUpperCase())}
-                        placeholder="e.g., CS101, MATH201"
-                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
-                        disabled={uploading || !!prefilledSubjectCode}
-                        readOnly={!!prefilledSubjectCode}
-                    />
+
+                    {/* Selected Subjects Display */}
+                    {selectedSubjects.length > 0 && (
+                        <div className="flex flex-wrap gap-2 p-2 bg-[#1a1a18] border border-[#3a3a38] rounded-lg">
+                            {selectedSubjects.map(subject => (
+                                <div
+                                    key={subject.id}
+                                    className="flex items-center gap-1 bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                                >
+                                    <span>{subject.code} - {subject.name}</span>
+                                    {!prefilledSubjectCode && (
+                                        <button
+                                            onClick={() => removeSubject(subject.id)}
+                                            className="hover:bg-blue-700 rounded"
+                                            disabled={uploading}
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Subject Search & Dropdown */}
+                    {!prefilledSubjectCode && (
+                        <div className="relative subject-dropdown-container">
+                            <Input
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value)
+                                    setShowDropdown(true)
+                                }}
+                                onFocus={() => setShowDropdown(true)}
+                                placeholder="Search subjects by name, code, course..."
+                                className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500"
+                                disabled={uploading || loadingSubjects}
+                            />
+
+                            {/* Dropdown */}
+                            {showDropdown && filteredSubjects.length > 0 && (
+                                <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-[#1a1a18] border border-[#3a3a38] rounded-lg shadow-lg">
+                                    {filteredSubjects.map(subject => {
+                                        const isSelected = selectedSubjects.find(s => s.id === subject.id)
+                                        return (
+                                            <div
+                                                key={subject.id}
+                                                onClick={() => toggleSubjectSelection(subject)}
+                                                className="flex items-center justify-between px-3 py-2 hover:bg-[#2a2a28] cursor-pointer border-b border-[#3a3a38] last:border-b-0"
+                                            >
+                                                <div className="flex-1">
+                                                    <div className="text-white text-sm font-medium">
+                                                        {subject.code} - {subject.name}
+                                                    </div>
+                                                    <div className="text-gray-500 text-xs">
+                                                        {subject.category} • {subject.semesterName}
+                                                    </div>
+                                                </div>
+                                                {isSelected && (
+                                                    <Check className="h-4 w-4 text-blue-500" />
+                                                )}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     <p className="text-xs text-gray-500">
-                        {prefilledSubjectCode
-                            ? `Material will be uploaded to ${prefilledSubjectCode}`
-                            : 'Enter the subject code for which you want to upload material'}
+                        {selectedSubjects.length === 0
+                            ? 'Search and select subjects where this material will be available'
+                            : `Selected ${selectedSubjects.length} subject(s). Material will appear in all selected subjects.`
+                        }
                     </p>
                 </div>
 
@@ -184,7 +327,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="pdf-upload" className="text-white">Upload PDF * (Max 10MB)</Label>
+                    <Label htmlFor="pdf-upload" className="text-white">Upload PDF * (No Size Limit)</Label>
                     <div className="relative">
                         <Input
                             id="pdf-upload"
@@ -249,7 +392,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                     <Button
                         className="flex-1 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
                         onClick={handleSubmit}
-                        disabled={uploading || !selectedFile || !courseCode.trim() || !docTitle.trim()}
+                        disabled={uploading || !selectedFile || selectedSubjects.length === 0 || !docTitle.trim()}
                     >
                         {uploading ? (
                             <>
@@ -257,7 +400,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                                 Uploading...
                             </>
                         ) : (
-                            'Upload Material'
+                            `Upload to ${selectedSubjects.length} Subject(s)`
                         )}
                     </Button>
                 </div>

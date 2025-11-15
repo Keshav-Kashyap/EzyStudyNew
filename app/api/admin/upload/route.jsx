@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { checkAdminAccess } from "@/lib/admin-auth";
 import { createClient } from '@supabase/supabase-js';
 import { db } from "@/config/db";
-import { studyMaterialsTable, subjectsTable } from '@/config/schema';
+import { studyMaterialsTable, materialSubjectMappingTable, subjectsTable } from '@/config/schema';
 import { eq } from "drizzle-orm";
 
 // Initialize Supabase client with proper error handling
@@ -57,17 +57,27 @@ export async function POST(request) {
 
         const formData = await request.formData();
         const file = formData.get('file');
-        const courseCode = formData.get('courseCode');
+        const courseCode = formData.get('courseCode'); // For backward compatibility
+        const subjectIds = formData.get('subjectIds'); // New: comma-separated subject IDs or JSON array
         const title = formData.get('title');
         const fileName = formData.get('fileName');
         const fileSize = formData.get('fileSize');
         const fileType = formData.get('fileType');
-        console.log("course code:", courseCode);
 
-        if (!file || !courseCode || !title) {
+        console.log("Upload params:", { courseCode, subjectIds });
+
+        if (!file || !title) {
             return NextResponse.json({
                 success: false,
-                error: "File, course code, and title are required"
+                error: "File and title are required"
+            }, { status: 400 });
+        }
+
+        // Check if we have either courseCode or subjectIds
+        if (!courseCode && !subjectIds) {
+            return NextResponse.json({
+                success: false,
+                error: "Either subject code or subject IDs are required"
             }, { status: 400 });
         }
 
@@ -79,25 +89,48 @@ export async function POST(request) {
             }, { status: 400 });
         }
 
-        // Find subject by code
-        const subject = await db.select()
-            .from(subjectsTable)
-            .where(eq(subjectsTable.code, courseCode.toUpperCase()))
-            .limit(1);
+        // Parse subject IDs
+        let subjectIdArray = [];
 
-        if (!subject[0]) {
-            return NextResponse.json({
-                success: false,
-                error: `Subject with code '${courseCode}' not found. Please create the subject first.`
-            }, { status: 404 });
+        if (subjectIds) {
+            // New flow: Use provided subject IDs
+            try {
+                subjectIdArray = JSON.parse(subjectIds);
+                if (!Array.isArray(subjectIdArray) || subjectIdArray.length === 0) {
+                    throw new Error('Invalid subject IDs format');
+                }
+            } catch (e) {
+                // Try comma-separated format
+                subjectIdArray = subjectIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+                if (subjectIdArray.length === 0) {
+                    return NextResponse.json({
+                        success: false,
+                        error: "Invalid subject IDs format"
+                    }, { status: 400 });
+                }
+            }
+        } else if (courseCode) {
+            // Old flow: Find subject by code for backward compatibility
+            const subject = await db.select()
+                .from(subjectsTable)
+                .where(eq(subjectsTable.code, courseCode.toUpperCase()))
+                .limit(1);
+
+            if (!subject[0]) {
+                return NextResponse.json({
+                    success: false,
+                    error: `Subject with code '${courseCode}' not found. Please create the subject first.`
+                }, { status: 404 });
+            }
+
+            subjectIdArray = [subject[0].id];
         }
 
-        const subjectId = subject[0].id;
-
-        // Generate unique file name
+        // Generate unique file name using first subject or courseCode
+        const filePrefix = courseCode || `subject-${subjectIdArray[0]}`;
         const timestamp = Date.now();
         const cleanFileName = file.name.replace(/\s+/g, '_');
-        const supabaseFileName = `study-materials/${courseCode}/${timestamp}-${cleanFileName}`;
+        const supabaseFileName = `study-materials/${filePrefix}/${timestamp}-${cleanFileName}`;
 
         // Convert file to buffer
         const bytes = await file.arrayBuffer();
@@ -135,26 +168,42 @@ export async function POST(request) {
             .from('study-materials')
             .getPublicUrl(supabaseFileName);
 
-        // Save material to database
+        // Save material to database (without subjectId)
         const materialData = await db.insert(studyMaterialsTable).values({
-            subjectId: subjectId,
             title: title,
             type: 'PDF', // Material type
             fileUrl: urlData.publicUrl,
-            description: `PDF material for ${courseCode} - ${title}`,
-            tags: JSON.stringify([courseCode, 'PDF', 'study-material']),
+            description: `PDF material - ${title}`,
+            tags: JSON.stringify([filePrefix, 'PDF', 'study-material']),
             downloadCount: 0,
             isActive: true,
             createdAt: new Date(),
             updatedAt: new Date()
         }).returning();
 
+        // Link material to ALL selected subjects through mapping table
+        const mappingPromises = subjectIdArray.map(subjectId =>
+            db.insert(materialSubjectMappingTable).values({
+                materialId: materialData[0].id,
+                subjectId: subjectId,
+                createdAt: new Date()
+            })
+        );
+
+        await Promise.all(mappingPromises);
+
+        // Fetch subject details for response
+        const subjects = await db.select()
+            .from(subjectsTable)
+            .where(eq(subjectsTable.id, subjectIdArray[0]));
+
         return NextResponse.json({
             success: true,
-            message: "Material uploaded and saved successfully",
+            message: `Material uploaded and assigned to ${subjectIdArray.length} subject(s) successfully`,
             data: {
                 material: materialData[0],
-                subject: subject[0],
+                assignedToSubjects: subjectIdArray.length,
+                subjectIds: subjectIdArray,
                 file: {
                     url: urlData.publicUrl,
                     fileName: supabaseFileName,
@@ -284,15 +333,23 @@ async function handleUrlBasedUpload(request) {
         const formData = await request.formData();
         const file = formData.get('file');
         const courseCode = formData.get('courseCode');
+        const subjectIds = formData.get('subjectIds');
         const title = formData.get('title');
 
-        console.log('📝 URL-based upload:', { courseCode, title, fileName: file?.name });
+        console.log('📝 URL-based upload:', { courseCode, subjectIds, title, fileName: file?.name });
 
         // Validate inputs
-        if (!courseCode || !title) {
+        if (!title) {
             return NextResponse.json({
                 success: false,
-                error: "Course code and title are required"
+                error: "Title is required"
+            }, { status: 400 });
+        }
+
+        if (!courseCode && !subjectIds) {
+            return NextResponse.json({
+                success: false,
+                error: "Either course code or subject IDs are required"
             }, { status: 400 });
         }
 
@@ -303,45 +360,74 @@ async function handleUrlBasedUpload(request) {
             }, { status: 400 });
         }
 
-        // Find subject by code
-        const subject = await db.select().from(subjectsTable)
-            .where(eq(subjectsTable.code, courseCode.toUpperCase()));
+        // Parse subject IDs
+        let subjectIdArray = [];
 
-        if (subject.length === 0) {
-            return NextResponse.json({
-                success: false,
-                error: `Subject with code ${courseCode} not found`
-            }, { status: 404 });
+        if (subjectIds) {
+            try {
+                subjectIdArray = JSON.parse(subjectIds);
+            } catch (e) {
+                subjectIdArray = subjectIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+            }
+        } else if (courseCode) {
+            // Backward compatibility - find subject by code
+            const subject = await db.select().from(subjectsTable)
+                .where(eq(subjectsTable.code, courseCode.toUpperCase()));
+
+            if (subject.length === 0) {
+                return NextResponse.json({
+                    success: false,
+                    error: `Subject with code ${courseCode} not found`
+                }, { status: 404 });
+            }
+
+            subjectIdArray = [subject[0].id];
         }
 
-        const subjectId = subject[0].id;
+        if (subjectIdArray.length === 0) {
+            return NextResponse.json({
+                success: false,
+                error: "No valid subject IDs provided"
+            }, { status: 400 });
+        }
 
         // Create a placeholder URL (using a free PDF hosting service URL format)
         // In production, you would upload to your own server or use a proper file hosting service
         const placeholderUrl = `https://placeholder-url.com/files/${Date.now()}-${file.name}`;
 
-        // Save material to database with placeholder URL
+        // Save material to database with placeholder URL (without subjectId)
         const materialData = await db.insert(studyMaterialsTable).values({
-            subjectId: subjectId,
             title: title,
             type: 'PDF',
             fileUrl: placeholderUrl,
-            description: `PDF material for ${courseCode} - ${title}`,
-            tags: JSON.stringify([courseCode, 'PDF', 'study-material']),
+            description: `PDF material - ${title}`,
+            tags: JSON.stringify(['PDF', 'study-material']),
             downloadCount: 0,
             isActive: true,
             createdAt: new Date(),
             updatedAt: new Date()
         }).returning();
 
+        // Link material to ALL selected subjects through mapping table
+        const mappingPromises = subjectIdArray.map(subjectId =>
+            db.insert(materialSubjectMappingTable).values({
+                materialId: materialData[0].id,
+                subjectId: subjectId,
+                createdAt: new Date()
+            })
+        );
+
+        await Promise.all(mappingPromises);
+
         console.log('✅ Material saved to database (URL-based)');
 
         return NextResponse.json({
             success: true,
-            message: "⚠️ Material saved successfully! Note: File upload is disabled (Supabase not configured). Please add file URL manually or configure Supabase.",
+            message: `⚠️ Material saved and assigned to ${subjectIdArray.length} subject(s)! Note: File upload is disabled (Supabase not configured). Please add file URL manually or configure Supabase.`,
             data: {
                 material: materialData[0],
-                subject: subject[0],
+                assignedToSubjects: subjectIdArray.length,
+                subjectIds: subjectIdArray,
                 file: {
                     url: placeholderUrl,
                     fileName: file.name,

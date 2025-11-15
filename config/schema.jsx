@@ -53,10 +53,9 @@ export const subjectsTable = pgTable("subjects", {
     updatedAt: timestamp().defaultNow()
 });
 
-// Study Materials Table
+// Study Materials Table (Independent - can be reused across subjects)
 export const studyMaterialsTable = pgTable("study_materials", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    subjectId: integer().references(() => subjectsTable.id),
     title: varchar({ length: 255 }).notNull(),
     type: varchar({ length: 50 }).notNull(), // PDF, DOC, VIDEO, etc.
     fileUrl: varchar({ length: 500 }),
@@ -68,6 +67,15 @@ export const studyMaterialsTable = pgTable("study_materials", {
     isActive: boolean().default(true),
     createdAt: timestamp().defaultNow(),
     updatedAt: timestamp().defaultNow()
+});
+
+// Material-Subject Mapping Table (Many-to-Many relationship)
+// One material can be used in multiple subjects across different courses/semesters
+export const materialSubjectMappingTable = pgTable("material_subject_mapping", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    materialId: integer().references(() => studyMaterialsTable.id).notNull(),
+    subjectId: integer().references(() => subjectsTable.id).notNull(),
+    addedAt: timestamp().defaultNow()
 });
 
 // User Course Enrollments
@@ -101,6 +109,18 @@ export const notificationsTable = pgTable("notifications", {
     materialTitle: varchar({ length: 255 }),
     actionUrl: varchar({ length: 500 }), // URL to navigate when clicked
     isRead: boolean().default(false),
+    createdAt: timestamp().defaultNow()
+});
+
+// Reviews Table
+export const reviewsTable = pgTable("reviews", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: varchar({ length: 255 }).notNull(), // Clerk user ID
+    userName: varchar({ length: 255 }).notNull(),
+    userEmail: varchar({ length: 255 }),
+    rating: integer().notNull(), // 1-5 stars
+    reviewText: text().notNull(),
+    isApproved: boolean().default(true), // For moderation
     createdAt: timestamp().defaultNow()
 });
 

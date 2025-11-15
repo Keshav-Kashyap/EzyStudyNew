@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/config/db';
-import { semestersTable, subjectsTable, studyMaterialsTable } from '@/config/schema';
+import { semestersTable, subjectsTable, studyMaterialsTable, materialSubjectMappingTable } from '@/config/schema';
 import { inArray, eq } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
 
@@ -52,11 +52,12 @@ export async function DELETE(request) {
 
         const subjectIds = subjects.map(s => s.id);
 
-        // Delete study materials first (if any subjects exist)
+        // Delete study material mappings first (if any subjects exist)
+        // Note: Materials themselves are kept as they might be used in other subjects
         if (subjectIds.length > 0) {
             await db
-                .delete(studyMaterialsTable)
-                .where(inArray(studyMaterialsTable.subjectId, subjectIds));
+                .delete(materialSubjectMappingTable)
+                .where(inArray(materialSubjectMappingTable.subjectId, subjectIds));
         }
 
         // Delete subjects

@@ -89,9 +89,6 @@ export const menuItems = [
         icon: "BookOpen",
         href: "/dashboard/allCourses",
     },
-
-
-
 ];
 
 
@@ -154,6 +151,11 @@ export const bottomMenuItems = [
         icon: "Bell",
         href: '/notifications',
         badge: 3
+    },
+    {
+        title: 'Reviews',
+        icon: "MessageSquare",
+        href: '/reviews'
     },
     {
         title: 'Settings',

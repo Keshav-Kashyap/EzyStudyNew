@@ -20,7 +20,14 @@ export async function GET() {
         const courses = await db.select().from(coursesTable);
         const semesters = await db.select().from(semestersTable);
         const subjects = await db.select().from(subjectsTable);
-        const materials = await db.select().from(studyMaterialsTable);
+        const materials = await db.select({
+            id: studyMaterialsTable.id,
+            title: studyMaterialsTable.title,
+            type: studyMaterialsTable.type,
+            fileUrl: studyMaterialsTable.fileUrl,
+            downloadCount: studyMaterialsTable.downloadCount,
+            createdAt: studyMaterialsTable.createdAt
+        }).from(studyMaterialsTable);
 
         // Calculate active semesters
         const activeSemesters = semesters.filter(sem => sem.isActive);

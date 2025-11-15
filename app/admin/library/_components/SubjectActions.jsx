@@ -1,20 +1,23 @@
 "use client"
 
 import React, { useState } from 'react'
-import { MoreVertical, Edit, Trash2 } from 'lucide-react'
+import { MoreVertical, Edit, Trash2, Copy, Upload } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import EditSubjectDialog from './EditSubjectDialog'
 import DeleteConfirmDialog from './DeleteConfirmDialog'
+import CopySubjectDialog from './CopySubjectDialog'
 
-const SubjectActions = ({ subject, onUpdate }) => {
+const SubjectActions = ({ subject, onUpdate, onUploadClick }) => {
     const [editOpen, setEditOpen] = useState(false)
     const [deleteOpen, setDeleteOpen] = useState(false)
+    const [copyOpen, setCopyOpen] = useState(false)
 
     return (
         <>
@@ -29,7 +32,33 @@ const SubjectActions = ({ subject, onUpdate }) => {
                         <MoreVertical className="h-4 w-4 text-slate-700 dark:text-slate-300" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-56">
+                    {onUploadClick && (
+                        <>
+                            <DropdownMenuItem
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    onUploadClick()
+                                }}
+                                className="cursor-pointer text-green-600 dark:text-green-400 focus:text-green-600 dark:focus:text-green-400"
+                            >
+                                <Upload className="mr-2 h-4 w-4" />
+                                Upload Material
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                        </>
+                    )}
+                    <DropdownMenuItem
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setCopyOpen(true)
+                        }}
+                        className="cursor-pointer text-blue-600 dark:text-blue-400 focus:text-blue-600 dark:focus:text-blue-400"
+                    >
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy to Another Course
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                         onClick={(e) => {
                             e.stopPropagation()
@@ -52,6 +81,14 @@ const SubjectActions = ({ subject, onUpdate }) => {
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Copy Dialog */}
+            <CopySubjectDialog
+                isOpen={copyOpen}
+                onClose={() => setCopyOpen(false)}
+                subject={subject}
+                onSuccess={onUpdate}
+            />
 
             {/* Edit Dialog */}
             <EditSubjectDialog

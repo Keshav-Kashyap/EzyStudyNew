@@ -1,7 +1,7 @@
 import { db } from "@/config/db";
-import { coursesTable, semestersTable, studyMaterialsTable } from "@/config/schema";
+import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable, materialSubjectMappingTable } from "@/config/schema";
 import { NextResponse } from "next/server";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, count } from "drizzle-orm";
 
 export async function GET() {
     try {
@@ -24,25 +24,29 @@ export async function GET() {
         // For each course, get semester count and total materials
         const coursesWithStats = await Promise.all(
             courses.map(async (course) => {
-                // Get semester count
+                // Get semester count for this course category
                 const semesters = await db
                     .select()
                     .from(semestersTable)
-                    .where(eq(semestersTable.categoryId, course.id));
+                    .where(eq(semestersTable.category, course.category));
 
-                // Get total materials count across all semesters
-                const semesterIds = semesters.map(s => s.id);
+                // Get all subjects for this course category
+                const subjects = await db
+                    .select({ id: subjectsTable.id })
+                    .from(subjectsTable)
+                    .where(eq(subjectsTable.category, course.category));
+
+                const subjectIds = subjects.map(s => s.id);
                 let totalMaterials = 0;
 
-                if (semesterIds.length > 0) {
-                    const materialsCount = await db
-                        .select({
-                            count: sql`count(*)`,
-                        })
-                        .from(studyMaterialsTable)
-                        .where(sql`${studyMaterialsTable.semesterId} IN (${sql.join(semesterIds, sql`, `)})`);
+                // Count materials through mapping table
+                if (subjectIds.length > 0) {
+                    const [result] = await db
+                        .select({ count: count() })
+                        .from(materialSubjectMappingTable)
+                        .where(sql`${materialSubjectMappingTable.subjectId} IN (${sql.join(subjectIds.map(id => sql`${id}`), sql`, `)})`);
 
-                    totalMaterials = Number(materialsCount[0]?.count || 0);
+                    totalMaterials = result.count;
                 }
 
                 return {

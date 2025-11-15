@@ -94,13 +94,13 @@ export default function RoleBasedRedirect() {
 
         function handleRedirect(isAdmin) {
             if (isAdmin) {
-                // Admin user
-                if (pathname === '/' || pathname === '/dashboard' || pathname.startsWith('/(main)')) {
-                    console.log('🔄 Redirecting admin to admin dashboard');
+                // Admin user - ALWAYS keep on admin routes, never allow normal routes
+                if (!pathname.startsWith('/admin')) {
+                    console.log('🔄 Admin trying to access normal route - redirecting to admin dashboard');
                     router.push('/admin/dashboard');
                 }
             } else {
-                // Student user  
+                // Student user - redirect to student dashboard if trying to access admin pages
                 if (pathname.startsWith('/admin')) {
                     console.log('🔄 Redirecting student to main dashboard');
                     router.push('/dashboard');

@@ -8,6 +8,7 @@ import { UserDetailContext } from '@/context/UserDetailContext';
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useCourseDetail } from '@/hooks/useCourses';
+import DownloadAllMaterialsButton from '@/components/DownloadAllMaterialsButton';
 
 const SemesterOverview = () => {
     const { code } = useParams();
@@ -96,6 +97,7 @@ const SemesterOverview = () => {
                             semester={semester}
                             code={code}
                             basePath={isAdmin ? "admin/library" : "library"}
+                            showDownloadInCard={true}
                         />
                     ))}
                 </div>

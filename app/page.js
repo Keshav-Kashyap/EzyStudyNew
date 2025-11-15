@@ -16,8 +16,9 @@ import {
   generateEducationalPlatformJsonLd,
   siteConfig
 } from '@/lib/seo-config';
-import { BookOpen, FileText, Download, Users, Star, ArrowRight, CheckCircle, Zap, Shield, TrendingUp, Award } from 'lucide-react';
-import { usePopularNotes, usePopularCourses } from '@/hooks/useCourses';
+import { BookOpen, FileText, Download, Users, Star, ArrowRight, CheckCircle, Zap, Shield, TrendingUp, Award, GraduationCap, MessageSquare } from 'lucide-react'; 'lucide-react';
+import { usePopularNotes, usePopularCourses, useReviews } from '@/hooks/useCourses';
+import PopularNotesSection from '@/components/sections/PopularNotesSection';
 
 export default function HeroSectionOne() {
   const { isSignedIn, user } = useUser();
@@ -83,12 +84,6 @@ export default function HeroSectionOne() {
     ]
   };
 
-  if (!user) {
-    return (
-      <EzyLoader />
-    )
-  }
-
   return (
     <div className="relative bg-white dark:bg-[rgb(38,38,36)] min-h-screen">
       {/* JSON-LD Structured Data for SEO */}
@@ -108,8 +103,8 @@ export default function HeroSectionOne() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-32">
-        {/* Background Gradients */}
+      <section className="relative overflow-hidden pt-20 pb-32 bg-white dark:bg-[rgb(38,38,36)]">
+        {/* Gradient Blobs */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
@@ -125,7 +120,7 @@ export default function HeroSectionOne() {
               className="flex-1 text-center lg:text-left">
               <div className="inline-block mb-4">
                 <span className="px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-semibold">
-                  📚 Study Smarter, Not Harder
+                  Study Smarter, Not Harder
                 </span>
               </div>
 
@@ -228,6 +223,13 @@ export default function HeroSectionOne() {
             </motion.div>
           </div>
         </div>
+
+        {/* Curved Separator - Deeper Downward Arc */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
+          <svg className="relative block w-full h-[120px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,0 Q600,150 1200,0 L1200,120 L0,120 Z" className="fill-gray-50 dark:fill-gray-900/50"></path>
+          </svg>
+        </div>
       </section>
 
       {/* Features Section */}
@@ -309,11 +311,18 @@ export default function HeroSectionOne() {
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
               Join thousands of students who are already acing their exams with Ezy Learn.
             </p>
-            <button
-              onClick={onDashboard}
-              className="px-10 py-5 bg-white text-blue-600 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl">
-              Get Started Now - It&apos;s Free!
-            </button>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <button
+                onClick={onDashboard}
+                className="px-10 py-5 bg-white text-blue-600 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl">
+                Get Started Now - It&apos;s Free!
+              </button>
+              <Link href="/reviews">
+                <button className="px-10 py-5 bg-transparent border-2 border-white text-white rounded-xl font-bold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105 shadow-xl">
+                  Leave a Review
+                </button>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -331,9 +340,33 @@ export default function HeroSectionOne() {
 const Navbar = () => {
   const { user } = useUser();
   const router = useRouter();
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const controlNavbar = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY < 10) {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollY) {
+        // Scrolling down
+        setIsVisible(false);
+      } else {
+        // Scrolling up
+        setIsVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', controlNavbar);
+    return () => window.removeEventListener('scroll', controlNavbar);
+  }, [lastScrollY]);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+    <nav className={`fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'
+      }`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           <Link href="/" className="flex items-center gap-3">
@@ -367,135 +400,6 @@ const Navbar = () => {
   );
 };
 
-const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
-
-  const handleDownload = (note) => {
-    if (!isSignedIn) {
-      // Redirect to sign-in page
-      window.location.href = '/sign-in';
-      return;
-    }
-    // Handle download logic here
-    if (note.fileUrl) {
-      window.open(note.fileUrl, '_blank');
-    }
-  };
-  return (
-    <section className="py-20 bg-white dark:bg-[rgb(38,38,36)]">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            📚 Popular Study Materials
-          </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Most downloaded notes by students
-          </p>
-        </motion.div>
-
-        {loading ? (
-          <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="bg-gray-200 dark:bg-gray-800 rounded-xl h-64 animate-pulse" />
-            ))}
-          </div>
-        ) : notes && notes.length > 0 ? (
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            {notes.map((note, i) => (
-              <motion.div
-                key={note.id || i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="group bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700">
-                <div className="h-32 bg-gradient-to-br from-blue-500 to-purple-600 relative flex items-center justify-center">
-                  <FileText className="w-16 h-16 text-white/30" />
-                  <div className="absolute top-3 right-3">
-                    <span className="px-3 py-1 bg-white/90 text-gray-900 rounded-full text-xs font-bold">
-                      🔥 Popular
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
-                    {note.title || 'Study Material'}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 text-sm">
-                    {note.description || 'Comprehensive study material for your exam preparation'}
-                  </p>
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                      <Download className="w-4 h-4" />
-                      <span className="text-sm font-semibold">{note.downloadCount || 0}</span>
-                    </div>
-                    <button
-                      onClick={() => handleDownload(note)}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all duration-300 transform group-hover:scale-105 text-sm">
-                      {isSignedIn ? 'Download' : 'Login to Download'}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            {[1, 2, 3].map(i => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="group bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700">
-                <div className="h-32 bg-gradient-to-br from-blue-500 to-purple-600 relative flex items-center justify-center">
-                  <FileText className="w-16 h-16 text-white/30" />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    {i === 0 ? 'Data Structures Notes' : i === 1 ? 'Algorithm Analysis' : 'Database Management'}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">
-                    Complete notes with examples and practice questions
-                  </p>
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                      <Download className="w-4 h-4" />
-                      <span className="text-sm font-semibold">{(i + 1) * 150}</span>
-                    </div>
-                    <button
-                      onClick={() => !isSignedIn && (window.location.href = '/sign-in')}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all duration-300 transform group-hover:scale-105 text-sm">
-                      {isSignedIn ? 'Download' : 'Login to Download'}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center">
-          <Link href="/popular-notes">
-            <button className="px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center gap-2">
-              View All Notes
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </Link>
-        </motion.div>
-      </div>
-    </section>
-  );
-};
-
 const CoursesSection = ({ courses, loading }) => {
   return (
     <section className="py-20 bg-gray-50 dark:bg-gray-900/50">
@@ -505,8 +409,9 @@ const CoursesSection = ({ courses, loading }) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            🎓 Popular Courses
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-center gap-3">
+            <GraduationCap className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+            Popular Courses
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-400">
             Explore our most enrolled courses
@@ -646,35 +551,33 @@ const CoursesSection = ({ courses, loading }) => {
             ))}
           </div>
         )}
+
+        {/* View All Courses Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mt-12">
+          <Link href="/library">
+            <button className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-xl flex items-center justify-center gap-2 mx-auto">
+              View All Courses
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </Link>
+        </motion.div>
       </div>
     </section>
   );
 };
 
 const ReviewsSection = () => {
-  const reviews = [
-    {
-      name: "Rahul Sharma",
-      role: "MCA Student",
-      rating: 5,
-      text: "Ezy Learn has been a game-changer for me. The study materials are top-notch and helped me ace my exams!",
-      avatar: "RS"
-    },
-    {
-      name: "Priya Singh",
-      role: "BCA Student",
-      rating: 5,
-      text: "Amazing platform! I found all the notes I needed in one place. Highly recommended for all students.",
-      avatar: "PS"
-    },
-    {
-      name: "Amit Kumar",
-      role: "BTech Student",
-      rating: 5,
-      text: "The quality of notes and the ease of access is incredible. This platform saved me so much time!",
-      avatar: "AK"
-    }
-  ];
+  const { data: reviewsData, isLoading } = useReviews();
+  const reviews = Array.isArray(reviewsData) ? reviewsData.slice(0, 3) : [];
+
+  const getInitials = (name) => {
+    if (!name) return '??';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
 
   return (
     <section className="py-20 bg-white dark:bg-[rgb(38,38,36)]">
@@ -684,41 +587,78 @@ const ReviewsSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            ⭐ What Students Say
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-center gap-3">
+            <MessageSquare className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+            What Students Say
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-400">
             Trusted by thousands of students nationwide
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {reviews.map((review, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                  {review.avatar}
+        {isLoading ? (
+          <div className="grid md:grid-cols-3 gap-8">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-gray-200 dark:bg-gray-800 rounded-xl h-64 animate-pulse" />
+            ))}
+          </div>
+        ) : reviews && reviews.length > 0 ? (
+          <div className="grid md:grid-cols-3 gap-8">
+            {reviews.map((review, i) => (
+              <motion.div
+                key={review.id || i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                    {getInitials(review.userName)}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 dark:text-white">{review.userName}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">{review.name}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{review.role}</p>
+                <div className="flex gap-1 mb-4">
+                  {[...Array(5)].map((_, starIndex) => (
+                    <Star
+                      key={starIndex}
+                      className={`w-5 h-5 ${starIndex < review.rating
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-gray-300 dark:text-gray-600'
+                        }`}
+                    />
+                  ))}
                 </div>
-              </div>
-              <div className="flex gap-1 mb-4">
-                {[...Array(review.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <p className="text-gray-600 dark:text-gray-400 italic">&quot;{review.text}&quot;</p>
-            </motion.div>
-          ))}
-        </div>
+                <p className="text-gray-600 dark:text-gray-400 italic line-clamp-3">&quot;{review.reviewText}&quot;</p>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-gray-600 dark:text-gray-400">
+            <p>No reviews yet. Be the first to leave a review!</p>
+          </div>
+        )}
+
+        {/* View All Reviews Button */}
+        {reviews && reviews.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mt-12">
+            <Link href="/reviews">
+              <button className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-xl flex items-center justify-center gap-2 mx-auto">
+                View All Reviews
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </Link>
+          </motion.div>
+        )}
       </div>
     </section>
   );

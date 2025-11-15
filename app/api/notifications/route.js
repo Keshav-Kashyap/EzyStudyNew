@@ -9,22 +9,35 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 /**
- * Retry helper for database operations
+ * Retry helper for database operations with exponential backoff
  */
-async function retryDbOperation(operation, maxRetries = 2) {
+async function retryDbOperation(operation, maxRetries = 3, initialDelay = 1000) {
     let lastError;
     for (let i = 0; i <= maxRetries; i++) {
         try {
             return await operation();
         } catch (error) {
             lastError = error;
-            if (i < maxRetries) {
-                // Wait before retry (exponential backoff)
-                await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+
+            // Check if it's a connection timeout error
+            const isTimeoutError = error.message?.includes('Connect Timeout') ||
+                error.message?.includes('fetch failed') ||
+                error.code === 'UND_ERR_CONNECT_TIMEOUT';
+
+            if (i < maxRetries && isTimeoutError) {
+                // Exponential backoff: 1s, 2s, 4s, 8s
+                const delay = initialDelay * Math.pow(2, i);
+                console.log(`⚠️ Database timeout, retrying in ${delay}ms (attempt ${i + 2}/${maxRetries + 1})...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else if (i < maxRetries) {
+                // For other errors, shorter delay
+                await new Promise(resolve => setTimeout(resolve, 500));
                 console.log(`Retrying database operation (attempt ${i + 2}/${maxRetries + 1})...`);
             }
         }
     }
+
+    console.error('❌ Database operation failed after all retries:', lastError.message);
     throw lastError;
 }
 

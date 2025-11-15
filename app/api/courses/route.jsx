@@ -1,7 +1,7 @@
 import { db } from "@/config/db";
-import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable } from "@/config/schema";
+import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable, materialSubjectMappingTable } from "@/config/schema";
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 
 export async function GET() {
     try {
@@ -27,11 +27,13 @@ export async function GET() {
                         ));
                     totalSubjects += subjects.length;
 
-                    // Count materials for each subject
+                    // Count materials for each subject through mapping table
                     for (const subject of subjects) {
-                        const materials = await db.select().from(studyMaterialsTable)
-                            .where(eq(studyMaterialsTable.subjectId, subject.id));
-                        totalMaterials += materials.length;
+                        const [result] = await db
+                            .select({ count: count() })
+                            .from(materialSubjectMappingTable)
+                            .where(eq(materialSubjectMappingTable.subjectId, subject.id));
+                        totalMaterials += result.count;
                     }
                 }
 

@@ -105,17 +105,15 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                 {/* Admin Actions */}
                 {isAdmin && (
                     <div className="flex items-center gap-2 flex-shrink-0">
-                        {/* Upload Material Button */}
+                        {/* Edit/Delete/Upload Actions */}
+                        <SubjectActions
+                            subject={subject}
+                            onUpdate={onUpdate}
+                            onUploadClick={() => setIsUploadOpen(true)}
+                        />
+
+                        {/* Upload Material Dialog */}
                         <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
-                            <DialogTrigger asChild>
-                                <Button
-                                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm"
-                                    title="Upload Material"
-                                >
-                                    <Upload className="h-4 w-4 mr-1" />
-                                    Upload
-                                </Button>
-                            </DialogTrigger>
                             <FormCreateMaterial
                                 onClose={() => setIsUploadOpen(false)}
                                 onSuccess={() => {
@@ -125,9 +123,6 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                 prefilledSubjectCode={subject.code}
                             />
                         </Dialog>
-
-                        {/* Edit/Delete Actions */}
-                        <SubjectActions subject={subject} onUpdate={onUpdate} />
                     </div>
                 )}
             </div>

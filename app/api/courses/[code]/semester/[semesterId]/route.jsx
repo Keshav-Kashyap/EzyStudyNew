@@ -1,5 +1,5 @@
 import { db } from "@/config/db";
-import { semestersTable, subjectsTable, studyMaterialsTable, coursesTable } from "@/config/schema";
+import { semestersTable, subjectsTable, studyMaterialsTable, materialSubjectMappingTable, coursesTable } from "@/config/schema";
 import { NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 
@@ -37,11 +37,28 @@ export async function GET(request, { params }) {
                 eq(subjectsTable.semesterName, semester.name)
             ));
 
-        // Get study materials for each subject
+        // Get study materials for each subject through mapping table
         const subjectsWithMaterials = await Promise.all(
             subjects.map(async (subject) => {
-                const materials = await db.select().from(studyMaterialsTable)
-                    .where(eq(studyMaterialsTable.subjectId, subject.id));
+                const materials = await db
+                    .select({
+                        id: studyMaterialsTable.id,
+                        title: studyMaterialsTable.title,
+                        description: studyMaterialsTable.description,
+                        fileUrl: studyMaterialsTable.fileUrl,
+                        downloadCount: studyMaterialsTable.downloadCount,
+                        likes: studyMaterialsTable.likes,
+                        type: studyMaterialsTable.type,
+                        imageUrl: studyMaterialsTable.imageUrl,
+                        tags: studyMaterialsTable.tags,
+                        createdAt: studyMaterialsTable.createdAt,
+                    })
+                    .from(studyMaterialsTable)
+                    .innerJoin(
+                        materialSubjectMappingTable,
+                        eq(studyMaterialsTable.id, materialSubjectMappingTable.materialId)
+                    )
+                    .where(eq(materialSubjectMappingTable.subjectId, subject.id));
 
                 return {
                     ...subject,
