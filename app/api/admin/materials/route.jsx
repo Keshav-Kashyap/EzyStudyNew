@@ -1,5 +1,5 @@
 import { db } from "@/config/db";
-import { studyMaterialsTable } from "@/config/schema";
+import { studyMaterialsTable, materialSubjectMappingTable } from "@/config/schema";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { checkAdminAccess } from "@/lib/admin-auth";
@@ -77,7 +77,12 @@ export async function DELETE(request) {
             );
         }
 
-        // Delete the material
+        // First delete all material-subject mappings
+        await db
+            .delete(materialSubjectMappingTable)
+            .where(eq(materialSubjectMappingTable.materialId, parseInt(materialId)));
+
+        // Then delete the material
         await db
             .delete(studyMaterialsTable)
             .where(eq(studyMaterialsTable.id, parseInt(materialId)));

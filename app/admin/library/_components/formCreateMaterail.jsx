@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Upload, FileText, Loader2, Check, X } from 'lucide-react'
+import { Upload, FileText, Loader2, Check, X, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
@@ -20,6 +20,8 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
     const [docTitle, setDocTitle] = useState('')
     const [uploading, setUploading] = useState(false)
     const [uploadProgress, setUploadProgress] = useState(0)
+    const [uploadMode, setUploadMode] = useState('file') // 'file' or 'link'
+    const [fileUrl, setFileUrl] = useState('')
 
     // Multi-select state
     const [allSubjects, setAllSubjects] = useState([])
@@ -51,21 +53,26 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
             const result = await response.json()
 
             if (result.success) {
-                setAllSubjects(result.subjects || [])
+                const subjects = Array.isArray(result.subjects) ? result.subjects : []
+                setAllSubjects(subjects)
 
                 // Auto-select if prefilled subject code
-                if (prefilledSubjectCode) {
-                    const matchingSubject = result.subjects.find(
-                        s => s.code.toUpperCase() === prefilledSubjectCode.toUpperCase()
+                if (prefilledSubjectCode && subjects.length > 0) {
+                    const matchingSubject = subjects.find(
+                        s => s && s.code && s.code.toUpperCase() === prefilledSubjectCode.toUpperCase()
                     )
                     if (matchingSubject) {
                         setSelectedSubjects([matchingSubject])
                     }
                 }
+            } else {
+                toast.error(result.error || 'Failed to load subjects')
+                setAllSubjects([])
             }
         } catch (error) {
             console.error('Error fetching subjects:', error)
             toast.error('Failed to load subjects')
+            setAllSubjects([])
         } finally {
             setLoadingSubjects(false)
         }
@@ -119,8 +126,13 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
             return
         }
 
-        if (!selectedFile) {
+        if (uploadMode === 'file' && !selectedFile) {
             toast.error('Please select a PDF file')
+            return
+        }
+
+        if (uploadMode === 'link' && !fileUrl.trim()) {
+            toast.error('Please enter a valid PDF link')
             return
         }
 
@@ -133,85 +145,120 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
         setUploadProgress(0)
 
         try {
-            // Create FormData for file upload
-            const formData = new FormData()
-            formData.append('file', selectedFile)
-            formData.append('title', docTitle.trim())
-            formData.append('fileName', selectedFile.name)
-            formData.append('fileSize', selectedFile.size.toString())
-            formData.append('fileType', selectedFile.type)
+            if (uploadMode === 'link') {
+                // Handle link-based upload
+                const response = await fetch('/api/admin/upload-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: docTitle.trim(),
+                        fileUrl: fileUrl.trim(),
+                        subjectIds: selectedSubjects.map(s => s.id),
+                        courseCode: selectedSubjects[0]?.code || ''
+                    })
+                })
 
-            // Add selected subject IDs as JSON array
-            const subjectIds = selectedSubjects.map(s => s.id)
-            formData.append('subjectIds', JSON.stringify(subjectIds))
+                const result = await response.json()
 
-            // Add first subject code for backward compatibility
-            if (selectedSubjects.length > 0) {
-                formData.append('courseCode', selectedSubjects[0].code)
-            }
+                if (result.success) {
+                    setUploadProgress(100)
+                    toast.success(`Material added to ${selectedSubjects.length} subject(s)!`)
 
-            // Create XMLHttpRequest for progress tracking
-            const xhr = new XMLHttpRequest()
+                    // Reset form
+                    setDocTitle('')
+                    setFileUrl('')
+                    setSelectedFile(null)
+                    setFileName('')
+                    if (!prefilledSubjectCode) {
+                        setSelectedSubjects([])
+                        setCourseCode('')
+                    }
 
-            // Progress handler
-            xhr.upload.addEventListener('progress', (e) => {
-                if (e.lengthComputable) {
-                    const percentComplete = Math.round((e.loaded / e.total) * 100)
-                    setUploadProgress(percentComplete)
+                    // Refresh data and close
+                    if (onSuccess) {
+                        await onSuccess()
+                    }
+                    if (onClose) {
+                        onClose()
+                    }
+                } else {
+                    throw new Error(result.error || 'Failed to add material')
                 }
-            })
+            } else {
+                // Handle file upload with progress
+                const formData = new FormData()
+                formData.append('file', selectedFile)
+                formData.append('title', docTitle.trim())
+                formData.append('fileName', selectedFile.name)
+                formData.append('fileSize', selectedFile.size.toString())
+                formData.append('fileType', selectedFile.type)
+                formData.append('subjectIds', JSON.stringify(selectedSubjects.map(s => s.id)))
 
-            // Upload promise
-            const uploadPromise = new Promise((resolve, reject) => {
-                xhr.addEventListener('load', () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            const result = JSON.parse(xhr.responseText)
-                            resolve(result)
-                        } catch (error) {
-                            reject(new Error('Invalid response format'))
-                        }
-                    } else {
-                        reject(new Error(`Upload failed with status ${xhr.status}`))
+                if (selectedSubjects.length > 0) {
+                    formData.append('courseCode', selectedSubjects[0].code)
+                }
+
+                const xhr = new XMLHttpRequest()
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = Math.round((e.loaded / e.total) * 100)
+                        setUploadProgress(percentComplete)
                     }
                 })
 
-                xhr.addEventListener('error', () => {
-                    reject(new Error('Network error during upload'))
+                const uploadPromise = new Promise((resolve, reject) => {
+                    xhr.addEventListener('load', () => {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            try {
+                                const result = JSON.parse(xhr.responseText)
+                                resolve(result)
+                            } catch (error) {
+                                reject(new Error('Invalid response format'))
+                            }
+                        } else {
+                            reject(new Error(`Upload failed with status ${xhr.status}`))
+                        }
+                    })
+
+                    xhr.addEventListener('error', () => {
+                        reject(new Error('Network error during upload'))
+                    })
+
+                    xhr.addEventListener('abort', () => {
+                        reject(new Error('Upload cancelled'))
+                    })
+
+                    xhr.open('POST', '/api/admin/upload')
+                    xhr.send(formData)
                 })
 
-                xhr.addEventListener('abort', () => {
-                    reject(new Error('Upload cancelled'))
-                })
+                const result = await uploadPromise
 
-                xhr.open('POST', '/api/admin/upload')
-                xhr.send(formData)
-            })
+                if (result.success) {
+                    setUploadProgress(100)
+                    toast.success(`Material uploaded and assigned to ${selectedSubjects.length} subject(s)!`)
 
-            const result = await uploadPromise
+                    // Reset form
+                    setDocTitle('')
+                    setFileName('')
+                    setSelectedFile(null)
+                    if (!prefilledSubjectCode) {
+                        setSelectedSubjects([])
+                        setCourseCode('')
+                    }
 
-            if (result.success) {
-                setUploadProgress(100)
-                toast.success(`Material uploaded and assigned to ${selectedSubjects.length} subject(s)!`)
-
-                // Reset form
-                setDocTitle('')
-                setFileName('')
-                setSelectedFile(null)
-                if (!prefilledSubjectCode) {
-                    setSelectedSubjects([])
-                    setCourseCode('')
+                    // Refresh data and close
+                    if (onSuccess) {
+                        await onSuccess()
+                    }
+                    if (onClose) {
+                        onClose()
+                    }
+                } else {
+                    throw new Error(result.error || 'Upload failed')
                 }
-
-                // Call success callback
-                onSuccess?.()
-
-                // Close dialog
-                onClose?.()
-            } else {
-                throw new Error(result.error || 'Upload failed')
             }
-
         } catch (error) {
             console.error('Upload error:', error)
             toast.error(error.message || 'Failed to upload material')
@@ -327,57 +374,102 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="pdf-upload" className="text-white">Upload PDF * (No Size Limit)</Label>
-                    <div className="relative">
-                        <Input
-                            id="pdf-upload"
-                            type="file"
-                            accept=".pdf"
-                            onChange={handleFileChange}
-                            className="hidden"
+                    <div className="flex items-center justify-between mb-2">
+                        <Label htmlFor="pdf-upload" className="text-white">
+                            {uploadMode === 'file' ? 'Upload PDF * (No Size Limit)' : 'PDF Link *'}
+                        </Label>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                setUploadMode(uploadMode === 'file' ? 'link' : 'file')
+                                setSelectedFile(null)
+                                setFileName('')
+                                setFileUrl('')
+                            }}
+                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-900/20"
                             disabled={uploading}
-                        />
-                        <label
-                            htmlFor="pdf-upload"
-                            className={`flex items-center justify-center w-full h-32 border-2 border-dashed border-[#3a3a38] rounded-lg cursor-pointer hover:border-gray-500 transition-colors bg-[#1a1a18] ${uploading ? 'pointer-events-none opacity-50' : ''}`}
                         >
-                            <div className="text-center w-full px-4">
-                                {uploading ? (
-                                    <>
-                                        <Loader2 className="mx-auto h-10 w-10 text-blue-400 mb-2 animate-spin" />
-                                        <div className="w-full max-w-xs mx-auto mt-2">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <span className="text-sm text-gray-400">Uploading...</span>
-                                                <span className="text-sm font-bold text-blue-400">{uploadProgress}%</span>
-                                            </div>
-                                            <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                                                <div
-                                                    className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
-                                                    style={{ width: `${uploadProgress}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <Upload className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                                )}
-
-                                {fileName && !uploading ? (
-                                    <div className="flex items-center justify-center gap-2 text-white">
-                                        <FileText className="h-4 w-4" />
-                                        <span className="text-sm">{fileName}</span>
-                                    </div>
-                                ) : !uploading && (
-                                    <>
-                                        <p className="text-sm text-gray-400">
-                                            Click to upload PDF
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-1">or drag and drop</p>
-                                    </>
-                                )}
-                            </div>
-                        </label>
+                            {uploadMode === 'file' ? (
+                                <>
+                                    <Link2 className="h-4 w-4 mr-1" />
+                                    Upload via Link
+                                </>
+                            ) : (
+                                <>
+                                    <Upload className="h-4 w-4 mr-1" />
+                                    Upload File
+                                </>
+                            )}
+                        </Button>
                     </div>
+
+                    {uploadMode === 'link' ? (
+                        <div className="space-y-2">
+                            <Input
+                                value={fileUrl}
+                                onChange={(e) => setFileUrl(e.target.value)}
+                                placeholder="https://example.com/document.pdf or Google Drive link"
+                                className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                                disabled={uploading}
+                            />
+                            <p className="text-xs text-gray-500">
+                                Paste a direct link to PDF file. Google Drive links will be auto-converted.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="relative">
+                            <Input
+                                id="pdf-upload"
+                                type="file"
+                                accept=".pdf"
+                                onChange={handleFileChange}
+                                className="hidden"
+                                disabled={uploading}
+                            />
+                            <label
+                                htmlFor="pdf-upload"
+                                className={`flex items-center justify-center w-full h-32 border-2 border-dashed border-[#3a3a38] rounded-lg cursor-pointer hover:border-gray-500 transition-colors bg-[#1a1a18] ${uploading ? 'pointer-events-none opacity-50' : ''}`}
+                            >
+                                <div className="text-center w-full px-4">
+                                    {uploading ? (
+                                        <>
+                                            <Loader2 className="mx-auto h-10 w-10 text-blue-400 mb-2 animate-spin" />
+                                            <div className="w-full max-w-xs mx-auto mt-2">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className="text-sm text-gray-400">Uploading...</span>
+                                                    <span className="text-sm font-bold text-blue-400">{uploadProgress}%</span>
+                                                </div>
+                                                <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                                                    <div
+                                                        className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
+                                                        style={{ width: `${uploadProgress}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <Upload className="mx-auto h-10 w-10 text-gray-400 mb-2" />
+                                    )}
+
+                                    {fileName && !uploading ? (
+                                        <div className="flex items-center justify-center gap-2 text-white">
+                                            <FileText className="h-4 w-4" />
+                                            <span className="text-sm">{fileName}</span>
+                                        </div>
+                                    ) : !uploading && (
+                                        <>
+                                            <p className="text-sm text-gray-400">
+                                                Click to upload PDF
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-1">or drag and drop</p>
+                                        </>
+                                    )}
+                                </div>
+                            </label>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex gap-3 pt-4">
@@ -392,15 +484,15 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                     <Button
                         className="flex-1 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
                         onClick={handleSubmit}
-                        disabled={uploading || !selectedFile || selectedSubjects.length === 0 || !docTitle.trim()}
+                        disabled={uploading || (uploadMode === 'file' ? !selectedFile : !fileUrl.trim()) || selectedSubjects.length === 0 || !docTitle.trim()}
                     >
                         {uploading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Uploading...
+                                {uploadMode === 'link' ? 'Adding...' : 'Uploading...'}
                             </>
                         ) : (
-                            `Upload to ${selectedSubjects.length} Subject(s)`
+                            `${uploadMode === 'link' ? 'Add' : 'Upload'} to ${selectedSubjects.length} Subject(s)`
                         )}
                     </Button>
                 </div>

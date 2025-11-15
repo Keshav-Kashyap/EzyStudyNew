@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { checkAdminAccess } from "@/lib/admin-auth";
 import { db } from "@/config/db";
 import { subjectsTable, coursesTable, semestersTable } from '@/config/schema';
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 
 export async function GET() {
     try {
@@ -30,39 +30,54 @@ export async function GET() {
                 code: subjectsTable.code,
                 category: subjectsTable.category,
                 semesterName: subjectsTable.semesterName,
-                credits: subjectsTable.credits,
             })
             .from(subjectsTable)
-            .orderBy(subjectsTable.category, subjectsTable.semesterName, subjectsTable.name);
+            .orderBy(asc(subjectsTable.category));
+
+        // Ensure subjects is an array and has valid data
+        const subjectsArray = Array.isArray(subjects) ? subjects : [];
+        
+        console.log(`Fetched ${subjectsArray.length} subjects`);
 
         // Group subjects by course and semester for easy selection
-        const groupedSubjects = subjects.reduce((acc, subject) => {
-            const key = `${subject.category} - ${subject.semesterName}`;
-            if (!acc[key]) {
-                acc[key] = [];
+        const groupedSubjects = {};
+        
+        subjectsArray.forEach(subject => {
+            try {
+                if (subject && subject.category && subject.semesterName) {
+                    const key = `${subject.category} - ${subject.semesterName}`;
+                    if (!groupedSubjects[key]) {
+                        groupedSubjects[key] = [];
+                    }
+                    groupedSubjects[key].push({
+                        id: subject.id,
+                        name: subject.name,
+                        code: subject.code,
+                        category: subject.category,
+                        semesterName: subject.semesterName,
+                        label: `${subject.name} (${subject.code})`
+                    });
+                }
+            } catch (err) {
+                console.error('Error processing subject:', subject, err);
             }
-            acc[key].push({
-                id: subject.id,
-                name: subject.name,
-                code: subject.code,
-                label: `${subject.name} (${subject.code})`
-            });
-            return acc;
-        }, {});
+        });
 
         return NextResponse.json({
             success: true,
-            subjects: subjects,
+            subjects: subjectsArray,
             grouped: groupedSubjects,
-            count: subjects.length
+            count: subjectsArray.length
         });
 
     } catch (error) {
         console.error('Error fetching subjects:', error);
+        console.error('Error stack:', error.stack);
         return NextResponse.json({
             success: false,
             error: "Failed to fetch subjects",
-            details: error.message
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         }, { status: 500 });
     }
 }

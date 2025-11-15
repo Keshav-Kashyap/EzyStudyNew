@@ -1,7 +1,7 @@
 import { db } from "@/config/db";
 import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable, materialSubjectMappingTable } from "@/config/schema";
 import { NextResponse } from "next/server";
-import { eq, sql, count } from "drizzle-orm";
+import { eq, sql, count, inArray } from "drizzle-orm";
 
 export async function GET() {
     try {
@@ -24,37 +24,47 @@ export async function GET() {
         // For each course, get semester count and total materials
         const coursesWithStats = await Promise.all(
             courses.map(async (course) => {
-                // Get semester count for this course category
-                const semesters = await db
-                    .select()
-                    .from(semestersTable)
-                    .where(eq(semestersTable.category, course.category));
+                try {
+                    // Get semester count for this course category
+                    const semesters = await db
+                        .select()
+                        .from(semestersTable)
+                        .where(eq(semestersTable.category, course.category));
 
-                // Get all subjects for this course category
-                const subjects = await db
-                    .select({ id: subjectsTable.id })
-                    .from(subjectsTable)
-                    .where(eq(subjectsTable.category, course.category));
+                    // Get all subjects for this course category
+                    const subjects = await db
+                        .select({ id: subjectsTable.id })
+                        .from(subjectsTable)
+                        .where(eq(subjectsTable.category, course.category));
 
-                const subjectIds = subjects.map(s => s.id);
-                let totalMaterials = 0;
+                    const subjectIds = subjects.map(s => s.id);
+                    let totalMaterials = 0;
 
-                // Count materials through mapping table
-                if (subjectIds.length > 0) {
-                    const [result] = await db
-                        .select({ count: count() })
-                        .from(materialSubjectMappingTable)
-                        .where(sql`${materialSubjectMappingTable.subjectId} IN (${sql.join(subjectIds.map(id => sql`${id}`), sql`, `)})`);
+                    // Count materials through mapping table
+                    if (subjectIds.length > 0) {
+                        const [result] = await db
+                            .select({ count: count() })
+                            .from(materialSubjectMappingTable)
+                            .where(inArray(materialSubjectMappingTable.subjectId, subjectIds));
 
-                    totalMaterials = result.count;
+                        totalMaterials = result?.count || 0;
+                    }
+
+                    return {
+                        ...course,
+                        semesters: semesters.length,
+                        totalMaterials: totalMaterials,
+                        students: Math.floor(totalMaterials * 3.5) + Math.floor(Math.random() * 100), // Estimated students
+                    };
+                } catch (error) {
+                    console.error(`Error processing course ${course.code}:`, error);
+                    return {
+                        ...course,
+                        semesters: 0,
+                        totalMaterials: 0,
+                        students: 0,
+                    };
                 }
-
-                return {
-                    ...course,
-                    semesters: semesters.length,
-                    totalMaterials: totalMaterials,
-                    students: Math.floor(totalMaterials * 3.5) + Math.floor(Math.random() * 100), // Estimated students
-                };
             })
         );
 
@@ -73,6 +83,7 @@ export async function GET() {
             {
                 success: false,
                 error: "Failed to fetch popular courses",
+                message: error.message
             },
             { status: 500 }
         );

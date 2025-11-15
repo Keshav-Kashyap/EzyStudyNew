@@ -1,7 +1,7 @@
 
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Download, ArrowLeft, Loader2, Upload, Trash2, MoreVertical, Edit } from 'lucide-react';
+import { Download, ArrowLeft, Loader2, Upload, Trash2, MoreVertical, Edit, Eye } from 'lucide-react';
 import { useParams } from "next/navigation";
 import Link from 'next/link';
 import SubjectActions from '@/app/admin/library/_components/SubjectActions';
@@ -34,6 +34,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
     const [materialToEdit, setMaterialToEdit] = useState(null);
     const [deletingMaterialId, setDeletingMaterialId] = useState(null);
     const [localMaterials, setLocalMaterials] = useState(subject.materials || []);
+    const [viewingPdf, setViewingPdf] = useState(null);
 
     // Update local materials when subject changes
     useEffect(() => {
@@ -146,9 +147,17 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
                                 <button
+                                    onClick={() => setViewingPdf(material)}
+                                    disabled={deletingMaterialId === material.id}
+                                    className="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <Eye className="h-4 w-4" />
+                                    View
+                                </button>
+                                <button
                                     onClick={() => onDownload(material)}
                                     disabled={deletingMaterialId === material.id}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Download className="h-4 w-4" />
                                     Download
@@ -275,6 +284,26 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                             )}
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* PDF Viewer Dialog */}
+            <Dialog open={!!viewingPdf} onOpenChange={() => setViewingPdf(null)}>
+                <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 bg-gray-900 border-gray-700">
+                    <DialogHeader className="p-4 border-b border-gray-700">
+                        <DialogTitle className="text-white">
+                            {viewingPdf?.title}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="w-full h-[calc(95vh-80px)] overflow-hidden">
+                        {viewingPdf && (
+                            <iframe
+                                src={viewingPdf.fileUrl}
+                                className="w-full h-full border-0"
+                                title={viewingPdf.title}
+                            />
+                        )}
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
