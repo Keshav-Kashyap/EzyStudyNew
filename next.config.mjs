@@ -5,8 +5,7 @@ const nextConfig = {
 
     // Production optimizations
     reactStrictMode: true,
-    swcMinify: true,
-    
+
     // Remove console logs in production
     compiler: {
         removeConsole: process.env.NODE_ENV === 'production' ? {
@@ -16,7 +15,7 @@ const nextConfig = {
 
     // Performance optimizations
     poweredByHeader: false,
-    
+
     // Generate sitemap
     async headers() {
         return [

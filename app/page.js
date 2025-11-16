@@ -632,8 +632,8 @@ const ReviewsSection = () => {
                     <Star
                       key={starIndex}
                       className={`w-5 h-5 ${starIndex < review.rating
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-300 dark:text-gray-600'
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-gray-300 dark:text-gray-600'
                         }`}
                     />
                   ))}

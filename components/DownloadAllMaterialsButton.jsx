@@ -53,10 +53,10 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
                     try {
                         // Convert Google Drive preview URLs to download URLs
                         let downloadUrl = material.url
-                        
+
                         // Check if it's a Google Drive link
                         const isGoogleDrive = downloadUrl.includes('drive.google.com')
-                        
+
                         if (isGoogleDrive) {
                             // Use proxy to bypass CORS
                             const proxyResponse = await fetch('/api/download/proxy', {
@@ -71,7 +71,7 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
                             }
 
                             const blob = await proxyResponse.blob()
-                            
+
                             // Clean filename
                             const fileName = `${material.title.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`
 

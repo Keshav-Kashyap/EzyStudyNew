@@ -176,7 +176,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                             Popular
                                         </span>
                                     )}
-                                    {material.likes >= 50 && (
+                                    {material.likes >= 10 && (
                                         <span className="text-xs text-gray-500 dark:text-gray-400">
                                             {material.likes} ❤️
                                         </span>

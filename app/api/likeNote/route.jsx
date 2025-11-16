@@ -24,8 +24,8 @@ export async function POST(req) {
             .from(studyMaterialsTable)
             .where(eq(studyMaterialsTable.id, id));
 
-        // Auto-mark as popular if likes >= 50
-        if (material && material.likes >= 50) {
+        // Auto-mark as popular if likes >= 10
+        if (material && material.likes >= 10) {
             await db
                 .update(studyMaterialsTable)
                 .set({ isPopular: true })
