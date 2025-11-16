@@ -98,13 +98,13 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
             const data = await response.json();
 
             if (data.success) {
-                if (data.isShared) {
+                if (data.isShared && data.remainingSubjects > 0) {
                     toast.success('Material removed from this subject!', { 
                         id: toastId,
-                        description: 'Material is still available in other subjects'
+                        description: `Still available in ${data.remainingSubjects} other subject${data.remainingSubjects > 1 ? 's' : ''}`
                     });
                 } else {
-                    toast.success('Material deleted completely!', { id: toastId });
+                    toast.success('Material removed from this subject!', { id: toastId });
                 }
                 setMaterialToDelete(null);
                 onUpdate(); // Refresh the data from server

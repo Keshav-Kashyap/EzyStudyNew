@@ -69,7 +69,7 @@ export async function DELETE(request) {
 
         const { searchParams } = new URL(request.url);
         const materialId = searchParams.get('id');
-        const subjectId = searchParams.get('subjectId'); // Optional: if provided, only remove from this subject
+        const subjectId = searchParams.get('subjectId'); // Required: always remove from specific subject only
 
         if (!materialId) {
             return NextResponse.json(
@@ -78,48 +78,45 @@ export async function DELETE(request) {
             );
         }
 
-        // If subjectId is provided, only remove material from that subject
-        if (subjectId) {
-            // Check how many subjects this material is linked to
-            const mappings = await db
-                .select()
-                .from(materialSubjectMappingTable)
-                .where(eq(materialSubjectMappingTable.materialId, parseInt(materialId)));
-
-            if (mappings.length > 1) {
-                // Material is shared - only delete the mapping for this subject
-                await db
-                    .delete(materialSubjectMappingTable)
-                    .where(
-                        and(
-                            eq(materialSubjectMappingTable.materialId, parseInt(materialId)),
-                            eq(materialSubjectMappingTable.subjectId, parseInt(subjectId))
-                        )
-                    );
-
-                return NextResponse.json({
-                    success: true,
-                    message: "Material removed from this subject (still available in other subjects)",
-                    isShared: true
-                });
-            }
+        if (!subjectId) {
+            return NextResponse.json(
+                { success: false, error: "Subject ID is required. Materials can only be removed from specific subjects." },
+                { status: 400 }
+            );
         }
 
-        // Material is not shared or no subjectId provided - delete completely
-        // First delete all material-subject mappings
-        await db
-            .delete(materialSubjectMappingTable)
+        // Check how many subjects this material is linked to
+        const mappings = await db
+            .select()
+            .from(materialSubjectMappingTable)
             .where(eq(materialSubjectMappingTable.materialId, parseInt(materialId)));
 
-        // Then delete the material
+        if (mappings.length === 0) {
+            return NextResponse.json(
+                { success: false, error: "Material not found in any subject" },
+                { status: 404 }
+            );
+        }
+
+        // Always only delete the mapping for this subject (never delete the material itself)
         await db
-            .delete(studyMaterialsTable)
-            .where(eq(studyMaterialsTable.id, parseInt(materialId)));
+            .delete(materialSubjectMappingTable)
+            .where(
+                and(
+                    eq(materialSubjectMappingTable.materialId, parseInt(materialId)),
+                    eq(materialSubjectMappingTable.subjectId, parseInt(subjectId))
+                )
+            );
+
+        const remainingCount = mappings.length - 1;
 
         return NextResponse.json({
             success: true,
-            message: "Material deleted completely",
-            isShared: false
+            message: remainingCount > 0 
+                ? `Material removed from this subject (still available in ${remainingCount} other subject${remainingCount > 1 ? 's' : ''})`
+                : "Material removed from this subject",
+            isShared: remainingCount > 0,
+            remainingSubjects: remainingCount
         });
     } catch (error) {
         console.error("Error deleting material:", error);
