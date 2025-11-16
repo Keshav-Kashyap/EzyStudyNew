@@ -365,14 +365,18 @@ const Navbar = () => {
   }, [lastScrollY]);
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'
+    <nav className={`fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-[rgb(38,38,36)]/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           <Link href="/" className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-white" />
-            </div>
+            <Image
+              src="/image.jpeg"
+              alt="Ezy Learn Logo"
+              width={40}
+              height={40}
+              className="rounded-xl"
+            />
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Ezy Learn</h1>
           </Link>
 

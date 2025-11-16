@@ -93,9 +93,11 @@ const AppSidebar = ({ menuItems, bottomMenuItems }) => {
                     {/* When Expanded - Show full header */}
                     {open ? (
                         <>
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 flex-shrink-0">
-                                <GraduationCap size={20} className="text-white" />
-                            </div>
+                            <img
+                                src="/image.jpeg"
+                                alt="Ezy Learn Logo"
+                                className="w-8 h-8 rounded-xl flex-shrink-0"
+                            />
                             <div className="flex-1 overflow-hidden">
                                 <h1 className="text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap">
                                     EzyLearn
@@ -110,9 +112,11 @@ const AppSidebar = ({ menuItems, bottomMenuItems }) => {
                         /* When Collapsed - Logo shows, trigger on hover */
                         <div className="relative w-8 h-8 mx-auto group/logo">
                             {/* Logo - visible by default */}
-                            <div className="absolute inset-0 w-8 h-8 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 transition-opacity duration-300 group-hover/logo:opacity-0">
-                                <GraduationCap size={18} className="text-white" />
-                            </div>
+                            <img
+                                src="/image.jpeg"
+                                alt="Ezy Learn Logo"
+                                className="absolute inset-0 w-8 h-8 rounded-xl transition-opacity duration-300 group-hover/logo:opacity-0"
+                            />
 
                             {/* Trigger - appears on hover */}
                             <SidebarTrigger className="absolute inset-0 h-8 w-8  rounded-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-[rgb(45,45,44)] transition-all duration-300 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white opacity-0 group-hover/logo:opacity-100 hover:cursor-w-resize">
