@@ -1,29 +1,33 @@
 import { db } from "@/config/db";
-import { subjectsTable, semestersTable } from "@/config/schema";
-import { eq } from "drizzle-orm";
+import { subjectsTable, studyMaterialsTable, materialSubjectMappingTable } from "@/config/schema";
+import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
     try {
-        const { semesterId } = await req.json();
+        const { category, semesterName } = await req.json();
 
-        if (!semesterId) {
+        if (!category || !semesterName) {
             return NextResponse.json(
-                { success: false, error: 'Semester ID is required' },
+                { success: false, error: 'Category and semester name are required' },
                 { status: 400 }
             );
         }
 
-        // Fetch all subjects with syllabus for this semester
+        // Get all subjects for this semester
         const subjects = await db
             .select({
                 id: subjectsTable.id,
                 name: subjectsTable.name,
                 code: subjectsTable.code,
-                syllabusUrl: subjectsTable.syllabusUrl
             })
             .from(subjectsTable)
-            .where(eq(subjectsTable.semesterId, semesterId));
+            .where(
+                and(
+                    eq(subjectsTable.category, category),
+                    eq(subjectsTable.semesterName, semesterName)
+                )
+            );
 
         if (!subjects || subjects.length === 0) {
             return NextResponse.json(
@@ -32,19 +36,46 @@ export async function POST(req) {
             );
         }
 
-        // Filter subjects that have syllabusUrl
-        const syllabi = subjects
-            .filter(subject => subject.syllabusUrl)
-            .map(subject => ({
-                subjectId: subject.id,
-                subjectName: subject.name,
-                subjectCode: subject.code,
-                syllabusUrl: subject.syllabusUrl
-            }));
+        const subjectIds = subjects.map(s => s.id);
+
+        // Get all syllabus materials (type='SYLLABUS') for these subjects
+        const syllabiWithSubjects = await db
+            .select({
+                materialId: studyMaterialsTable.id,
+                title: studyMaterialsTable.title,
+                fileUrl: studyMaterialsTable.fileUrl,
+                subjectId: materialSubjectMappingTable.subjectId,
+            })
+            .from(studyMaterialsTable)
+            .innerJoin(
+                materialSubjectMappingTable,
+                eq(studyMaterialsTable.id, materialSubjectMappingTable.materialId)
+            )
+            .where(
+                and(
+                    eq(studyMaterialsTable.type, 'SYLLABUS'),
+                    eq(studyMaterialsTable.isActive, true)
+                )
+            );
+
+        // Filter by subject IDs and map to subjects
+        const syllabi = syllabiWithSubjects
+            .filter(item => subjectIds.includes(item.subjectId))
+            .map(item => {
+                const subject = subjects.find(s => s.id === item.subjectId);
+                return {
+                    materialId: item.materialId,
+                    title: item.title,
+                    fileUrl: item.fileUrl,
+                    subjectId: item.subjectId,
+                    name: subject?.name || 'Unknown',
+                    code: subject?.code || 'N/A',
+                };
+            });
 
         if (syllabi.length === 0) {
             return NextResponse.json(
-                { success: false, error: 'No syllabus available for any subject in this semester' },
+                { success: false, error: 'No syllabus available for this semester' },
                 { status: 404 }
             );
         }

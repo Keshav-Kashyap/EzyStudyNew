@@ -9,25 +9,25 @@ function convertGoogleDriveLink(url) {
         if (url.includes('drive.google.com')) {
             // Extract file ID from various Google Drive URL formats
             let fileId = null;
-            
+
             // Format: https://drive.google.com/file/d/FILE_ID/view
             const viewMatch = url.match(/\/file\/d\/([^\/]+)/);
             if (viewMatch) {
                 fileId = viewMatch[1];
             }
-            
+
             // Format: https://drive.google.com/open?id=FILE_ID
             const openMatch = url.match(/[?&]id=([^&]+)/);
             if (openMatch) {
                 fileId = openMatch[1];
             }
-            
+
             if (fileId) {
                 // Use direct Google Drive viewer embed URL - bypasses virus scan for large files
                 return `https://drive.google.com/file/d/${fileId}/preview`;
             }
         }
-        
+
         return url; // Return original if not Google Drive or can't parse
     } catch (error) {
         console.log('Error parsing Google Drive link:', error);
@@ -37,9 +37,9 @@ function convertGoogleDriveLink(url) {
 
 export async function POST(request) {
     try {
-        const { title, fileUrl, subjectIds, courseCode } = await request.json();
+        const { title, fileUrl, subjectIds, courseCode, type } = await request.json();
 
-        console.log('📝 Link-based upload:', { title, fileUrl, subjectIds, courseCode });
+        console.log('📝 Link-based upload:', { title, fileUrl, subjectIds, courseCode, type });
 
         // Validation
         if (!title || !fileUrl) {
@@ -80,7 +80,7 @@ export async function POST(request) {
         // Insert material into database
         const [newMaterial] = await db.insert(studyMaterialsTable).values({
             title: title,
-            type: 'PDF',
+            type: type || 'PDF',
             fileUrl: processedUrl,
             description: `Uploaded via link`,
             isActive: true,

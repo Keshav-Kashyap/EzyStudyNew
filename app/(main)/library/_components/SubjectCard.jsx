@@ -1,7 +1,7 @@
 
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Download, ArrowLeft, Loader2, Upload, Trash2, MoreVertical, Edit, Eye } from 'lucide-react';
+import { Download, ArrowLeft, Loader2, Upload, Trash2, MoreVertical, Edit, Eye, Star } from 'lucide-react';
 import { useParams } from "next/navigation";
 import Link from 'next/link';
 import SubjectActions from '@/app/admin/library/_components/SubjectActions';
@@ -49,6 +49,34 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
     const handleEditMaterial = (material) => {
         setMaterialToEdit(material);
         setEditDialogOpen(true);
+    };
+
+    const handleTogglePopular = async (material) => {
+        const newPopularStatus = !material.isPopular;
+        const toastId = toast.loading(`${newPopularStatus ? 'Marking' : 'Unmarking'} as popular...`);
+
+        try {
+            const response = await fetch('/api/admin/materials/toggle-popular', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    materialId: material.id,
+                    isPopular: newPopularStatus
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success(`Material ${newPopularStatus ? 'marked' : 'unmarked'} as popular!`, { id: toastId });
+                onUpdate(); // Refresh the data
+            } else {
+                toast.error(data.error || 'Failed to update', { id: toastId });
+            }
+        } catch (error) {
+            console.error('Error toggling popular:', error);
+            toast.error('Failed to update popular status', { id: toastId });
+        }
     };
 
     const confirmDelete = async () => {
@@ -138,9 +166,22 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                 }`}
                         >
                             <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-900 dark:text-white truncate">
-                                    {material.title}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-medium text-gray-900 dark:text-white truncate">
+                                        {material.title}
+                                    </p>
+                                    {material.isPopular && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 text-xs font-medium rounded-full">
+                                            <Star className="h-3 w-3 fill-current" />
+                                            Popular
+                                        </span>
+                                    )}
+                                    {material.likes >= 50 && (
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                            {material.likes} ❤️
+                                        </span>
+                                    )}
+                                </div>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">
                                     {material.type || 'PDF'} • {material.size || '2.5 MB'}
                                 </p>
@@ -172,6 +213,13 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                             </button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="w-48">
+                                            <DropdownMenuItem
+                                                onClick={() => handleTogglePopular(material)}
+                                                className="cursor-pointer"
+                                            >
+                                                <Star className={`h-4 w-4 mr-2 ${material.isPopular ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                                                {material.isPopular ? 'Remove from Popular' : 'Mark as Popular'}
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 onClick={() => handleEditMaterial(material)}
                                                 className="cursor-pointer"

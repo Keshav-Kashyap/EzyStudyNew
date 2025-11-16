@@ -17,9 +17,6 @@ const SemesterCard = ({ basePath, semester, code, isAdmin, onUpdate, isSelected,
     const [isToggling, setIsToggling] = useState(false);
     const isActive = semester.isActive;
 
-    console.log("SemesterCard - UserDetail:", userDetail);
-    console.log("SemesterCard - BasePath prop:", basePath);
-
     // Determine the correct base path based on user role
     const getBasePath = () => {
         if (basePath) return basePath;

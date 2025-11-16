@@ -63,8 +63,9 @@ export async function POST(request) {
         const fileName = formData.get('fileName');
         const fileSize = formData.get('fileSize');
         const fileType = formData.get('fileType');
+        const type = formData.get('type') || 'PDF'; // Material type: 'PDF' or 'SYLLABUS'
 
-        console.log("Upload params:", { courseCode, subjectIds });
+        console.log("Upload params:", { courseCode, subjectIds, type });
 
         if (!file || !title) {
             return NextResponse.json({
@@ -171,10 +172,10 @@ export async function POST(request) {
         // Save material to database (without subjectId)
         const materialData = await db.insert(studyMaterialsTable).values({
             title: title,
-            type: 'PDF', // Material type
+            type: type, // Material type: 'PDF' or 'SYLLABUS'
             fileUrl: urlData.publicUrl,
-            description: `PDF material - ${title}`,
-            tags: JSON.stringify([filePrefix, 'PDF', 'study-material']),
+            description: `${type} material - ${title}`,
+            tags: JSON.stringify([filePrefix, type, 'study-material']),
             downloadCount: 0,
             isActive: true,
             createdAt: new Date(),
@@ -398,10 +399,10 @@ async function handleUrlBasedUpload(request) {
         // Save material to database with placeholder URL (without subjectId)
         const materialData = await db.insert(studyMaterialsTable).values({
             title: title,
-            type: 'PDF',
+            type: type,
             fileUrl: placeholderUrl,
-            description: `PDF material - ${title}`,
-            tags: JSON.stringify(['PDF', 'study-material']),
+            description: `${type} material - ${title}`,
+            tags: JSON.stringify([type, 'study-material']),
             downloadCount: 0,
             isActive: true,
             createdAt: new Date(),

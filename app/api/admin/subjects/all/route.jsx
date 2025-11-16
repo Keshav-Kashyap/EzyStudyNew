@@ -36,12 +36,12 @@ export async function GET() {
 
         // Ensure subjects is an array and has valid data
         const subjectsArray = Array.isArray(subjects) ? subjects : [];
-        
+
         console.log(`Fetched ${subjectsArray.length} subjects`);
 
         // Group subjects by course and semester for easy selection
         const groupedSubjects = {};
-        
+
         subjectsArray.forEach(subject => {
             try {
                 if (subject && subject.category && subject.semesterName) {

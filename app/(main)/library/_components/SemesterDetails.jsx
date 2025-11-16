@@ -1,6 +1,6 @@
 "use client"
-import React, { useContext } from 'react';
-import { BookOpen, FileText, Download, Calendar, ArrowLeft, ExternalLink, Loader2 } from 'lucide-react';
+import React, { useContext, useState } from 'react';
+import { BookOpen, FileText, Download, Calendar, ArrowLeft, ExternalLink, Loader2, Upload } from 'lucide-react';
 import { useParams, useRouter } from "next/navigation";
 import Link from 'next/link';
 import SubjectCard from './SubjectCard'
@@ -8,11 +8,15 @@ import { UserDetailContext } from '@/context/UserDetailContext';
 import { useSemesterDetail, useInvalidateSemesterDetail } from '@/hooks/useCourses';
 import DownloadAllMaterialsButton from '@/components/DownloadAllMaterialsButton';
 import DownloadSyllabusButton from '@/components/DownloadSyllabusButton';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import FormUploadSyllabus from '@/app/admin/library/_components/FormUploadSyllabus';
+import { Button } from '@/components/ui/button';
 
 
 const SemesterDetail = ({ basePath }) => {
     const { userDetail } = useContext(UserDetailContext);
     const isAdmin = userDetail?.role === "admin";
+    const [syllabusDialogOpen, setSyllabusDialogOpen] = useState(false);
 
     const { code, semesterId } = useParams();
 
@@ -32,7 +36,6 @@ const SemesterDetail = ({ basePath }) => {
     };
 
     const handleDownload = (material) => {
-        console.log('Downloading:', material.title);
         if (material.fileUrl) {
             window.open(material.fileUrl, '_blank');
         }
@@ -89,6 +92,28 @@ const SemesterDetail = ({ basePath }) => {
                             </div>
                         </div>
                         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                            {isAdmin && (
+                                <Dialog open={syllabusDialogOpen} onOpenChange={setSyllabusDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button
+                                            size="sm"
+                                            className="bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2"
+                                        >
+                                            <Upload className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                                            Upload Syllabus
+                                        </Button>
+                                    </DialogTrigger>
+                                    <FormUploadSyllabus
+                                        onClose={() => setSyllabusDialogOpen(false)}
+                                        onSuccess={() => {
+                                            invalidateSemester();
+                                            setSyllabusDialogOpen(false);
+                                        }}
+                                        prefilledCategory={code}
+                                        prefilledSemester={semesterName}
+                                    />
+                                </Dialog>
+                            )}
                             <DownloadAllMaterialsButton
                                 category={code}
                                 semesterName={semesterName}

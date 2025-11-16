@@ -17,9 +17,7 @@ const SemesterOverview = () => {
     const [selectedSemesters, setSelectedSemesters] = useState([]);
     const { user } = useUser();
     const { userDetail } = useContext(UserDetailContext);
-    console.log("Context deatails", userDetail);
     const isAdmin = userDetail?.role === "admin";
-    // console.log(user);
 
     const handleUpdate = () => {
         // Refetch the data after update/delete
@@ -106,22 +104,17 @@ const SemesterOverview = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] p-6">
             <div className="max-w-7xl mx-auto">
                 <div className="flex items-center gap-4 mb-8">
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                        <GraduationCap size={32} className="text-white" />
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                        <GraduationCap size={32} className="text-white flex-shrink-0" />
                     </div>
-                    <div>
-                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+                    <div className="min-w-0 flex-1">
+                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white break-words">
                             {courseData.title}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400 font-medium mt-1">
                             {courseData.semesters?.length || 0} Semester Program
                         </p>
                     </div>
-
-
-
-
-
                 </div>
 
                 <div className="bg-white dark:bg-[rgb(24,24,24)] rounded-2xl p-8 border border-gray-200 dark:border-gray-700 shadow-lg mb-8">

@@ -10,110 +10,111 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Upload, FileText, Loader2, Check, X, Link2 } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Upload, FileText, Loader2, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
+const FormUploadSyllabus = ({ onClose, onSuccess, prefilledCategory, prefilledSemester }) => {
     const [fileName, setFileName] = useState('')
     const [selectedFile, setSelectedFile] = useState(null)
-    const [courseCode, setCourseCode] = useState(prefilledSubjectCode || '')
     const [docTitle, setDocTitle] = useState('')
     const [uploading, setUploading] = useState(false)
     const [uploadProgress, setUploadProgress] = useState(0)
     const [uploadMode, setUploadMode] = useState('file') // 'file' or 'link'
     const [fileUrl, setFileUrl] = useState('')
-    const [materialType, setMaterialType] = useState('PDF') // 'PDF' or 'SYLLABUS'
 
-    // Multi-select state
-    const [allSubjects, setAllSubjects] = useState([])
-    const [selectedSubjects, setSelectedSubjects] = useState([])
+    // Course and Semester selection
+    const [courses, setCourses] = useState([])
+    const [semesters, setSemesters] = useState([])
+    const [selectedCategory, setSelectedCategory] = useState(prefilledCategory || '')
+    const [selectedSemester, setSelectedSemester] = useState(prefilledSemester || '')
+    const [loadingCourses, setLoadingCourses] = useState(false)
+    const [loadingSemesters, setLoadingSemesters] = useState(false)
+    const [subjects, setSubjects] = useState([])
     const [loadingSubjects, setLoadingSubjects] = useState(false)
-    const [searchTerm, setSearchTerm] = useState('')
-    const [showDropdown, setShowDropdown] = useState(false)
 
-    // Fetch all subjects on mount
+    // Fetch courses on mount
     useEffect(() => {
-        fetchAllSubjects()
+        fetchCourses()
     }, [])
 
-    // Close dropdown on click outside
+    // Fetch semesters when category changes
     useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (!e.target.closest('.subject-dropdown-container')) {
-                setShowDropdown(false)
-            }
+        if (selectedCategory) {
+            fetchSemesters(selectedCategory)
+        } else {
+            setSemesters([])
+            setSelectedSemester('')
         }
-        document.addEventListener('click', handleClickOutside)
-        return () => document.removeEventListener('click', handleClickOutside)
-    }, [])
+    }, [selectedCategory])
 
-    const fetchAllSubjects = async () => {
+    // Fetch subjects when semester changes
+    useEffect(() => {
+        if (selectedCategory && selectedSemester) {
+            fetchSubjects(selectedCategory, selectedSemester)
+        } else {
+            setSubjects([])
+        }
+    }, [selectedCategory, selectedSemester])
+
+    const fetchCourses = async () => {
+        setLoadingCourses(true)
+        try {
+            const response = await fetch('/api/courses')
+            const result = await response.json()
+            if (result.success) {
+                setCourses(result.data || [])
+            }
+        } catch (error) {
+            console.error('Error fetching courses:', error)
+            toast.error('Failed to load courses')
+        } finally {
+            setLoadingCourses(false)
+        }
+    }
+
+    const fetchSemesters = async (category) => {
+        setLoadingSemesters(true)
+        try {
+            const response = await fetch(`/api/admin/semesters?category=${category}`)
+            const result = await response.json()
+            if (result.success) {
+                setSemesters(result.data || [])
+            }
+        } catch (error) {
+            console.error('Error fetching semesters:', error)
+            toast.error('Failed to load semesters')
+        } finally {
+            setLoadingSemesters(false)
+        }
+    }
+
+    const fetchSubjects = async (category, semesterName) => {
         setLoadingSubjects(true)
         try {
             const response = await fetch('/api/admin/subjects/all')
             const result = await response.json()
-
             if (result.success) {
-                const subjects = Array.isArray(result.subjects) ? result.subjects : []
-                setAllSubjects(subjects)
-
-                // Auto-select if prefilled subject code
-                if (prefilledSubjectCode && subjects.length > 0) {
-                    const matchingSubject = subjects.find(
-                        s => s && s.code && s.code.toUpperCase() === prefilledSubjectCode.toUpperCase()
-                    )
-                    if (matchingSubject) {
-                        setSelectedSubjects([matchingSubject])
-                    }
-                }
-            } else {
-                toast.error(result.error || 'Failed to load subjects')
-                setAllSubjects([])
+                const filtered = (result.subjects || []).filter(
+                    s => s.category === category && s.semesterName === semesterName
+                )
+                setSubjects(filtered)
             }
         } catch (error) {
             console.error('Error fetching subjects:', error)
-            toast.error('Failed to load subjects')
-            setAllSubjects([])
         } finally {
             setLoadingSubjects(false)
         }
     }
 
-    const toggleSubjectSelection = (subject) => {
-        setSelectedSubjects(prev => {
-            const exists = prev.find(s => s.id === subject.id)
-            if (exists) {
-                return prev.filter(s => s.id !== subject.id)
-            } else {
-                return [...prev, subject]
-            }
-        })
-    }
-
-    const removeSubject = (subjectId) => {
-        setSelectedSubjects(prev => prev.filter(s => s.id !== subjectId))
-    }
-
-    const filteredSubjects = allSubjects.filter(subject => {
-        const search = searchTerm.toLowerCase()
-        return (
-            subject.name.toLowerCase().includes(search) ||
-            subject.code.toLowerCase().includes(search) ||
-            subject.category.toLowerCase().includes(search) ||
-            subject.semesterName.toLowerCase().includes(search)
-        )
-    })
-
     const handleFileChange = (e) => {
         const file = e.target.files?.[0]
         if (file) {
-            // Validate file type
             if (file.type !== 'application/pdf') {
                 toast.error('Please select a PDF file only')
                 return
             }
 
-            // No file size limit for admin - they can upload any size
             setFileName(file.name)
             setSelectedFile(file)
             toast.success(`Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`)
@@ -123,7 +124,17 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
     const handleSubmit = async () => {
         // Validation
         if (!docTitle.trim()) {
-            toast.error('Please enter document title')
+            toast.error('Please enter syllabus title')
+            return
+        }
+
+        if (!selectedCategory) {
+            toast.error('Please select a course')
+            return
+        }
+
+        if (!selectedSemester) {
+            toast.error('Please select a semester')
             return
         }
 
@@ -137,8 +148,8 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
             return
         }
 
-        if (selectedSubjects.length === 0) {
-            toast.error('Please select at least one subject')
+        if (subjects.length === 0) {
+            toast.error('No subjects found for selected course and semester')
             return
         }
 
@@ -146,6 +157,8 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
         setUploadProgress(0)
 
         try {
+            const subjectIds = subjects.map(s => s.id)
+
             if (uploadMode === 'link') {
                 // Handle link-based upload
                 const response = await fetch('/api/admin/upload-link', {
@@ -154,9 +167,8 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                     body: JSON.stringify({
                         title: docTitle.trim(),
                         fileUrl: fileUrl.trim(),
-                        subjectIds: selectedSubjects.map(s => s.id),
-                        courseCode: selectedSubjects[0]?.code || '',
-                        type: materialType
+                        subjectIds: subjectIds,
+                        type: 'SYLLABUS'
                     })
                 })
 
@@ -164,19 +176,18 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
 
                 if (result.success) {
                     setUploadProgress(100)
-                    toast.success(`Material added to ${selectedSubjects.length} subject(s)!`)
+                    toast.success(`Syllabus uploaded for ${selectedSemester}!`)
 
                     // Reset form
                     setDocTitle('')
                     setFileUrl('')
                     setSelectedFile(null)
                     setFileName('')
-                    if (!prefilledSubjectCode) {
-                        setSelectedSubjects([])
-                        setCourseCode('')
+                    if (!prefilledCategory) {
+                        setSelectedCategory('')
+                        setSelectedSemester('')
                     }
 
-                    // Refresh data and close
                     if (onSuccess) {
                         await onSuccess()
                     }
@@ -184,7 +195,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                         onClose()
                     }
                 } else {
-                    throw new Error(result.error || 'Failed to add material')
+                    throw new Error(result.error || 'Failed to upload syllabus')
                 }
             } else {
                 // Handle file upload with progress
@@ -194,12 +205,8 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                 formData.append('fileName', selectedFile.name)
                 formData.append('fileSize', selectedFile.size.toString())
                 formData.append('fileType', selectedFile.type)
-                formData.append('type', materialType)
-                formData.append('subjectIds', JSON.stringify(selectedSubjects.map(s => s.id)))
-
-                if (selectedSubjects.length > 0) {
-                    formData.append('courseCode', selectedSubjects[0].code)
-                }
+                formData.append('type', 'SYLLABUS')
+                formData.append('subjectIds', JSON.stringify(subjectIds))
 
                 const xhr = new XMLHttpRequest()
 
@@ -240,18 +247,17 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
 
                 if (result.success) {
                     setUploadProgress(100)
-                    toast.success(`Material uploaded and assigned to ${selectedSubjects.length} subject(s)!`)
+                    toast.success(`Syllabus uploaded for ${selectedSemester}!`)
 
                     // Reset form
                     setDocTitle('')
                     setFileName('')
                     setSelectedFile(null)
-                    if (!prefilledSubjectCode) {
-                        setSelectedSubjects([])
-                        setCourseCode('')
+                    if (!prefilledCategory) {
+                        setSelectedCategory('')
+                        setSelectedSemester('')
                     }
 
-                    // Refresh data and close
                     if (onSuccess) {
                         await onSuccess()
                     }
@@ -264,7 +270,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
             }
         } catch (error) {
             console.error('Upload error:', error)
-            toast.error(error.message || 'Failed to upload material')
+            toast.error(error.message || 'Failed to upload syllabus')
         } finally {
             setUploading(false)
             setUploadProgress(0)
@@ -274,144 +280,68 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
     return (
         <DialogContent className="bg-[#2a2a28] border-[#3a3a38] text-white max-w-xl">
             <DialogHeader>
-                <DialogTitle className="text-2xl text-white">Upload Material</DialogTitle>
+                <DialogTitle className="text-2xl text-white">Upload Syllabus</DialogTitle>
                 <DialogDescription className="text-gray-400">
-                    Add course materials and documents to Supabase storage
+                    Upload course syllabus for a semester
                 </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-6 mt-4">
-                {/* Subject Multi-Select */}
+                {/* Course Selection */}
                 <div className="space-y-2">
-                    <Label className="text-white">
-                        Select Subjects *
-                        {prefilledSubjectCode && <span className="text-gray-500 text-xs ml-2">(Pre-selected)</span>}
-                    </Label>
-
-                    {/* Selected Subjects Display */}
-                    {selectedSubjects.length > 0 && (
-                        <div className="flex flex-wrap gap-2 p-2 bg-[#1a1a18] border border-[#3a3a38] rounded-lg">
-                            {selectedSubjects.map(subject => (
-                                <div
-                                    key={subject.id}
-                                    className="flex items-center gap-1 bg-blue-600 text-white px-2 py-1 rounded text-sm"
-                                >
-                                    <span>{subject.code} - {subject.name}</span>
-                                    {!prefilledSubjectCode && (
-                                        <button
-                                            onClick={() => removeSubject(subject.id)}
-                                            className="hover:bg-blue-700 rounded"
-                                            disabled={uploading}
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </button>
-                                    )}
-                                </div>
+                    <Label className="text-white">Select Course *</Label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={uploading || loadingCourses || prefilledCategory}>
+                        <SelectTrigger className="bg-[#1a1a18] border-[#3a3a38] text-white">
+                            <SelectValue placeholder="Choose a course" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1a18] border-[#3a3a38] text-white">
+                            {courses.map(course => (
+                                <SelectItem key={course.id} value={course.category}>
+                                    {course.title}
+                                </SelectItem>
                             ))}
-                        </div>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Semester Selection */}
+                <div className="space-y-2">
+                    <Label className="text-white">Select Semester *</Label>
+                    <Select value={selectedSemester} onValueChange={setSelectedSemester} disabled={!selectedCategory || uploading || loadingSemesters || prefilledSemester}>
+                        <SelectTrigger className="bg-[#1a1a18] border-[#3a3a38] text-white">
+                            <SelectValue placeholder="Choose a semester" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1a18] border-[#3a3a38] text-white">
+                            {semesters.map(sem => (
+                                <SelectItem key={sem.id} value={sem.name}>
+                                    {sem.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {selectedCategory && selectedSemester && subjects.length > 0 && (
+                        <p className="text-xs text-green-400">
+                            ✓ Found {subjects.length} subjects in this semester
+                        </p>
                     )}
-
-                    {/* Subject Search & Dropdown */}
-                    {!prefilledSubjectCode && (
-                        <div className="relative subject-dropdown-container">
-                            <Input
-                                value={searchTerm}
-                                onChange={(e) => {
-                                    setSearchTerm(e.target.value)
-                                    setShowDropdown(true)
-                                }}
-                                onFocus={() => setShowDropdown(true)}
-                                placeholder="Search subjects by name, code, course..."
-                                className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500"
-                                disabled={uploading || loadingSubjects}
-                            />
-
-                            {/* Dropdown */}
-                            {showDropdown && filteredSubjects.length > 0 && (
-                                <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-[#1a1a18] border border-[#3a3a38] rounded-lg shadow-lg">
-                                    {filteredSubjects.map(subject => {
-                                        const isSelected = selectedSubjects.find(s => s.id === subject.id)
-                                        return (
-                                            <div
-                                                key={subject.id}
-                                                onClick={() => toggleSubjectSelection(subject)}
-                                                className="flex items-center justify-between px-3 py-2 hover:bg-[#2a2a28] cursor-pointer border-b border-[#3a3a38] last:border-b-0"
-                                            >
-                                                <div className="flex-1">
-                                                    <div className="text-white text-sm font-medium">
-                                                        {subject.code} - {subject.name}
-                                                    </div>
-                                                    <div className="text-gray-500 text-xs">
-                                                        {subject.category} • {subject.semesterName}
-                                                    </div>
-                                                </div>
-                                                {isSelected && (
-                                                    <Check className="h-4 w-4 text-blue-500" />
-                                                )}
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    <p className="text-xs text-gray-500">
-                        {selectedSubjects.length === 0
-                            ? 'Search and select subjects where this material will be available'
-                            : `Selected ${selectedSubjects.length} subject(s). Material will appear in all selected subjects.`
-                        }
-                    </p>
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="doc-title" className="text-white">Document Title *</Label>
+                    <Label htmlFor="doc-title" className="text-white">Syllabus Title *</Label>
                     <Input
                         id="doc-title"
                         value={docTitle}
                         onChange={(e) => setDocTitle(e.target.value)}
-                        placeholder="e.g., Lecture Notes - Chapter 5"
+                        placeholder="e.g., MCA Semester 1 Syllabus"
                         className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
                         disabled={uploading}
                     />
                 </div>
 
-                {/* Material Type Selection */}
-                <div className="space-y-2">
-                    <Label className="text-white">Material Type *</Label>
-                    <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                value="PDF"
-                                checked={materialType === 'PDF'}
-                                onChange={(e) => setMaterialType(e.target.value)}
-                                disabled={uploading}
-                                className="w-4 h-4 text-blue-600"
-                            />
-                            <span className="text-white text-sm">Study Material</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                value="SYLLABUS"
-                                checked={materialType === 'SYLLABUS'}
-                                onChange={(e) => setMaterialType(e.target.value)}
-                                disabled={uploading}
-                                className="w-4 h-4 text-blue-600"
-                            />
-                            <span className="text-white text-sm">Syllabus</span>
-                        </label>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                        {materialType === 'PDF' ? 'Regular study materials like notes, books, etc.' : 'Course syllabus documents'}
-                    </p>
-                </div>
-
                 <div className="space-y-2">
                     <div className="flex items-center justify-between mb-2">
                         <Label htmlFor="pdf-upload" className="text-white">
-                            {uploadMode === 'file' ? 'Upload PDF * (No Size Limit)' : 'PDF Link *'}
+                            {uploadMode === 'file' ? 'Upload PDF *' : 'PDF Link *'}
                         </Label>
                         <Button
                             type="button"
@@ -445,7 +375,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                             <Input
                                 value={fileUrl}
                                 onChange={(e) => setFileUrl(e.target.value)}
-                                placeholder="https://example.com/document.pdf or Google Drive link"
+                                placeholder="https://example.com/syllabus.pdf or Google Drive link"
                                 className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
                                 disabled={uploading}
                             />
@@ -519,7 +449,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                     <Button
                         className="flex-1 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
                         onClick={handleSubmit}
-                        disabled={uploading || (uploadMode === 'file' ? !selectedFile : !fileUrl.trim()) || selectedSubjects.length === 0 || !docTitle.trim()}
+                        disabled={uploading || !selectedCategory || !selectedSemester || (uploadMode === 'file' ? !selectedFile : !fileUrl.trim()) || !docTitle.trim()}
                     >
                         {uploading ? (
                             <>
@@ -527,7 +457,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                                 {uploadMode === 'link' ? 'Adding...' : 'Uploading...'}
                             </>
                         ) : (
-                            `${uploadMode === 'link' ? 'Add' : 'Upload'} to ${selectedSubjects.length} Subject(s)`
+                            `Upload Syllabus`
                         )}
                     </Button>
                 </div>
@@ -536,4 +466,4 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
     )
 }
 
-export default FormCreateMaterial
+export default FormUploadSyllabus

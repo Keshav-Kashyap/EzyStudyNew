@@ -16,7 +16,8 @@ import {
     Upload,
     FileText,
     ChevronRight,
-    TrendingUp
+    TrendingUp,
+    MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -64,6 +65,7 @@ const AppSidebar = ({ menuItems, bottomMenuItems }) => {
         Upload,
         FileText,
         TrendingUp,
+        MessageSquare,
         'trending-up': TrendingUp
     };
 

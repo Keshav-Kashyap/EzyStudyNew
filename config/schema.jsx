@@ -65,6 +65,7 @@ export const studyMaterialsTable = pgTable("study_materials", {
     imageUrl: text(),
     downloadCount: integer().default(0),
     isActive: boolean().default(true),
+    isPopular: boolean().default(false),
     createdAt: timestamp().defaultNow(),
     updatedAt: timestamp().defaultNow()
 });

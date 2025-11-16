@@ -13,7 +13,7 @@ const DownloadSyllabusButton = ({ semesterId, semesterName, variant = "outline",
     const handleDownload = async (e) => {
         e.stopPropagation();
 
-        if (!semesterId) {
+        if (!category || !semesterName) {
             toast.error('Semester information not available');
             return;
         }
@@ -26,7 +26,7 @@ const DownloadSyllabusButton = ({ semesterId, semesterName, variant = "outline",
             const response = await fetch('/api/download/semester-syllabus', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ semesterId })
+                body: JSON.stringify({ category, semesterName })
             });
 
             if (!response.ok) {
@@ -44,7 +44,7 @@ const DownloadSyllabusButton = ({ semesterId, semesterName, variant = "outline",
 
             // If only one syllabus, open directly
             if (data.syllabi.length === 1) {
-                window.open(data.syllabi[0].syllabusUrl, '_blank');
+                window.open(data.syllabi[0].fileUrl, '_blank');
                 return;
             }
 
@@ -56,11 +56,20 @@ const DownloadSyllabusButton = ({ semesterId, semesterName, variant = "outline",
             for (let i = 0; i < data.syllabi.length; i++) {
                 const syllabus = data.syllabi[i];
                 try {
-                    const fileResponse = await fetch(syllabus.syllabusUrl);
+                    // Convert Google Drive preview URLs to download URLs
+                    let downloadUrl = syllabus.fileUrl
+                    if (downloadUrl.includes('drive.google.com/file/d/') && downloadUrl.includes('/preview')) {
+                        const fileIdMatch = downloadUrl.match(/\/file\/d\/([^\/]+)/)
+                        if (fileIdMatch) {
+                            downloadUrl = `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}&confirm=t`
+                        }
+                    }
+
+                    const fileResponse = await fetch(downloadUrl, { mode: 'cors' });
                     const blob = await fileResponse.blob();
 
                     // Add to ZIP with subject code and name
-                    const fileName = `${syllabus.subjectCode}_${syllabus.subjectName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+                    const fileName = `${syllabus.code}_${syllabus.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
                     zip.file(fileName, blob);
                 } catch (error) {
                     console.error(`Failed to download syllabus for ${syllabus.subjectName}:`, error);

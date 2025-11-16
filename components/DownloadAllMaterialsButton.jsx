@@ -51,21 +51,49 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
 
                 for (const material of materials) {
                     try {
-                        // Fetch file
-                        const fileResponse = await fetch(material.url, { mode: 'cors' })
+                        // Convert Google Drive preview URLs to download URLs
+                        let downloadUrl = material.url
+                        
+                        // Check if it's a Google Drive link
+                        const isGoogleDrive = downloadUrl.includes('drive.google.com')
+                        
+                        if (isGoogleDrive) {
+                            // Use proxy to bypass CORS
+                            const proxyResponse = await fetch('/api/download/proxy', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ url: downloadUrl })
+                            })
 
-                        if (!fileResponse.ok) {
-                            console.warn(`Failed to download: ${material.title}`)
-                            continue
+                            if (!proxyResponse.ok) {
+                                console.warn(`Failed to download: ${material.title}`)
+                                continue
+                            }
+
+                            const blob = await proxyResponse.blob()
+                            
+                            // Clean filename
+                            const fileName = `${material.title.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`
+
+                            // Add to ZIP
+                            subjectFolder.file(fileName, blob)
+                        } else {
+                            // Direct download for Supabase or other URLs
+                            const fileResponse = await fetch(downloadUrl)
+
+                            if (!fileResponse.ok) {
+                                console.warn(`Failed to download: ${material.title}`)
+                                continue
+                            }
+
+                            const blob = await fileResponse.blob()
+
+                            // Clean filename
+                            const fileName = `${material.title.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`
+
+                            // Add to ZIP
+                            subjectFolder.file(fileName, blob)
                         }
-
-                        const blob = await fileResponse.blob()
-
-                        // Clean filename
-                        const fileName = `${material.title.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`
-
-                        // Add to ZIP
-                        subjectFolder.file(fileName, blob)
 
                         downloadedCount++
                         setProgress(Math.round((downloadedCount / totalMaterials) * 100))

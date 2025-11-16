@@ -8,6 +8,7 @@ export async function POST(req) {
     try {
         const { id, liked } = await req.json();
 
+        // Update likes count
         await db
             .update(studyMaterialsTable)
             .set({
@@ -16,6 +17,20 @@ export async function POST(req) {
                     : sql`${studyMaterialsTable.likes} - 1`,
             })
             .where(eq(studyMaterialsTable.id, id));
+
+        // Get updated likes count
+        const [material] = await db
+            .select({ likes: studyMaterialsTable.likes })
+            .from(studyMaterialsTable)
+            .where(eq(studyMaterialsTable.id, id));
+
+        // Auto-mark as popular if likes >= 50
+        if (material && material.likes >= 50) {
+            await db
+                .update(studyMaterialsTable)
+                .set({ isPopular: true })
+                .where(eq(studyMaterialsTable.id, id));
+        }
 
         return NextResponse.json({ success: true });
     } catch (err) {

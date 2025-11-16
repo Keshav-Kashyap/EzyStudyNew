@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Grid, List } from "lucide-react";
+import { Search, Filter, Grid, List, FileText, Upload } from "lucide-react";
 import CreateCourseForm from "./_components/CreateNewCourse";
 import StatsCards from "./_components/StatusCards";
 import CoursesCard from "../../(main)/dashboard/allCourses/_components/CoursesCard";
 import { useAdminCourses, useInvalidateAdminData } from '@/hooks/useAdminData';
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import FormUploadSyllabus from "./_components/FormUploadSyllabus";
 
 export default function AdminLibraryPage() {
     const { data: adminData, isLoading } = useAdminCourses();
@@ -15,6 +17,7 @@ export default function AdminLibraryPage() {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [viewMode, setViewMode] = useState("grid");
+    const [isSyllabusDialogOpen, setIsSyllabusDialogOpen] = useState(false);
 
     const courses = adminData || [];
     const semesters = [];
@@ -72,7 +75,24 @@ export default function AdminLibraryPage() {
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Library Management System</h1>
                     <p className="text-gray-600 mt-2 ">Complete course, semester, subject & material management</p>
                 </div>
-                <CreateCourseForm onCourseCreated={fetchData} />
+                <div className="flex gap-3">
+                    <Dialog open={isSyllabusDialogOpen} onOpenChange={setIsSyllabusDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="bg-green-600 hover:bg-green-700 text-white gap-2">
+                                <FileText className="h-4 w-4" />
+                                Upload Syllabus
+                            </Button>
+                        </DialogTrigger>
+                        <FormUploadSyllabus
+                            onClose={() => setIsSyllabusDialogOpen(false)}
+                            onSuccess={() => {
+                                fetchData();
+                                setIsSyllabusDialogOpen(false);
+                            }}
+                        />
+                    </Dialog>
+                    <CreateCourseForm onCourseCreated={fetchData} />
+                </div>
             </div>
 
             <StatsCards

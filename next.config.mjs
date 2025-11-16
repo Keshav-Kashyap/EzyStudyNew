@@ -3,6 +3,20 @@ const nextConfig = {
     // Enable compression
     compress: true,
 
+    // Production optimizations
+    reactStrictMode: true,
+    swcMinify: true,
+    
+    // Remove console logs in production
+    compiler: {
+        removeConsole: process.env.NODE_ENV === 'production' ? {
+            exclude: ['error', 'warn'],
+        } : false,
+    },
+
+    // Performance optimizations
+    poweredByHeader: false,
+    
     // Generate sitemap
     async headers() {
         return [
@@ -25,6 +39,10 @@ const nextConfig = {
                         key: 'Referrer-Policy',
                         value: 'origin-when-cross-origin'
                     },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=(), geolocation=()'
+                    },
                 ],
             },
         ]
@@ -33,6 +51,8 @@ const nextConfig = {
     // Image optimization
     images: {
         formats: ['image/avif', 'image/webp'],
+        deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+        imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
         remotePatterns: [
             {
                 protocol: 'https',
@@ -46,7 +66,16 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: '**.supabase.co',
             },
+            {
+                protocol: 'https',
+                hostname: 'drive.google.com',
+            },
         ],
+    },
+
+    // Experimental features for better performance
+    experimental: {
+        optimizePackageImports: ['lucide-react', '@clerk/nextjs'],
     },
 };
 
