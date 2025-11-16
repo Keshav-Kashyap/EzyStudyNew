@@ -122,8 +122,8 @@ const SemesterDetail = ({ basePath }) => {
                                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2"
                             />
                             <DownloadSyllabusButton
-                                semesterId={semesterData?.id}
-                                semesterName={semesterData?.name || semesterName}
+                                category={code}
+                                semesterName={semesterName}
                                 variant="default"
                                 size="sm"
                                 className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2"

@@ -23,6 +23,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
     const [uploadMode, setUploadMode] = useState('file') // 'file' or 'link'
     const [fileUrl, setFileUrl] = useState('')
     const [materialType, setMaterialType] = useState('PDF') // 'PDF' or 'SYLLABUS'
+    const [isPopular, setIsPopular] = useState(false)
 
     // Multi-select state
     const [allSubjects, setAllSubjects] = useState([])
@@ -156,7 +157,8 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                         fileUrl: fileUrl.trim(),
                         subjectIds: selectedSubjects.map(s => s.id),
                         courseCode: selectedSubjects[0]?.code || '',
-                        type: materialType
+                        type: materialType,
+                        isPopular: isPopular
                     })
                 })
 
@@ -195,6 +197,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                 formData.append('fileSize', selectedFile.size.toString())
                 formData.append('fileType', selectedFile.type)
                 formData.append('type', materialType)
+                formData.append('isPopular', isPopular.toString())
                 formData.append('subjectIds', JSON.stringify(selectedSubjects.map(s => s.id)))
 
                 if (selectedSubjects.length > 0) {
@@ -374,6 +377,26 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                         className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
                         disabled={uploading}
                     />
+                </div>
+
+                {/* Popular Status Checkbox */}
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="is-popular"
+                            checked={isPopular}
+                            onChange={(e) => setIsPopular(e.target.checked)}
+                            disabled={uploading}
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <Label htmlFor="is-popular" className="text-white cursor-pointer">
+                            Mark as Popular Note
+                        </Label>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                        Popular notes will appear in the Popular Notes section and homepage
+                    </p>
                 </div>
 
                 {/* Material Type Selection */}

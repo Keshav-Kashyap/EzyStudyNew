@@ -37,9 +37,9 @@ function convertGoogleDriveLink(url) {
 
 export async function POST(request) {
     try {
-        const { title, fileUrl, subjectIds, courseCode, type } = await request.json();
+        const { title, fileUrl, subjectIds, courseCode, type, isPopular } = await request.json();
 
-        console.log('📝 Link-based upload:', { title, fileUrl, subjectIds, courseCode, type });
+        console.log('📝 Link-based upload:', { title, fileUrl, subjectIds, courseCode, type, isPopular });
 
         // Validation
         if (!title || !fileUrl) {
@@ -83,6 +83,7 @@ export async function POST(request) {
             type: type || 'PDF',
             fileUrl: processedUrl,
             description: `Uploaded via link`,
+            isPopular: isPopular || false,
             isActive: true,
         }).returning();
 

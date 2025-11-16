@@ -87,18 +87,25 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
         setLocalMaterials(prev => prev.filter(m => m.id !== materialToDelete.id));
         setDeleteDialogOpen(false);
 
-        const toastId = toast.loading('Deleting material...');
+        const toastId = toast.loading('Removing material...');
 
         try {
             setDeleting(true);
-            const response = await fetch(`/api/admin/materials?id=${materialToDelete.id}`, {
+            const response = await fetch(`/api/admin/materials?id=${materialToDelete.id}&subjectId=${subject.id}`, {
                 method: 'DELETE',
             });
 
             const data = await response.json();
 
             if (data.success) {
-                toast.success('Material deleted successfully!', { id: toastId });
+                if (data.isShared) {
+                    toast.success('Material removed from this subject!', { 
+                        id: toastId,
+                        description: 'Material is still available in other subjects'
+                    });
+                } else {
+                    toast.success('Material deleted completely!', { id: toastId });
+                }
                 setMaterialToDelete(null);
                 onUpdate(); // Refresh the data from server
             } else {

@@ -72,11 +72,14 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
 
                             const blob = await proxyResponse.blob()
 
+                            // Ensure it's treated as PDF
+                            const pdfBlob = new Blob([blob], { type: 'application/pdf' })
+
                             // Clean filename
                             const fileName = `${material.title.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`
 
                             // Add to ZIP
-                            subjectFolder.file(fileName, blob)
+                            subjectFolder.file(fileName, pdfBlob)
                         } else {
                             // Direct download for Supabase or other URLs
                             const fileResponse = await fetch(downloadUrl)
@@ -88,11 +91,14 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
 
                             const blob = await fileResponse.blob()
 
+                            // Ensure it's treated as PDF
+                            const pdfBlob = new Blob([blob], { type: 'application/pdf' })
+
                             // Clean filename
                             const fileName = `${material.title.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`
 
                             // Add to ZIP
-                            subjectFolder.file(fileName, blob)
+                            subjectFolder.file(fileName, pdfBlob)
                         }
 
                         downloadedCount++

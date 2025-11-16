@@ -64,8 +64,9 @@ export async function POST(request) {
         const fileSize = formData.get('fileSize');
         const fileType = formData.get('fileType');
         const type = formData.get('type') || 'PDF'; // Material type: 'PDF' or 'SYLLABUS'
+        const isPopular = formData.get('isPopular') === 'true';
 
-        console.log("Upload params:", { courseCode, subjectIds, type });
+        console.log("Upload params:", { courseCode, subjectIds, type, isPopular });
 
         if (!file || !title) {
             return NextResponse.json({
@@ -177,6 +178,7 @@ export async function POST(request) {
             description: `${type} material - ${title}`,
             tags: JSON.stringify([filePrefix, type, 'study-material']),
             downloadCount: 0,
+            isPopular: isPopular,
             isActive: true,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -336,8 +338,9 @@ async function handleUrlBasedUpload(request) {
         const courseCode = formData.get('courseCode');
         const subjectIds = formData.get('subjectIds');
         const title = formData.get('title');
+        const isPopular = formData.get('isPopular') === 'true';
 
-        console.log('📝 URL-based upload:', { courseCode, subjectIds, title, fileName: file?.name });
+        console.log('📝 URL-based upload:', { courseCode, subjectIds, title, isPopular, fileName: file?.name });
 
         // Validate inputs
         if (!title) {
@@ -404,6 +407,7 @@ async function handleUrlBasedUpload(request) {
             description: `${type} material - ${title}`,
             tags: JSON.stringify([type, 'study-material']),
             downloadCount: 0,
+            isPopular: isPopular,
             isActive: true,
             createdAt: new Date(),
             updatedAt: new Date()

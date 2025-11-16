@@ -1,14 +1,44 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-const DownloadSyllabusButton = ({ semesterId, semesterName, variant = "outline", size = "sm", className = "" }) => {
+const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", size = "sm", className = "" }) => {
     const [downloading, setDownloading] = useState(false);
+    const [hasSyllabus, setHasSyllabus] = useState(false);
+    const [checking, setChecking] = useState(true);
+
+    // Check if syllabus exists on mount
+    useEffect(() => {
+        checkSyllabusAvailability();
+    }, [category, semesterName]);
+
+    const checkSyllabusAvailability = async () => {
+        if (!category || !semesterName) {
+            setHasSyllabus(false);
+            setChecking(false);
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/download/semester-syllabus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category, semesterName })
+            });
+
+            const data = await response.json();
+            setHasSyllabus(data.success && data.syllabi && data.syllabi.length > 0);
+        } catch (error) {
+            setHasSyllabus(false);
+        } finally {
+            setChecking(false);
+        }
+    };
 
     const handleDownload = async (e) => {
         e.stopPropagation();
@@ -94,13 +124,18 @@ const DownloadSyllabusButton = ({ semesterId, semesterName, variant = "outline",
     return (
         <Button
             onClick={handleDownload}
-            disabled={downloading}
+            disabled={downloading || checking || !hasSyllabus}
             variant={variant}
             size={size}
             className={`gap-2 ${className}`}
-            title="Download All Syllabus"
+            title={!hasSyllabus ? "No syllabus available" : "Download All Syllabus"}
         >
-            {downloading ? (
+            {checking ? (
+                <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Checking...
+                </>
+            ) : downloading ? (
                 <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Loading...
@@ -108,7 +143,7 @@ const DownloadSyllabusButton = ({ semesterId, semesterName, variant = "outline",
             ) : (
                 <>
                     <FileDown className="h-4 w-4" />
-                    Download Syllabus
+                    {hasSyllabus ? 'Download Syllabus' : 'No Syllabus'}
                 </>
             )}
         </Button>

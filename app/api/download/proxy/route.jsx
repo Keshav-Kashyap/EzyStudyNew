@@ -23,15 +23,20 @@ export async function POST(req) {
         const arrayBuffer = await response.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
 
+        // Get content type, default to PDF
+        const contentType = response.headers.get('Content-Type') || 'application/pdf'
+
         // Return the file with appropriate headers
         return new NextResponse(buffer, {
             status: 200,
             headers: {
-                'Content-Type': response.headers.get('Content-Type') || 'application/pdf',
+                'Content-Type': contentType,
+                'Content-Disposition': 'attachment; filename="document.pdf"',
                 'Content-Length': buffer.length.toString(),
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type',
+                'Cache-Control': 'no-cache',
             },
         })
     } catch (error) {
