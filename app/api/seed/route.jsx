@@ -1,5 +1,5 @@
 import { db } from "@/config/db";
-import { courses, semesters, subjects, resources } from "@/drizzle/schema";
+import { courses, semesters, subjects, resources } from "@/config/schema";
 import { NextResponse } from "next/server";
 
 export async function GET() {
