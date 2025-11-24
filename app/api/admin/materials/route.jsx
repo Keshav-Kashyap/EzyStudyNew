@@ -112,7 +112,7 @@ export async function DELETE(request) {
 
         return NextResponse.json({
             success: true,
-            message: remainingCount > 0 
+            message: remainingCount > 0
                 ? `Material removed from this subject (still available in ${remainingCount} other subject${remainingCount > 1 ? 's' : ''})`
                 : "Material removed from this subject",
             isShared: remainingCount > 0,

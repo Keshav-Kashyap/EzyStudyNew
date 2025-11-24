@@ -99,7 +99,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
 
             if (data.success) {
                 if (data.isShared && data.remainingSubjects > 0) {
-                    toast.success('Material removed from this subject!', { 
+                    toast.success('Material removed from this subject!', {
                         id: toastId,
                         description: `Still available in ${data.remainingSubjects} other subject${data.remainingSubjects > 1 ? 's' : ''}`
                     });

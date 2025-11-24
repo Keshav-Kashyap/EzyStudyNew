@@ -31,7 +31,7 @@ export async function GET() {
                 subjectsTable,
                 eq(materialSubjectMappingTable.subjectId, subjectsTable.id)
             )
-            .where(eq(studyMaterialsTable.isPopular, true))
+            .where(like(studyMaterialsTable.tags, '%popular%'))
             .orderBy(desc(studyMaterialsTable.downloadCount))
             .limit(10);
 

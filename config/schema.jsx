@@ -57,15 +57,31 @@ export const subjectsTable = pgTable("subjects", {
 export const studyMaterialsTable = pgTable("study_materials", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     title: varchar({ length: 255 }).notNull(),
-    type: varchar({ length: 50 }).notNull(), // PDF, DOC, VIDEO, etc.
+    type: varchar({ length: 50 }), // Optional - PDF, DOC, VIDEO, etc.
     fileUrl: varchar({ length: 500 }),
     description: text(),
     tags: text(), // JSON array as text
     likes: integer("likes").default(0),
-    imageUrl: text(),
+    imageUrl: text(), // Optional - Admin can add custom image
     downloadCount: integer().default(0),
     isActive: boolean().default(true),
     isPopular: boolean().default(false),
+    createdAt: timestamp().defaultNow(),
+    updatedAt: timestamp().defaultNow()
+});
+
+// Syllabus Table (Shared across semesters in integrated courses)
+// Example: MCA Integrated 1st year syllabus shows in both Sem 1 and Sem 2
+export const syllabusTable = pgTable("syllabus", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    category: text().notNull(), // Links to coursesTable.category (e.g., "MCA Integrated")
+    year: integer().notNull(), // Academic year (1, 2, 3, etc.)
+    title: varchar({ length: 255 }).notNull(), // Syllabus title
+    description: text(),
+    fileUrl: varchar({ length: 500 }).notNull(), // PDF/DOC link
+    imageUrl: text(), // Optional thumbnail
+    uploadedBy: varchar({ length: 255 }), // Admin who uploaded
+    isActive: boolean().default(true),
     createdAt: timestamp().defaultNow(),
     updatedAt: timestamp().defaultNow()
 });

@@ -25,13 +25,13 @@ export default function AdminPopularNotesPage() {
             const notesData = await response.json();
             console.log("Popular notes data:", notesData);
 
-            // API returns array directly
-            if (Array.isArray(notesData)) {
+            // API returns object with notes array
+            if (notesData.success && Array.isArray(notesData.notes)) {
                 // Sort by likes (most popular first)
-                const sortedNotes = notesData.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+                const sortedNotes = notesData.notes.sort((a, b) => (b.likes || 0) - (a.likes || 0));
                 setNotes(sortedNotes);
             } else {
-                console.error("Expected array but got:", notesData);
+                console.error("Expected notes array but got:", notesData);
                 setNotes([]);
             }
         } catch (error) {
