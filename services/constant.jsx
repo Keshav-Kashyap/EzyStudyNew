@@ -130,11 +130,6 @@ export const adminMenuItems = [
         href: "/admin/library",
     },
     {
-        title: "Syllabus Manager",
-        icon: "BookOpen",
-        href: "/admin/syllabus",
-    },
-    {
         title: "Popular Notes",
         icon: "TrendingUp",
         href: "/admin/popularNotes",

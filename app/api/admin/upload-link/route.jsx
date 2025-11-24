@@ -37,9 +37,9 @@ function convertGoogleDriveLink(url) {
 
 export async function POST(request) {
     try {
-        const { title, fileUrl, subjectIds, courseCode, type, isPopular } = await request.json();
+        const { title, fileUrl, subjectIds, courseCode, imageUrl, isPopular } = await request.json();
 
-        console.log('📝 Link-based upload:', { title, fileUrl, subjectIds, courseCode, type, isPopular });
+        console.log('📝 Link-based upload:', { title, fileUrl, subjectIds, courseCode, imageUrl, isPopular });
 
         // Validation
         if (!title || !fileUrl) {
@@ -77,12 +77,19 @@ export async function POST(request) {
         // Convert Google Drive link if needed
         const processedUrl = convertGoogleDriveLink(fileUrl);
 
+        // Prepare tags array
+        const tagsArray = [courseCode, 'study-material'];
+        if (isPopular) {
+            tagsArray.push('popular');
+        }
+
         // Insert material into database
         const [newMaterial] = await db.insert(studyMaterialsTable).values({
             title: title,
-            type: type || 'PDF',
             fileUrl: processedUrl,
             description: `Uploaded via link`,
+            imageUrl: imageUrl || null,
+            tags: JSON.stringify(tagsArray),
             isPopular: isPopular || false,
             isActive: true,
         }).returning();

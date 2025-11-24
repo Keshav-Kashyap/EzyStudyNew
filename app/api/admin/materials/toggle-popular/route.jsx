@@ -24,21 +24,56 @@ export async function POST(request) {
             );
         }
 
-        // Update material popularity
+        // Fetch current material to get existing tags
+        const [currentMaterial] = await db
+            .select()
+            .from(studyMaterialsTable)
+            .where(eq(studyMaterialsTable.id, parseInt(materialId)))
+            .limit(1);
+
+        if (!currentMaterial) {
+            return NextResponse.json(
+                { success: false, error: "Material not found" },
+                { status: 404 }
+            );
+        }
+
+        // Parse existing tags
+        let tags = [];
+        try {
+            tags = currentMaterial.tags ? JSON.parse(currentMaterial.tags) : [];
+        } catch (e) {
+            tags = [];
+        }
+
+        // Add or remove 'popular' tag
+        if (isPopular) {
+            if (!tags.includes('popular')) {
+                tags.push('popular');
+            }
+        } else {
+            tags = tags.filter(tag => tag !== 'popular');
+        }
+
+        // Update material with new tags
         const result = await db
             .update(studyMaterialsTable)
-            .set({ isPopular: isPopular })
+            .set({
+                tags: JSON.stringify(tags),
+                isPopular: isPopular // Keep boolean in sync for backward compatibility
+            })
             .where(eq(studyMaterialsTable.id, parseInt(materialId)))
             .returning();
 
         if (!result || result.length === 0) {
-            throw new Error('Material not found or update failed');
+            throw new Error('Material update failed');
         }
 
         return NextResponse.json({
             success: true,
             message: `Material ${isPopular ? 'marked' : 'unmarked'} as popular`,
-            isPopular
+            isPopular,
+            tags
         });
     } catch (error) {
         console.error("Error toggling popular status:", error);

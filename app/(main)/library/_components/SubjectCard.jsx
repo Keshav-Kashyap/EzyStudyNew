@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import Link from 'next/link';
 import SubjectActions from '@/app/admin/library/_components/SubjectActions';
 import FormCreateMaterial from '@/app/admin/library/_components/formCreateMaterail';
-import EditMaterialForm from './EditMaterialDialog';
 import {
     Dialog,
     DialogTrigger,
@@ -36,6 +35,16 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
     const [localMaterials, setLocalMaterials] = useState(subject.materials || []);
     const [viewingPdf, setViewingPdf] = useState(null);
 
+    // Helper function to check if material is popular based on tags
+    const isPopularMaterial = (material) => {
+        try {
+            const tags = material.tags ? JSON.parse(material.tags) : [];
+            return tags.includes('popular');
+        } catch (e) {
+            return material.isPopular || false; // Fallback to boolean
+        }
+    };
+
     // Update local materials when subject changes
     useEffect(() => {
         setLocalMaterials(subject.materials || []);
@@ -52,7 +61,8 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
     };
 
     const handleTogglePopular = async (material) => {
-        const newPopularStatus = !material.isPopular;
+        const currentIsPopular = isPopularMaterial(material);
+        const newPopularStatus = !currentIsPopular;
         const toastId = toast.loading(`${newPopularStatus ? 'Marking' : 'Unmarking'} as popular...`);
 
         try {
@@ -169,19 +179,22 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                     localMaterials.map((material) => (
                         <div
                             key={material.id}
-                            className={`flex items-center flex-wrap justify-between gap-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-all duration-300 ${deletingMaterialId === material.id ? 'opacity-50 animate-pulse' : ''
+                            className={`relative flex items-center flex-wrap justify-between gap-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-all duration-300 ${deletingMaterialId === material.id ? 'opacity-50 animate-pulse' : ''
                                 }`}
                         >
+                            {/* Popular Star Badge - Top Right */}
+                            {isPopularMaterial(material) && (
+                                <div className="absolute -top-2 -right-2 bg-yellow-500 rounded-full p-1.5 shadow-md z-10">
+                                    <Star className="h-3 w-3 text-white fill-white" />
+                                </div>
+                            )}
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                     <p className="font-medium text-gray-900 dark:text-white truncate">
                                         {material.title}
                                     </p>
-                                    {material.isPopular && (
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 text-xs font-medium rounded-full">
-                                            <Star className="h-3 w-3 fill-current" />
-                                            Popular
-                                        </span>
+                                    {isPopularMaterial(material) && (
+                                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
                                     )}
                                     {material.likes >= 10 && (
                                         <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -224,8 +237,8 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                                 onClick={() => handleTogglePopular(material)}
                                                 className="cursor-pointer"
                                             >
-                                                <Star className={`h-4 w-4 mr-2 ${material.isPopular ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                                                {material.isPopular ? 'Remove from Popular' : 'Mark as Popular'}
+                                                <Star className={`h-4 w-4 mr-2 ${isPopularMaterial(material) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                                                {isPopularMaterial(material) ? 'Remove from Popular' : 'Mark as Popular'}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 onClick={() => handleEditMaterial(material)}
@@ -257,38 +270,29 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
             {/* Edit Material Dialog */}
             {materialToEdit && (
                 <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                    <DialogContent className="bg-white dark:bg-gray-800 max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                                Edit Material
-                            </DialogTitle>
-                            <DialogDescription className="text-gray-600 dark:text-gray-400">
-                                Update the material information below
-                            </DialogDescription>
-                        </DialogHeader>
-                        <EditMaterialForm
-                            material={materialToEdit}
-                            onUpdate={() => {
-                                setEditDialogOpen(false);
-                                setMaterialToEdit(null);
+                    <FormCreateMaterial
+                        onClose={() => {
+                            setEditDialogOpen(false);
+                            setMaterialToEdit(null);
+                        }}
+                        onSuccess={() => {
+                            setEditDialogOpen(false);
+                            setMaterialToEdit(null);
 
-                                // Show loading toast
-                                const toastId = toast.loading('Refreshing materials...');
+                            // Show loading toast
+                            const toastId = toast.loading('Refreshing materials...');
 
-                                // Refresh data
-                                onUpdate();
+                            // Refresh data
+                            onUpdate();
 
-                                // Dismiss loading after a short delay
-                                setTimeout(() => {
-                                    toast.dismiss(toastId);
-                                }, 500);
-                            }}
-                            onCancel={() => {
-                                setEditDialogOpen(false);
-                                setMaterialToEdit(null);
-                            }}
-                        />
-                    </DialogContent>
+                            // Dismiss loading after a short delay
+                            setTimeout(() => {
+                                toast.dismiss(toastId);
+                            }, 500);
+                        }}
+                        editMode={true}
+                        materialData={materialToEdit}
+                    />
                 </Dialog>
             )}
 

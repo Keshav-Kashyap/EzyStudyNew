@@ -1,7 +1,7 @@
 import { db } from "@/config/db";
 import { syllabusTable } from "@/config/schema";
 import { NextResponse } from "next/server";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 
 // GET - Fetch all syllabi or filter by category/year
@@ -13,19 +13,23 @@ export async function GET(request) {
 
         console.log("📚 Fetching syllabi...", { category, year });
 
-        let query = db.select().from(syllabusTable).where(eq(syllabusTable.isActive, true));
+        // Build where conditions
+        const conditions = [eq(syllabusTable.isActive, true)];
 
-        // Apply filters if provided
         if (category) {
-            query = query.where(eq(syllabusTable.category, category));
+            conditions.push(eq(syllabusTable.category, category));
         }
         if (year) {
-            query = query.where(eq(syllabusTable.year, parseInt(year)));
+            conditions.push(eq(syllabusTable.year, parseInt(year)));
         }
 
-        const syllabi = await query.orderBy(desc(syllabusTable.createdAt));
+        const syllabi = await db
+            .select()
+            .from(syllabusTable)
+            .where(and(...conditions))
+            .orderBy(desc(syllabusTable.createdAt));
 
-        console.log(`✅ Found ${syllabi.length} syllabi`);
+        console.log(`✅ Found ${syllabi.length} syllabi for category: ${category}`);
 
         return NextResponse.json({
             success: true,

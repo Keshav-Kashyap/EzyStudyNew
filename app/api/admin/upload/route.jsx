@@ -57,16 +57,17 @@ export async function POST(request) {
 
         const formData = await request.formData();
         const file = formData.get('file');
+        const thumbnailFile = formData.get('thumbnailFile'); // Optional thumbnail upload
         const courseCode = formData.get('courseCode'); // For backward compatibility
         const subjectIds = formData.get('subjectIds'); // New: comma-separated subject IDs or JSON array
         const title = formData.get('title');
         const fileName = formData.get('fileName');
         const fileSize = formData.get('fileSize');
         const fileType = formData.get('fileType');
-        const type = formData.get('type') || 'PDF'; // Material type: 'PDF' or 'SYLLABUS'
+        const imageUrl = formData.get('imageUrl'); // Optional thumbnail URL
         const isPopular = formData.get('isPopular') === 'true';
 
-        console.log("Upload params:", { courseCode, subjectIds, type, isPopular });
+        console.log("Upload params:", { courseCode, subjectIds, isPopular, hasThumbnailFile: !!thumbnailFile, imageUrl });
 
         if (!file || !title) {
             return NextResponse.json({
@@ -170,13 +171,51 @@ export async function POST(request) {
             .from('study-materials')
             .getPublicUrl(supabaseFileName);
 
-        // Save material to database (without subjectId)
+        // Upload thumbnail if provided
+        let thumbnailPublicUrl = imageUrl || null; // Use URL if provided
+
+        if (thumbnailFile && !imageUrl) {
+            try {
+                const thumbnailBytes = await thumbnailFile.arrayBuffer();
+                const thumbnailBuffer = Buffer.from(thumbnailBytes);
+                const thumbnailFileName = `thumbnails/${filePrefix}/${timestamp}-thumb-${thumbnailFile.name.replace(/\s+/g, '_')}`;
+
+                const { data: thumbData, error: thumbError } = await supabase.storage
+                    .from('study-materials')
+                    .upload(thumbnailFileName, thumbnailBuffer, {
+                        contentType: thumbnailFile.type,
+                        upsert: false
+                    });
+
+                if (!thumbError) {
+                    const { data: thumbUrlData } = supabase.storage
+                        .from('study-materials')
+                        .getPublicUrl(thumbnailFileName);
+
+                    thumbnailPublicUrl = thumbUrlData.publicUrl;
+                    console.log('✅ Thumbnail uploaded:', thumbnailFileName);
+                } else {
+                    console.warn('⚠️ Thumbnail upload failed:', thumbError.message);
+                }
+            } catch (thumbErr) {
+                console.warn('⚠️ Error uploading thumbnail:', thumbErr.message);
+                // Continue without thumbnail - it's optional
+            }
+        }
+
+        // Save material to database
+        // Prepare tags array
+        const tagsArray = [filePrefix, 'study-material'];
+        if (isPopular) {
+            tagsArray.push('popular');
+        }
+
         const materialData = await db.insert(studyMaterialsTable).values({
             title: title,
-            type: type, // Material type: 'PDF' or 'SYLLABUS'
             fileUrl: urlData.publicUrl,
-            description: `${type} material - ${title}`,
-            tags: JSON.stringify([filePrefix, type, 'study-material']),
+            imageUrl: thumbnailPublicUrl,
+            description: `Study material - ${title}`,
+            tags: JSON.stringify(tagsArray),
             downloadCount: 0,
             isPopular: isPopular,
             isActive: true,

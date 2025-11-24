@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect, useContext } from 'react';
-import { Calendar, GraduationCap, Loader2 } from 'lucide-react';
+import { Calendar, GraduationCap, Loader2, FileText, Upload, Download } from 'lucide-react';
 import { useParams } from "next/navigation";
 import SemesterCard from '@/app/(main)/library/_components/SemesterCard';
 import { useUser } from '@clerk/nextjs';
@@ -8,6 +8,7 @@ import { UserDetailContext } from '@/context/UserDetailContext';
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import SemesterBulkActions from '../_components/SemesterBulkActions';
+import SyllabusUploadDialog from '../_components/SyllabusUploadDialog';
 
 const SemesterOverview = () => {
     const { code } = useParams();
@@ -15,6 +16,8 @@ const SemesterOverview = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedSemesters, setSelectedSemesters] = useState([]);
+    const [syllabi, setSyllabi] = useState([]);
+    const [loadingSyllabi, setLoadingSyllabi] = useState(false);
     const { user } = useUser();
     const { userDetail } = useContext(UserDetailContext);
     const isAdmin = userDetail?.role === "admin";
@@ -50,6 +53,8 @@ const SemesterOverview = () => {
 
             if (data.success) {
                 setCourseData(data.course);
+                // Fetch syllabi after course data loads
+                fetchSyllabi(data.course.category);
             } else {
                 throw new Error(data.error || 'Failed to fetch course data');
             }
@@ -58,6 +63,28 @@ const SemesterOverview = () => {
             setError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchSyllabi = async (category) => {
+        try {
+            setLoadingSyllabi(true);
+            console.log("📚 Fetching syllabi for category:", category);
+            const response = await fetch(`/api/admin/syllabus?category=${category}`);
+            const data = await response.json();
+
+            console.log("📖 Syllabi response:", data);
+
+            if (data.success) {
+                console.log("✅ Syllabi loaded:", data.syllabi?.length || 0);
+                setSyllabi(data.syllabi || []);
+            } else {
+                console.error("❌ Failed to fetch syllabi:", data.error);
+            }
+        } catch (error) {
+            console.error('Error fetching syllabi:', error);
+        } finally {
+            setLoadingSyllabi(false);
         }
     };
 
@@ -118,12 +145,81 @@ const SemesterOverview = () => {
                 </div>
 
                 <div className="bg-white dark:bg-[rgb(24,24,24)] rounded-2xl p-8 border border-gray-200 dark:border-gray-700 shadow-lg mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
-                        Course Overview
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                        {courseData.description || "Access comprehensive study materials, notes, and resources for each semester."}
-                    </p>
+                    <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
+                                Course Overview
+                            </h2>
+                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                                {courseData.description || "Access comprehensive study materials, notes, and resources for each semester."}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Syllabus Section */}
+                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    Course Syllabus
+                                </h3>
+                            </div>
+                            {isAdmin && (
+                                <SyllabusUploadDialog
+                                    category={courseData.category}
+                                    year={1}
+                                    onUploadSuccess={() => fetchSyllabi(courseData.category)}
+                                    trigger={
+                                        <Button size="sm" className="gap-2">
+                                            <PlusCircle className="h-4 w-4" />
+                                            Add Syllabus
+                                        </Button>
+                                    }
+                                />
+                            )}
+                        </div>
+
+                        {loadingSyllabi ? (
+                            <div className="flex items-center justify-center py-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                            </div>
+                        ) : syllabi.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {syllabi.map((syllabus) => (
+                                    <div
+                                        key={syllabus.id}
+                                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                                    >
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                                {syllabus.title}
+                                            </p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                Year {syllabus.year}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => window.open(syllabus.fileUrl, '_blank')}
+                                            className="ml-2 flex-shrink-0"
+                                        >
+                                            <Download className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                <p className="text-sm">No syllabus uploaded yet</p>
+                                {isAdmin && (
+                                    <p className="text-xs mt-1">Click "Add Syllabus" to upload</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Bulk Actions for Admin */}

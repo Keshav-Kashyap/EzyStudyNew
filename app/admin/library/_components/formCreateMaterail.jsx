@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Upload, FileText, Loader2, Check, X, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
+const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode = false, materialData = null }) => {
     const [fileName, setFileName] = useState('')
     const [selectedFile, setSelectedFile] = useState(null)
     const [courseCode, setCourseCode] = useState(prefilledSubjectCode || '')
@@ -22,8 +22,12 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
     const [uploadProgress, setUploadProgress] = useState(0)
     const [uploadMode, setUploadMode] = useState('file') // 'file' or 'link'
     const [fileUrl, setFileUrl] = useState('')
-    const [materialType, setMaterialType] = useState('PDF') // 'PDF' or 'SYLLABUS'
     const [isPopular, setIsPopular] = useState(false)
+    const [thumbnailUrl, setThumbnailUrl] = useState('')
+    const [thumbnailMode, setThumbnailMode] = useState('url') // 'url' or 'file'
+    const [thumbnailFile, setThumbnailFile] = useState(null)
+    const [thumbnailFileName, setThumbnailFileName] = useState('')
+    const [materialId, setMaterialId] = useState(null)
 
     // Multi-select state
     const [allSubjects, setAllSubjects] = useState([])
@@ -36,6 +40,30 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
     useEffect(() => {
         fetchAllSubjects()
     }, [])
+
+    // Populate form when in edit mode
+    useEffect(() => {
+        if (editMode && materialData) {
+            setMaterialId(materialData.id)
+            setDocTitle(materialData.title || '')
+            setFileUrl(materialData.fileUrl || '')
+            setUploadMode('link') // Edit mode uses link
+
+            // Check if material is popular from tags
+            try {
+                const tags = materialData.tags ? JSON.parse(materialData.tags) : []
+                setIsPopular(tags.includes('popular'))
+            } catch (e) {
+                setIsPopular(materialData.isPopular || false)
+            }
+
+            // Set thumbnail
+            if (materialData.imageUrl) {
+                setThumbnailUrl(materialData.imageUrl)
+                setThumbnailMode('url')
+            }
+        }
+    }, [editMode, materialData])
 
     // Close dropdown on click outside
     useEffect(() => {
@@ -128,7 +156,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
             return
         }
 
-        if (uploadMode === 'file' && !selectedFile) {
+        if (uploadMode === 'file' && !selectedFile && !editMode) {
             toast.error('Please select a PDF file')
             return
         }
@@ -138,7 +166,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
             return
         }
 
-        if (selectedSubjects.length === 0) {
+        if (selectedSubjects.length === 0 && !editMode) {
             toast.error('Please select at least one subject')
             return
         }
@@ -148,32 +176,59 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
 
         try {
             if (uploadMode === 'link') {
-                // Handle link-based upload
-                const response = await fetch('/api/admin/upload-link', {
-                    method: 'POST',
+                // Handle link-based upload or update
+                const endpoint = editMode ? '/api/admin/materials' : '/api/admin/upload-link';
+                const method = editMode ? 'PUT' : 'POST';
+
+                const requestBody = editMode ? {
+                    id: materialId,
+                    title: docTitle.trim(),
+                    fileUrl: fileUrl.trim(),
+                    imageUrl: thumbnailUrl || null,
+                    isPopular: isPopular,
+                    // Update tags for popular status
+                    tags: (() => {
+                        try {
+                            const existingTags = materialData?.tags ? JSON.parse(materialData.tags) : [];
+                            const filteredTags = existingTags.filter(t => t !== 'popular');
+                            if (isPopular && !filteredTags.includes('popular')) {
+                                filteredTags.push('popular');
+                            }
+                            return JSON.stringify(filteredTags);
+                        } catch (e) {
+                            return JSON.stringify(isPopular ? ['popular'] : []);
+                        }
+                    })()
+                } : {
+                    title: docTitle.trim(),
+                    fileUrl: fileUrl.trim(),
+                    subjectIds: selectedSubjects.map(s => s.id),
+                    courseCode: selectedSubjects[0]?.code || '',
+                    isPopular: isPopular,
+                    imageUrl: thumbnailUrl || ''
+                };
+
+                const response = await fetch(endpoint, {
+                    method: method,
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: docTitle.trim(),
-                        fileUrl: fileUrl.trim(),
-                        subjectIds: selectedSubjects.map(s => s.id),
-                        courseCode: selectedSubjects[0]?.code || '',
-                        type: materialType,
-                        isPopular: isPopular
-                    })
+                    body: JSON.stringify(requestBody)
                 })
 
                 const result = await response.json()
 
                 if (result.success) {
                     setUploadProgress(100)
-                    toast.success(`Material added to ${selectedSubjects.length} subject(s)!`)
+                    toast.success(editMode ? 'Material updated successfully!' : `Material added to ${selectedSubjects.length} subject(s)!`)
 
                     // Reset form
                     setDocTitle('')
                     setFileUrl('')
                     setSelectedFile(null)
                     setFileName('')
-                    if (!prefilledSubjectCode) {
+                    setThumbnailUrl('')
+                    setThumbnailFile(null)
+                    setThumbnailFileName('')
+                    if (!prefilledSubjectCode && !editMode) {
                         setSelectedSubjects([])
                         setCourseCode('')
                     }
@@ -196,7 +251,14 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                 formData.append('fileName', selectedFile.name)
                 formData.append('fileSize', selectedFile.size.toString())
                 formData.append('fileType', selectedFile.type)
-                formData.append('type', materialType)
+
+                // Handle thumbnail - either URL or file
+                if (thumbnailMode === 'file' && thumbnailFile) {
+                    formData.append('thumbnailFile', thumbnailFile)
+                } else if (thumbnailMode === 'url' && thumbnailUrl) {
+                    formData.append('imageUrl', thumbnailUrl)
+                }
+
                 formData.append('isPopular', isPopular.toString())
                 formData.append('subjectIds', JSON.stringify(selectedSubjects.map(s => s.id)))
 
@@ -249,6 +311,9 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                     setDocTitle('')
                     setFileName('')
                     setSelectedFile(null)
+                    setThumbnailUrl('')
+                    setThumbnailFile(null)
+                    setThumbnailFileName('')
                     if (!prefilledSubjectCode) {
                         setSelectedSubjects([])
                         setCourseCode('')
@@ -277,95 +342,99 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
     return (
         <DialogContent className="bg-[#2a2a28] border-[#3a3a38] text-white max-w-xl">
             <DialogHeader>
-                <DialogTitle className="text-2xl text-white">Upload Material</DialogTitle>
+                <DialogTitle className="text-2xl text-white">
+                    {editMode ? 'Edit Material' : 'Upload Material'}
+                </DialogTitle>
                 <DialogDescription className="text-gray-400">
-                    Add course materials and documents to Supabase storage
+                    {editMode ? 'Update material information' : 'Add course materials and documents to Supabase storage'}
                 </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-6 mt-4">
                 {/* Subject Multi-Select */}
-                <div className="space-y-2">
-                    <Label className="text-white">
-                        Select Subjects *
-                        {prefilledSubjectCode && <span className="text-gray-500 text-xs ml-2">(Pre-selected)</span>}
-                    </Label>
+                {!editMode && (
+                    <div className="space-y-2">
+                        <Label className="text-white">
+                            Select Subjects *
+                            {prefilledSubjectCode && <span className="text-gray-500 text-xs ml-2">(Pre-selected)</span>}
+                        </Label>
 
-                    {/* Selected Subjects Display */}
-                    {selectedSubjects.length > 0 && (
-                        <div className="flex flex-wrap gap-2 p-2 bg-[#1a1a18] border border-[#3a3a38] rounded-lg">
-                            {selectedSubjects.map(subject => (
-                                <div
-                                    key={subject.id}
-                                    className="flex items-center gap-1 bg-blue-600 text-white px-2 py-1 rounded text-sm"
-                                >
-                                    <span>{subject.code} - {subject.name}</span>
-                                    {!prefilledSubjectCode && (
-                                        <button
-                                            onClick={() => removeSubject(subject.id)}
-                                            className="hover:bg-blue-700 rounded"
-                                            disabled={uploading}
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Subject Search & Dropdown */}
-                    {!prefilledSubjectCode && (
-                        <div className="relative subject-dropdown-container">
-                            <Input
-                                value={searchTerm}
-                                onChange={(e) => {
-                                    setSearchTerm(e.target.value)
-                                    setShowDropdown(true)
-                                }}
-                                onFocus={() => setShowDropdown(true)}
-                                placeholder="Search subjects by name, code, course..."
-                                className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500"
-                                disabled={uploading || loadingSubjects}
-                            />
-
-                            {/* Dropdown */}
-                            {showDropdown && filteredSubjects.length > 0 && (
-                                <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-[#1a1a18] border border-[#3a3a38] rounded-lg shadow-lg">
-                                    {filteredSubjects.map(subject => {
-                                        const isSelected = selectedSubjects.find(s => s.id === subject.id)
-                                        return (
-                                            <div
-                                                key={subject.id}
-                                                onClick={() => toggleSubjectSelection(subject)}
-                                                className="flex items-center justify-between px-3 py-2 hover:bg-[#2a2a28] cursor-pointer border-b border-[#3a3a38] last:border-b-0"
+                        {/* Selected Subjects Display */}
+                        {selectedSubjects.length > 0 && (
+                            <div className="flex flex-wrap gap-2 p-2 bg-[#1a1a18] border border-[#3a3a38] rounded-lg">
+                                {selectedSubjects.map(subject => (
+                                    <div
+                                        key={subject.id}
+                                        className="flex items-center gap-1 bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                                    >
+                                        <span>{subject.code} - {subject.name}</span>
+                                        {!prefilledSubjectCode && (
+                                            <button
+                                                onClick={() => removeSubject(subject.id)}
+                                                className="hover:bg-blue-700 rounded"
+                                                disabled={uploading}
                                             >
-                                                <div className="flex-1">
-                                                    <div className="text-white text-sm font-medium">
-                                                        {subject.code} - {subject.name}
-                                                    </div>
-                                                    <div className="text-gray-500 text-xs">
-                                                        {subject.category} • {subject.semesterName}
-                                                    </div>
-                                                </div>
-                                                {isSelected && (
-                                                    <Check className="h-4 w-4 text-blue-500" />
-                                                )}
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    )}
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
-                    <p className="text-xs text-gray-500">
-                        {selectedSubjects.length === 0
-                            ? 'Search and select subjects where this material will be available'
-                            : `Selected ${selectedSubjects.length} subject(s). Material will appear in all selected subjects.`
-                        }
-                    </p>
-                </div>
+                        {/* Subject Search & Dropdown */}
+                        {!prefilledSubjectCode && (
+                            <div className="relative subject-dropdown-container">
+                                <Input
+                                    value={searchTerm}
+                                    onChange={(e) => {
+                                        setSearchTerm(e.target.value)
+                                        setShowDropdown(true)
+                                    }}
+                                    onFocus={() => setShowDropdown(true)}
+                                    placeholder="Search subjects by name, code, course..."
+                                    className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500"
+                                    disabled={uploading || loadingSubjects}
+                                />
+
+                                {/* Dropdown */}
+                                {showDropdown && filteredSubjects.length > 0 && (
+                                    <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-[#1a1a18] border border-[#3a3a38] rounded-lg shadow-lg">
+                                        {filteredSubjects.map(subject => {
+                                            const isSelected = selectedSubjects.find(s => s.id === subject.id)
+                                            return (
+                                                <div
+                                                    key={subject.id}
+                                                    onClick={() => toggleSubjectSelection(subject)}
+                                                    className="flex items-center justify-between px-3 py-2 hover:bg-[#2a2a28] cursor-pointer border-b border-[#3a3a38] last:border-b-0"
+                                                >
+                                                    <div className="flex-1">
+                                                        <div className="text-white text-sm font-medium">
+                                                            {subject.code} - {subject.name}
+                                                        </div>
+                                                        <div className="text-gray-500 text-xs">
+                                                            {subject.category} • {subject.semesterName}
+                                                        </div>
+                                                    </div>
+                                                    {isSelected && (
+                                                        <Check className="h-4 w-4 text-blue-500" />
+                                                    )}
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <p className="text-xs text-gray-500">
+                            {selectedSubjects.length === 0
+                                ? 'Search and select subjects where this material will be available'
+                                : `Selected ${selectedSubjects.length} subject(s). Material will appear in all selected subjects.`
+                            }
+                        </p>
+                    </div>
+                )}
 
                 <div className="space-y-2">
                     <Label htmlFor="doc-title" className="text-white">Document Title *</Label>
@@ -399,36 +468,91 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                     </p>
                 </div>
 
-                {/* Material Type Selection */}
+                {/* Thumbnail Image - Optional */}
                 <div className="space-y-2">
-                    <Label className="text-white">Material Type *</Label>
-                    <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                value="PDF"
-                                checked={materialType === 'PDF'}
-                                onChange={(e) => setMaterialType(e.target.value)}
-                                disabled={uploading}
-                                className="w-4 h-4 text-blue-600"
-                            />
-                            <span className="text-white text-sm">Study Material</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                value="SYLLABUS"
-                                checked={materialType === 'SYLLABUS'}
-                                onChange={(e) => setMaterialType(e.target.value)}
-                                disabled={uploading}
-                                className="w-4 h-4 text-blue-600"
-                            />
-                            <span className="text-white text-sm">Syllabus</span>
-                        </label>
+                    <div className="flex items-center justify-between mb-2">
+                        <Label className="text-white">
+                            Thumbnail Image (Optional)
+                        </Label>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                setThumbnailMode(thumbnailMode === 'url' ? 'file' : 'url')
+                                setThumbnailUrl('')
+                                setThumbnailFile(null)
+                                setThumbnailFileName('')
+                            }}
+                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-900/20"
+                            disabled={uploading}
+                        >
+                            {thumbnailMode === 'url' ? (
+                                <>
+                                    <Upload className="h-4 w-4 mr-1" />
+                                    Upload File
+                                </>
+                            ) : (
+                                <>
+                                    <Link2 className="h-4 w-4 mr-1" />
+                                    Use URL
+                                </>
+                            )}
+                        </Button>
                     </div>
-                    <p className="text-xs text-gray-500">
-                        {materialType === 'PDF' ? 'Regular study materials like notes, books, etc.' : 'Course syllabus documents'}
-                    </p>
+
+                    {thumbnailMode === 'url' ? (
+                        <div className="space-y-2">
+                            <Input
+                                type="url"
+                                value={thumbnailUrl}
+                                onChange={(e) => setThumbnailUrl(e.target.value)}
+                                placeholder="https://example.com/thumbnail.jpg"
+                                className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                                disabled={uploading}
+                            />
+                            <p className="text-xs text-gray-500">
+                                Paste a direct link to thumbnail image
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0]
+                                    if (file) {
+                                        setThumbnailFile(file)
+                                        setThumbnailFileName(file.name)
+                                    }
+                                }}
+                                className="bg-[#1a1a18] border-[#3a3a38] text-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+                                disabled={uploading}
+                            />
+                            {thumbnailFileName && (
+                                <div className="flex items-center gap-2 text-sm text-green-400">
+                                    <Check className="h-4 w-4" />
+                                    <span>{thumbnailFileName}</span>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            setThumbnailFile(null)
+                                            setThumbnailFileName('')
+                                        }}
+                                        disabled={uploading}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            )}
+                            <p className="text-xs text-gray-500">
+                                Upload thumbnail image (JPG, PNG, GIF, WebP)
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -542,15 +666,17 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode }) => {
                     <Button
                         className="flex-1 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
                         onClick={handleSubmit}
-                        disabled={uploading || (uploadMode === 'file' ? !selectedFile : !fileUrl.trim()) || selectedSubjects.length === 0 || !docTitle.trim()}
+                        disabled={uploading || (uploadMode === 'file' && !selectedFile && !editMode) || (uploadMode === 'link' && !fileUrl.trim()) || (selectedSubjects.length === 0 && !editMode) || !docTitle.trim()}
                     >
                         {uploading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                {uploadMode === 'link' ? 'Adding...' : 'Uploading...'}
+                                {editMode ? 'Updating...' : (uploadMode === 'link' ? 'Adding...' : 'Uploading...')}
                             </>
                         ) : (
-                            `${uploadMode === 'link' ? 'Add' : 'Upload'} to ${selectedSubjects.length} Subject(s)`
+                            editMode
+                                ? 'Update Material'
+                                : `${uploadMode === 'link' ? 'Add' : 'Upload'} to ${selectedSubjects.length} Subject(s)`
                         )}
                     </Button>
                 </div>

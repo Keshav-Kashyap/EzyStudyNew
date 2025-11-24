@@ -4,13 +4,30 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Heart, TrendingUp, Eye, MoreVertical, Star, Search } from "lucide-react";
+import { FileText, Download, Heart, TrendingUp, Eye, MoreVertical, Star, Search, Trash2, Edit, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import GenericCard from '@/app/(main)/_components/shared/GenericCard';
+import { motion } from "motion/react";
+import {
+    Dialog,
+    DialogContent,
+} from "@/components/ui/dialog";
+import FormCreateMaterial from '@/app/admin/library/_components/formCreateMaterail';
 
 export default function AdminPopularNotesPage() {
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [materialToEdit, setMaterialToEdit] = useState(null);
+    const [updatingId, setUpdatingId] = useState(null); // Track which card is updating
 
     useEffect(() => {
         fetchPopularNotes();
@@ -39,6 +56,47 @@ export default function AdminPopularNotesPage() {
             setNotes([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRemoveFromPopular = async (note) => {
+        const toastId = toast.loading('Removing from popular...');
+        setUpdatingId(note.id); // Show loading on this card
+
+        try {
+            const response = await fetch('/api/admin/materials/toggle-popular', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    materialId: note.id,
+                    isPopular: false
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success('Removed from popular notes!', { id: toastId });
+
+                // Remove from local state immediately
+                setNotes(prevNotes => prevNotes.filter(n => n.id !== note.id));
+            } else {
+                toast.error(data.error || 'Failed to remove', { id: toastId });
+            }
+        } catch (error) {
+            console.error('Error removing from popular:', error);
+            toast.error('Failed to remove from popular', { id: toastId });
+        } finally {
+            setUpdatingId(null);
+        }
+    }; const handleEdit = (note) => {
+        setMaterialToEdit(note);
+        setEditDialogOpen(true);
+    };
+
+    const handleDownload = (note) => {
+        if (note.fileUrl) {
+            window.open(note.fileUrl, '_blank');
         }
     };
 
@@ -89,95 +147,104 @@ export default function AdminPopularNotesPage() {
 
             {/* Popular Notes Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredNotes.map((note, index) => (
-                    <Card key={note.id} className="relative hover:shadow-lg transition-shadow dark:hover:bg-[rgb(45,45,44)]">
-                        {/* Popularity Rank Badge */}
-                        {index < 3 && (
-                            <div className="absolute -top-2 -right-2 z-10">
-                                <Badge className={`${index === 0 ? 'bg-yellow-500 text-white' :
-                                    index === 1 ? 'bg-gray-400 text-white' :
-                                        'bg-orange-600 text-white'
-                                    }`}>
-                                    <Star className="h-3 w-3 mr-1 inline" />
-                                    #{index + 1}
-                                </Badge>
-                            </div>
-                        )}
+                {filteredNotes.map((note, index) => {
+                    const formattedDate = note.createdAt
+                        ? new Date(note.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : 'N/A';
 
-                        <CardHeader className="pb-3">
-                            <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                    <CardTitle className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2">
-                                        {note.title}
-                                    </CardTitle>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                                        {note.description || "Study material"}
-                                    </p>
-                                </div>
-                                <Button variant="ghost" size="sm">
-                                    <MoreVertical className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </CardHeader>
-
-                        <CardContent>
-                            {/* File Type Badge */}
-                            <div className="mb-4">
-                                <Badge variant="outline" className="text-xs">
-                                    {note.type || 'PDF'}
-                                </Badge>
-                            </div>
-
-                            {/* Stats Grid */}
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                    <div className="flex items-center justify-center mb-1">
-                                        <Heart className="h-4 w-4 text-red-500 mr-1 fill-red-500" />
+                    return (
+                        <motion.div
+                            key={note.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: index * 0.05 }}
+                            className="relative"
+                        >
+                            {/* Loading overlay when updating this specific card */}
+                            {updatingId === note.id && (
+                                <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 z-30 flex items-center justify-center rounded-xl">
+                                    <div className="text-center">
+                                        <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-2" />
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">Updating...</p>
                                     </div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Likes</p>
-                                    <p className="text-lg font-bold text-gray-900 dark:text-white">{note.likes || 0}</p>
-                                </div>
-                                <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                    <div className="flex items-center justify-center mb-1">
-                                        <Download className="h-4 w-4 text-green-600 mr-1" />
-                                    </div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Downloads</p>
-                                    <p className="text-lg font-bold text-gray-900 dark:text-white">{note.downloadCount || 0}</p>
-                                </div>
-                            </div>
-
-                            {/* Tags */}
-                            {note.tags && (
-                                <div className="flex flex-wrap gap-1 mb-3">
-                                    {(() => {
-                                        try {
-                                            const tagArray = typeof note.tags === 'string' ? JSON.parse(note.tags) : note.tags;
-                                            return tagArray.slice(0, 3).map((tag, i) => (
-                                                <Badge key={i} variant="secondary" className="text-xs">
-                                                    {tag}
-                                                </Badge>
-                                            ));
-                                        } catch (e) {
-                                            return null;
-                                        }
-                                    })()}
                                 </div>
                             )}
 
-                            {/* Actions */}
-                            <div className="flex justify-between items-center pt-3 border-t dark:border-gray-700">
-                                <Button variant="outline" size="sm" className="text-xs">
-                                    <Eye className="h-3 w-3 mr-1" />
-                                    View
-                                </Button>
-                                <Button variant="outline" size="sm" className="text-xs">
-                                    <Download className="h-3 w-3 mr-1" />
-                                    Download
-                                </Button>
+                            {/* Three-dot menu - Outside card */}
+                            <div className="absolute top-2 right-2 z-20">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 shadow-sm"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-48">
+                                        <DropdownMenuItem
+                                            onClick={() => handleEdit(note)}
+                                            className="cursor-pointer"
+                                        >
+                                            <Edit className="h-4 w-4 mr-2" />
+                                            Edit Material
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            onClick={() => handleRemoveFromPopular(note)}
+                                            className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
+                                        >
+                                            <Star className="h-4 w-4 mr-2" />
+                                            Remove from Popular
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
-                        </CardContent>
-                    </Card>
-                ))}
+
+                            <GenericCard
+                                item={note}
+                                imageUrl={note.imageUrl}
+                                title={note.title || 'Study Material'}
+                                subtitle={note.description || 'Comprehensive study material'}
+                                showStats={true}
+                                badges={[
+                                    index < 3 ? {
+                                        label: `#${index + 1}`,
+                                        position: 'top-right',
+                                        bgColor: index === 0 ? 'bg-yellow-500 text-white' :
+                                            index === 1 ? 'bg-gray-400 text-white' :
+                                                'bg-orange-600 text-white'
+                                    } : null,
+                                    { label: note.type || 'PDF', position: 'top-left', bgColor: 'bg-white/30 backdrop-blur-sm text-white' }
+                                ].filter(Boolean)}
+                                stats={[
+                                    {
+                                        icon: <Heart className="w-4 h-4 text-red-500" />,
+                                        label: 'Likes',
+                                        value: note.likes || 0,
+                                        bgColor: 'bg-red-100 dark:bg-red-900/30'
+                                    },
+                                    {
+                                        icon: <Download className="w-4 h-4 text-green-600" />,
+                                        label: 'Downloads',
+                                        value: note.downloadCount || 0,
+                                        bgColor: 'bg-green-100 dark:bg-green-900/30'
+                                    }
+                                ]}
+                                actions={[
+                                    {
+                                        label: 'Download',
+                                        onClick: () => handleDownload(note),
+                                        fullWidth: true,
+                                        icon: <Download className="w-4 h-4" />
+                                    }
+                                ]}
+                            />
+                        </motion.div>
+                    );
+                })}
             </div>
 
             {filteredNotes.length === 0 && (
@@ -225,6 +292,58 @@ export default function AdminPopularNotesPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Edit Material Dialog */}
+            {materialToEdit && (
+                <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                    <FormCreateMaterial
+                        onClose={() => {
+                            setEditDialogOpen(false);
+                            setMaterialToEdit(null);
+                            setUpdatingId(null);
+                        }}
+                        onSuccess={async (updatedData) => {
+                            setEditDialogOpen(false);
+                            const materialId = materialToEdit.id;
+                            setMaterialToEdit(null);
+                            setUpdatingId(materialId); // Show loading on this card
+
+                            // Show loading toast
+                            const toastId = toast.loading('Updating material...');
+
+                            try {
+                                // Fetch fresh data for this specific material
+                                const response = await fetch('/api/popularNotes');
+                                const result = await response.json();
+
+                                if (result.success) {
+                                    // Update only the changed material in state
+                                    setNotes(prevNotes => {
+                                        return prevNotes.map(note => {
+                                            const updatedNote = result.notes.find(n => n.id === note.id);
+                                            return updatedNote || note;
+                                        });
+                                    });
+                                    toast.success('Material updated successfully!', { id: toastId });
+                                } else {
+                                    // Fallback: full refresh
+                                    await fetchPopularNotes();
+                                    toast.success('Material updated!', { id: toastId });
+                                }
+                            } catch (error) {
+                                console.error('Error refreshing:', error);
+                                // Fallback: full refresh
+                                await fetchPopularNotes();
+                                toast.success('Material updated!', { id: toastId });
+                            } finally {
+                                setUpdatingId(null);
+                            }
+                        }}
+                        editMode={true}
+                        materialData={materialToEdit}
+                    />
+                </Dialog>
+            )}
         </div>
     );
 }

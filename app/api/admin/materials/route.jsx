@@ -17,7 +17,7 @@ export async function PUT(request) {
         }
 
         const body = await request.json();
-        const { id, title, description, type, fileUrl, tags } = body;
+        const { id, title, description, type, fileUrl, tags, imageUrl, isPopular } = body;
 
         if (!id) {
             return NextResponse.json(
@@ -32,6 +32,8 @@ export async function PUT(request) {
         if (type) updateData.type = type;
         if (fileUrl) updateData.fileUrl = fileUrl;
         if (tags !== undefined) updateData.tags = tags;
+        if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+        if (isPopular !== undefined) updateData.isPopular = isPopular;
 
         // Update the material
         await db
