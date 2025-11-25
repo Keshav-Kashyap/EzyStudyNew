@@ -14,7 +14,7 @@ const DashboardProvider = ({ children }) => {
 
 
 
-                <AppSidebar menuItems={adminMenuItems} bottomMenuItems={adminbottomMenuItems} />
+                <AppSidebar menuItems={adminMenuItems} bottomMenuItems={adminbottomMenuItems} isAdmin={true} />
 
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col min-w-0 w-full">

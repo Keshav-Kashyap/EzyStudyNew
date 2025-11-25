@@ -9,7 +9,7 @@ import ClerkPricingTable from '@/components/billing/ClerkPricingTable'
 
 const Billing = () => {
     return (
-        <div className="w-full bg-gradient-to-br from-gray-50 overflow-hidden via-blue-50 to-purple-50 dark:from-[rgb(24,24,24)] dark:via-[rgb(28,28,32)] dark:to-[rgb(32,28,36)]">
+        <div className=" overflow-hidden">
             {/* Hero Section */}
             <div className="max-w-7xl mx-auto mb-12 px-6 pt-6">
                 <div className="text-center space-y-4 mb-8">

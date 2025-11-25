@@ -63,14 +63,6 @@ const SemesterOverview = () => {
                         </p>
                     </div>
                     <div className="flex justify-end mb-4">
-                        {isAdmin && (
-                            <Button
-                                className="bg-[#3e3e3a] hover:bg-[#50504c] text-white flex items-center gap-2 px-4 py-2 rounded-lg shadow-md transition-all"
-                            >
-                                <PlusCircle className="w-5 h-5" />
-                                Create Semester
-                            </Button>
-                        )}
                     </div>
 
 

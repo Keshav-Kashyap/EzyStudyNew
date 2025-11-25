@@ -152,27 +152,27 @@ const SemesterCard = ({ basePath, semester, code, isAdmin, onUpdate, isSelected,
 
                 <div className="flex items-center gap-2">
                     {isActive ? (
-                        <>
+                        <div className="flex-1 flex flex-col gap-2">
                             <Link
                                 href={`/${finalBasePath}/${code}/semester/${semester.name.toLowerCase().replace(/\s+/g, '-')}`}
-                                className="flex-1 flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all duration-300 group-hover:shadow-lg no-underline"
+                                className="w-full flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all duration-300 group-hover:shadow-lg no-underline"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <span>View Materials</span>
                                 <ChevronRight size={20} className="transition-transform group-hover:translate-x-1" />
                             </Link>
                             {showDownloadInCard && (
-                                <div onClick={(e) => e.stopPropagation()}>
+                                <div onClick={(e) => e.stopPropagation()} className="w-full">
                                     <DownloadAllMaterialsButton
                                         category={code}
                                         semesterName={semester.name}
                                         variant="outline"
                                         size="default"
-                                        className="h-12 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                        className="w-full h-12 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                                     />
                                 </div>
                             )}
-                        </>
+                        </div>
                     ) : (
                         <button
                             disabled

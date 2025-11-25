@@ -43,8 +43,10 @@ import {
     DialogContent,
 } from '@/components/ui/dialog';
 import NotificationBell from '@/components/NotificationBell';
+import { LibraryItems, adminLibraryItems } from '@/services/constant';
 
-const AppSidebar = ({ menuItems, bottomMenuItems }) => {
+const AppSidebar = ({ menuItems, bottomMenuItems, isAdmin = false }) => {
+    const libraryItems = isAdmin ? adminLibraryItems : LibraryItems;
     const pathname = usePathname();
     const { userDetail } = useContext(UserDetailContext);
     const { open, setOpen } = useSidebar();
@@ -190,11 +192,7 @@ const AppSidebar = ({ menuItems, bottomMenuItems }) => {
                     )}
                     <SidebarGroupContent>
                         <SidebarMenu className="space-y-1">
-                            {[
-                                { title: "MCA Library", icon: "Code", href: "/library/mca" },
-                                { title: "BCA Library", icon: "Database", href: "/library/bca" },
-                                { title: "B.Tech Library", icon: "Cpu", href: "/library/btech" }
-                            ].map((item, index) => {
+                            {libraryItems.map((item, index) => {
                                 const IconComponent = iconMap[item.icon] || BookOpen;
                                 const isActive = pathname === item.href;
 

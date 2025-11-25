@@ -53,11 +53,11 @@ export default function Navbar() {
         try {
             console.log("Searching for:", searchQuery);
             const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
             console.log("Search results:", data);
 
@@ -197,7 +197,7 @@ export default function Navbar() {
                                         <X className="h-5 w-5" />
                                     </button>
                                 </div>
-                                
+
                                 <div className="flex gap-3">
                                     <Input
                                         type="text"

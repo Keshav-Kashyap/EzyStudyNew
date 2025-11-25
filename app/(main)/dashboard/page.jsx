@@ -29,6 +29,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import CoursesCard from "./allCourses/_components/CoursesCard";
+import WelcomeContainer from "../_components/AppWelcomeContainer";
 
 export default function CoursesPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -95,14 +96,11 @@ export default function CoursesPage() {
                 {/* Main Content */}
                 <main className="flex-1 p-6 lg:p-8">
                     <div className="max-w-7xl mx-auto">
-                        {/* Welcome Header - Only on Dashboard */}
-                        <HeroHeader
-                            heading="Welcome to EzyLearn"
-                            subHeading="Discover comprehensive learning materials designed for academic excellence"
-                            icon={GraduationCap}
-                        />
 
-                        {/* Search and Filters Toolbar */}
+
+                        <WelcomeContainer />
+
+
                         <SearchFilterToolbar
                             searchValue={searchQuery}
                             onSearchChange={setSearchQuery}

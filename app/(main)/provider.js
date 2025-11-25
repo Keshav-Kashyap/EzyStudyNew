@@ -12,7 +12,7 @@ const DashboardProvider = ({ children }) => {
         <SidebarProvider defaultOpen={false}>
             <div className="flex h-screen w-full overflow-hidden">
                 {/* Sidebar */}
-                <AppSidebar menuItems={menuItems} bottomMenuItems={bottomMenuItems} />
+                <AppSidebar menuItems={menuItems} bottomMenuItems={bottomMenuItems} isAdmin={false} />
 
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white dark:bg-[rgb(38,38,36)]">
@@ -22,9 +22,7 @@ const DashboardProvider = ({ children }) => {
                     {/* Scrollable Content Area */}
                     <main className="flex-1 overflow-y-auto bg-white dark:bg-[rgb(38,38,36)]">
                         <div className="w-full">
-                            <div className="p-4 md:p-6 w-full">
-                                <WelcomeContainer />
-                            </div>
+
 
                             {/* Children Content */}
                             <div className="w-full px-4 md:px-6 pb-6">
