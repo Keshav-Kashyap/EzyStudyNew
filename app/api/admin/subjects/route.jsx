@@ -2,7 +2,7 @@ import { db } from "@/config/db";
 import { subjectsTable, semestersTable, coursesTable } from "@/config/schema";
 import { NextResponse } from "next/server";
 import { checkAdminAccess } from "@/lib/admin-auth";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 // GET - Get all subjects
 export async function GET() {
@@ -58,14 +58,17 @@ export async function POST(request) {
             }, { status: 400 });
         }
 
-        // Verify semester exists
+        // Verify semester exists for this category
         const semester = await db.select().from(semestersTable)
-            .where(eq(semestersTable.name, semesterName));
+            .where(and(
+                eq(semestersTable.name, semesterName),
+                eq(semestersTable.category, category)
+            ));
 
         if (semester.length === 0) {
             return NextResponse.json({
                 success: false,
-                error: "Semester not found"
+                error: `Semester '${semesterName}' not found for course '${category}'. Please create the semester first.`
             }, { status: 404 });
         }
 

@@ -26,6 +26,7 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
     const [subtitle, setSubtitle] = useState('')
     const [description, setDescription] = useState('')
     const [category, setCategory] = useState('')
+    const [duration, setDuration] = useState('')
     const [selectedImage, setSelectedImage] = useState(null)
     const [imagePreview, setImagePreview] = useState('')
     const [uploading, setUploading] = useState(false)
@@ -93,6 +94,11 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
             return
         }
 
+        if (!duration) {
+            toast.error('Please select course duration')
+            return
+        }
+
         if (!selectedImage) {
             toast.error('Please upload a course image')
             return
@@ -108,6 +114,7 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
             formData.append('subtitle', subtitle.trim())
             formData.append('description', description.trim())
             formData.append('category', category)
+            formData.append('duration', duration)
             formData.append('fileName', selectedImage.name)
             formData.append('fileSize', selectedImage.size.toString())
             formData.append('fileType', selectedImage.type)
@@ -128,6 +135,7 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
                 setSubtitle('')
                 setDescription('')
                 setCategory('')
+                setDuration('')
                 setSelectedImage(null)
                 setImagePreview('')
 
@@ -209,6 +217,23 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
                 </div>
 
                 <div className="space-y-2">
+                    <Label htmlFor="duration" className="text-white">Course Duration (Years) *</Label>
+                    <Select value={duration} onValueChange={setDuration} disabled={uploading}>
+                        <SelectTrigger className="bg-[#1a1a18] border-[#3a3a38] text-white">
+                            <SelectValue placeholder="Select duration" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#2a2a28] border-[#3a3a38]">
+                            <SelectItem value="1" className="text-white">1 Year</SelectItem>
+                            <SelectItem value="2" className="text-white">2 Years</SelectItem>
+                            <SelectItem value="3" className="text-white">3 Years</SelectItem>
+                            <SelectItem value="4" className="text-white">4 Years</SelectItem>
+                            <SelectItem value="5" className="text-white">5 Years</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">Duration will determine the number of semesters (2 per year)</p>
+                </div>
+
+                <div className="space-y-2">
                     <Label htmlFor="image-upload" className="text-white">Course Image * (Max 5MB)</Label>
                     <div className="relative">
                         <Input
@@ -271,7 +296,7 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
                     <Button
                         className="flex-1 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
                         onClick={handleSubmit}
-                        disabled={uploading || !courseTitle.trim() || !subtitle.trim() || !description.trim() || !category || !selectedImage}
+                        disabled={uploading || !courseTitle.trim() || !subtitle.trim() || !description.trim() || !category || !duration || !selectedImage}
                     >
                         {uploading ? (
                             <>

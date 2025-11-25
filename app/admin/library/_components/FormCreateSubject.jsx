@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCourses, useSemesters } from '@/hooks/useCourses'
+import { useQueryClient } from '@tanstack/react-query'
+import { courseKeys } from '@/hooks/useCourses'
 
 const FormCreateSubject = ({ onClose, onSuccess, category, semesterName }) => {
     const [subjectName, setSubjectName] = useState('');
@@ -23,6 +25,18 @@ const FormCreateSubject = ({ onClose, onSuccess, category, semesterName }) => {
     const [loading, setLoading] = useState(false);
     const [selectedCourse, setSelectedCourse] = useState(category || '');
     const [selectedSemester, setSelectedSemester] = useState(semesterName || '');
+
+    const queryClient = useQueryClient();
+
+    // Update states when props change
+    React.useEffect(() => {
+        if (category) {
+            setSelectedCourse(category);
+        }
+        if (semesterName) {
+            setSelectedSemester(semesterName);
+        }
+    }, [category, semesterName]);
 
     // Fetch courses (only if category not provided)
     const { data: coursesData, isLoading: coursesLoading } = useCourses();
@@ -61,8 +75,30 @@ const FormCreateSubject = ({ onClose, onSuccess, category, semesterName }) => {
 
             if (data.success) {
                 toast.success('Subject created successfully!');
+
+                // Invalidate all relevant React Query caches to refresh data
+                await Promise.all([
+                    // Invalidate semester detail cache (for semester view)
+                    queryClient.invalidateQueries({
+                        queryKey: courseKeys.byCategory(selectedCourse)
+                    }),
+                    // Invalidate course detail cache (for course overview)
+                    queryClient.invalidateQueries({
+                        queryKey: courseKeys.detail(selectedCourse)
+                    }),
+                    // Invalidate all courses cache (for admin library page)
+                    queryClient.invalidateQueries({
+                        queryKey: courseKeys.all
+                    })
+                ]);
+
+                // Call onSuccess callback
                 onSuccess?.();
+
+                // Close dialog
                 onClose();
+
+                // Reset form
                 setSubjectName('');
                 setSubjectCode('');
                 setDescription('');
@@ -80,6 +116,14 @@ const FormCreateSubject = ({ onClose, onSuccess, category, semesterName }) => {
     // Determine if fields should be disabled (when auto-detected from URL)
     const isCourseAutoDetected = !!category;
     const isSemesterAutoDetected = !!semesterName;
+
+    // Check if form is valid - be more explicit
+    const hasSubjectName = subjectName && subjectName.trim().length > 0;
+    const hasSubjectCode = subjectCode && subjectCode.trim().length > 0;
+    const hasCourse = selectedCourse && selectedCourse.length > 0;
+    const hasSemester = selectedSemester && selectedSemester.length > 0;
+
+    const isFormValid = hasSubjectName && hasSubjectCode && hasCourse && hasSemester;
 
     return (
         <DialogContent className="bg-[#2a2a28] border-[#3a3a38] text-white max-w-xl">
@@ -138,6 +182,16 @@ const FormCreateSubject = ({ onClose, onSuccess, category, semesterName }) => {
                                 )}
                             </SelectContent>
                         </Select>
+                    </div>
+                )}
+
+                {/* Show current course if auto-detected */}
+                {isCourseAutoDetected && (
+                    <div className="space-y-2">
+                        <Label className="text-white">Course</Label>
+                        <div className="px-3 py-2 bg-[#1a1a18] border border-[#3a3a38] rounded-md text-gray-400">
+                            {category}
+                        </div>
                     </div>
                 )}
 
@@ -203,7 +257,7 @@ const FormCreateSubject = ({ onClose, onSuccess, category, semesterName }) => {
                     <Button
                         type="submit"
                         className="flex-1 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
-                        disabled={loading || !subjectName.trim() || !subjectCode.trim() || !selectedCourse || !selectedSemester}
+                        disabled={loading || !isFormValid}
                     >
                         {loading ? (
                             <>

@@ -17,6 +17,7 @@ const SemesterDetail = ({ basePath }) => {
     const { userDetail } = useContext(UserDetailContext);
     const isAdmin = userDetail?.role === "admin";
     const [syllabusDialogOpen, setSyllabusDialogOpen] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const { code, semesterId } = useParams();
 
@@ -30,9 +31,17 @@ const SemesterDetail = ({ basePath }) => {
     const { data: semesterData, isLoading, isError, error } = useSemesterDetail(code, semesterName);
     const invalidateSemester = useInvalidateSemesterDetail(code, semesterName);
 
-    const handleUpdate = () => {
+    const handleUpdate = async () => {
+        // Show refreshing state
+        setRefreshing(true);
+
         // Refetch the data after update/delete
-        invalidateSemester();
+        await invalidateSemester();
+
+        // Small delay to show loading state
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 500);
     };
 
     const handleDownload = (material) => {
@@ -133,7 +142,17 @@ const SemesterDetail = ({ basePath }) => {
                 </div>
 
                 {/* Subjects Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
+                    {/* Loading overlay */}
+                    {refreshing && (
+                        <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                            <div className="text-center">
+                                <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-2" />
+                                <p className="text-sm text-gray-600 dark:text-gray-300">Refreshing...</p>
+                            </div>
+                        </div>
+                    )}
+
                     {semesterData?.subjects?.map((subject) => (
                         <SubjectCard
                             key={subject.id}
