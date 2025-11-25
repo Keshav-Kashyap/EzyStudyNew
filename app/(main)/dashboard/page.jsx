@@ -95,7 +95,12 @@ export default function CoursesPage() {
                 {/* Main Content */}
                 <main className="flex-1 p-6 lg:p-8">
                     <div className="max-w-7xl mx-auto">
-                        {/* Header Section */}
+                        {/* Welcome Header - Only on Dashboard */}
+                        <HeroHeader
+                            heading="Welcome to EzyLearn"
+                            subHeading="Discover comprehensive learning materials designed for academic excellence"
+                            icon={GraduationCap}
+                        />
 
                         {/* Search and Filters Toolbar */}
                         <SearchFilterToolbar

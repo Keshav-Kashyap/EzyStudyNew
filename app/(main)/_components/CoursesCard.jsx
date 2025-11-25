@@ -13,13 +13,11 @@ import {
     Upload,
     Edit,
     Settings,
-    GraduationCap,
     MoreVertical,
     Trash2
 } from "lucide-react";
 import Link from "next/link";
 import GenericCard from "./shared/GenericCard";
-import HeroHeader from "../dashboard/_components/HeroHeader";
 import GenericCardSkeleton from './skeletons/GenericCardSkeleton';
 import CourseActions from "@/app/admin/library/_components/CourseActions";
 
@@ -40,11 +38,6 @@ const CoursesCard = ({ courses, viewMode, searchQuery = '', isAdmin = false, bas
     );
     return (
         <>
-
-
-            <HeroHeader className="mt-14" heading="Courses Library" subHeading=" Discover comprehensive learning materials designed for academic excellence" icon={GraduationCap} />
-
-
             {isLoading && courses === undefined ? (
                 <div className="grid mb-15 gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {Array.from({ length: 6 }).map((_, i) => (

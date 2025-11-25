@@ -1,6 +1,6 @@
 "use client"
 import React, { useContext } from 'react';
-import { Calendar, GraduationCap, Loader2 } from 'lucide-react';
+import { Calendar, Loader2 } from 'lucide-react';
 import { useParams } from "next/navigation";
 import SemesterCard from './../_components/SemesterCard'
 import { useUser } from '@clerk/nextjs';
@@ -54,14 +54,11 @@ const SemesterOverview = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] p-6">
             <div className="max-w-7xl mx-auto">
                 <div className="flex items-center gap-4 mb-8">
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                        <GraduationCap size={32} className="text-white" />
-                    </div>
                     <div>
-                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
                             {courseData.title}
                         </h1>
-                        <p className="text-gray-600 dark:text-gray-400 font-medium mt-1">
+                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium mt-1">
                             {courseData.semesters?.length || 0} Semester Program
                         </p>
                     </div>

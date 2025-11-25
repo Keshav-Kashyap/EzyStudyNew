@@ -10,10 +10,10 @@ const HeroHeader = ({ heading, subHeading, icon: Icon }) => {
                         {Icon && <Icon className="h-8 w-8" />}
                     </div>
                     <div>
-                        <h1 className="text-4xl lg:text-5xl font-bold mb-2 text-slate-900 dark:text-white">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 text-slate-900 dark:text-white">
                             {heading}
                         </h1>
-                        <p className="text-lg text-slate-600 dark:text-slate-300">
+                        <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300">
                             {subHeading}
                         </p>
                     </div>

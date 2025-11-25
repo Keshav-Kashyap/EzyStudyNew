@@ -19,6 +19,7 @@ import Navbar from './_components/landing/Navbar';
 import HeroSection from './_components/landing/HeroSection';
 import FeaturesSection from './_components/landing/FeaturesSection';
 import CoursesSection from './_components/landing/CoursesSection';
+import SearchSection from './_components/landing/SearchSection';
 import ReviewsSection from './_components/landing/ReviewsSection';
 import BillingSection from './_components/landing/BillingSection';
 import AboutSection from './_components/landing/AboutSection';
@@ -110,6 +111,7 @@ export default function HomePage() {
       <FeaturesSection />
       <PopularNotesSection notes={popularNotes} loading={notesLoading} isSignedIn={isSignedIn} />
       <CoursesSection courses={courses} loading={coursesLoading} />
+      <SearchSection isSignedIn={isSignedIn} />
       <ReviewsSection />
       <BillingSection />
       <AboutSection />

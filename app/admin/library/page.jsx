@@ -72,8 +72,8 @@ export default function AdminLibraryPage() {
         <div className="container dark:bg-[rgb(38,38,36)] mx-auto p-6 space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Library Management System</h1>
-                    <p className="text-gray-600 mt-2 ">Complete course, semester, subject & material management</p>
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Library Management System</h1>
+                    <p className="text-sm sm:text-base text-gray-600 mt-2 ">Complete course, semester, subject & material management</p>
                 </div>
                 <div className="flex gap-3">
                     <Dialog open={isSyllabusDialogOpen} onOpenChange={setIsSyllabusDialogOpen}>
