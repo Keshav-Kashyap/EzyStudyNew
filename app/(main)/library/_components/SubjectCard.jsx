@@ -1,7 +1,7 @@
 
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Download, ArrowLeft, Loader2, Upload, Trash2, MoreVertical, Edit, Eye, Star } from 'lucide-react';
+import { Download, ArrowLeft, Loader2, Upload, Trash2, MoreVertical, Edit, Eye, Star, X } from 'lucide-react';
 import { useParams } from "next/navigation";
 import Link from 'next/link';
 import SubjectActions from '@/app/admin/library/_components/SubjectActions';
@@ -22,7 +22,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
+import { getViewerUrl, getFileType } from '@/lib/utils';
 
 const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -179,7 +181,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                     localMaterials.map((material) => (
                         <div
                             key={material.id}
-                            className={`relative flex items-center flex-wrap justify-between gap-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-all duration-300 ${deletingMaterialId === material.id ? 'opacity-50 animate-pulse' : ''
+                            className={`relative flex flex-col gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-all duration-300 ${deletingMaterialId === material.id ? 'opacity-50 animate-pulse' : ''
                                 }`}
                         >
                             {/* Popular Star Badge - Top Right */}
@@ -188,47 +190,51 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                     <Star className="h-3 w-3 text-white fill-white" />
                                 </div>
                             )}
-                            <div className="flex-1 min-w-0">
+                            
+                            {/* Title Section - Full Width */}
+                            <div className="w-full">
                                 <div className="flex items-center gap-2">
-                                    <p className="font-medium text-gray-900 dark:text-white truncate">
+                                    <p className="font-medium text-gray-900 dark:text-white truncate flex-1">
                                         {material.title}
                                     </p>
                                     {isPopularMaterial(material) && (
                                         <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
                                     )}
                                     {material.likes >= 10 && (
-                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                        <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
                                             {material.likes} ❤️
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                     {material.type || 'PDF'} • {material.size || '2.5 MB'}
                                 </p>
                             </div>
-                            <div className="flex items-center gap-2 flex-shrink-0">
+
+                            {/* Action Buttons - Bottom Row */}
+                            <div className="flex items-center gap-2 w-full">
                                 <button
                                     onClick={() => setViewingPdf(material)}
                                     disabled={deletingMaterialId === material.id}
-                                    className="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1"
                                 >
                                     <Eye className="h-4 w-4" />
-                                    View
+                                    <span className="hidden sm:inline">View</span>
                                 </button>
                                 <button
                                     onClick={() => onDownload(material)}
                                     disabled={deletingMaterialId === material.id}
-                                    className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1"
                                 >
                                     <Download className="h-4 w-4" />
-                                    Download
+                                    <span className="hidden sm:inline">Download</span>
                                 </button>
                                 {isAdmin && (
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <button
                                                 disabled={deletingMaterialId === material.id}
-                                                className="flex items-center justify-center w-9 h-9 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                                className="flex items-center justify-center w-9 h-9 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
                                                 <MoreVertical className="h-5 w-5" />
                                             </button>
                                         </DropdownMenuTrigger>
@@ -348,16 +354,21 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
 
             {/* PDF Viewer Dialog */}
             <Dialog open={!!viewingPdf} onOpenChange={() => setViewingPdf(null)}>
-                <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 bg-gray-900 border-gray-700">
-                    <DialogHeader className="p-4 border-b border-gray-700">
-                        <DialogTitle className="text-white">
-                            {viewingPdf?.title}
+                <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 bg-gray-900 border-gray-700">
+                    <DialogHeader className="p-3 md:p-4 border-b border-gray-700">
+                        <DialogTitle className="text-white flex items-center gap-2 md:gap-3 text-sm md:text-base">
+                            <span className="truncate">{viewingPdf?.title}</span>
+                            {viewingPdf && (
+                                <Badge variant="outline" className="text-[10px] md:text-xs flex-shrink-0">
+                                    {getFileType(viewingPdf.fileUrl || viewingPdf.type).toUpperCase()}
+                                </Badge>
+                            )}
                         </DialogTitle>
                     </DialogHeader>
-                    <div className="w-full h-[calc(95vh-80px)] overflow-hidden">
+                    <div className="w-full h-[calc(90vh-70px)] overflow-hidden">
                         {viewingPdf && (
                             <iframe
-                                src={viewingPdf.fileUrl}
+                                src={getViewerUrl(viewingPdf.fileUrl, viewingPdf.type)}
                                 className="w-full h-full border-0"
                                 title={viewingPdf.title}
                             />

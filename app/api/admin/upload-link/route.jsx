@@ -77,6 +77,11 @@ export async function POST(request) {
         // Convert Google Drive link if needed
         const processedUrl = convertGoogleDriveLink(fileUrl);
 
+        // Detect file type from URL
+        const { getFileType } = await import('@/lib/utils');
+        const detectedFileType = getFileType(processedUrl);
+        console.log('📄 Detected file type:', detectedFileType);
+
         // Prepare tags array
         const tagsArray = [courseCode, 'study-material'];
         if (isPopular) {
@@ -86,6 +91,7 @@ export async function POST(request) {
         // Insert material into database
         const [newMaterial] = await db.insert(studyMaterialsTable).values({
             title: title,
+            type: detectedFileType.toUpperCase(), // Store detected file type
             fileUrl: processedUrl,
             description: `Uploaded via link`,
             imageUrl: imageUrl || null,
