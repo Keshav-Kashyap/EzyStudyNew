@@ -219,7 +219,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                     className="flex items-center justify-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1"
                                 >
                                     <Eye className="h-4 w-4" />
-                                    <span className="hidden sm:inline">View</span>
+                                    <span>View</span>
                                 </button>
                                 <button
                                     onClick={() => onDownload(material)}
@@ -227,7 +227,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                     className="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1"
                                 >
                                     <Download className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Download</span>
+                                    <span>Download</span>
                                 </button>
                                 {isAdmin && (
                                     <DropdownMenu>
@@ -354,12 +354,34 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
 
             {/* PDF Viewer Dialog */}
             <Dialog open={!!viewingPdf} onOpenChange={() => setViewingPdf(null)}>
-                <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 bg-gray-900 border-gray-700">
-                    <DialogHeader className="p-3 md:p-4 border-b border-gray-700">
-                        <DialogTitle className="text-white flex items-center gap-2 md:gap-3 text-sm md:text-base">
+                <DialogContent 
+                    className="max-w-[95vw] w-full h-[90vh] p-0 bg-gray-900 border-gray-700"
+                    style={{
+                        '--dialog-close-bg': 'white',
+                        '--dialog-close-color': 'black'
+                    }}
+                >
+                    <style jsx>{`
+                        :global(.bg-gray-900 button[data-slot="dialog-close"]) {
+                            background-color: white !important;
+                            color: black !important;
+                            border-radius: 0.5rem !important;
+                            padding: 0.5rem !important;
+                            opacity: 1 !important;
+                        }
+                        :global(.bg-gray-900 button[data-slot="dialog-close"]:hover) {
+                            background-color: #e5e7eb !important;
+                        }
+                        :global(.bg-gray-900 button[data-slot="dialog-close"] svg) {
+                            width: 1.25rem !important;
+                            height: 1.25rem !important;
+                        }
+                    `}</style>
+                    <DialogHeader className="p-3 md:p-4 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-900">
+                        <DialogTitle className="text-white flex items-center gap-2 md:gap-3 text-base md:text-lg font-bold">
                             <span className="truncate">{viewingPdf?.title}</span>
                             {viewingPdf && (
-                                <Badge variant="outline" className="text-[10px] md:text-xs flex-shrink-0">
+                                <Badge className="text-xs flex-shrink-0 bg-blue-600 text-white border-0">
                                     {getFileType(viewingPdf.fileUrl || viewingPdf.type).toUpperCase()}
                                 </Badge>
                             )}
