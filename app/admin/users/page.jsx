@@ -5,12 +5,65 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Search, UserPlus, Shield, Mail, Calendar } from "lucide-react";
+import { Users, Search, UserPlus, Shield, Mail, Calendar, Loader2 } from "lucide-react";
 import { useAdminUsers } from '@/hooks/useAdminData';
+import { toast } from 'sonner';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function AdminUsers() {
-    const { data: usersData, isLoading } = useAdminUsers();
+    const { data: usersData, isLoading, refetch } = useAdminUsers();
     const [searchTerm, setSearchTerm] = useState("");
+    const [updatingUserId, setUpdatingUserId] = useState(null);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+
+    const handleMakeAdminClick = (userId, userName, userEmail) => {
+        setSelectedUser({ id: userId, name: userName, email: userEmail });
+        setShowConfirmDialog(true);
+    };
+
+    const handleMakeAdmin = async () => {
+        if (!selectedUser) return;
+
+        setUpdatingUserId(selectedUser.id);
+        setShowConfirmDialog(false);
+        
+        try {
+            const response = await fetch(`/api/admin/users/${selectedUser.id}/make-admin`, {
+                method: 'PATCH',
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                toast.success('Success!', {
+                    description: `${selectedUser.name} is now an admin`,
+                });
+                refetch(); // Refresh the users list
+            } else {
+                toast.error('Error', {
+                    description: result.error || 'Failed to update user role',
+                });
+            }
+        } catch (error) {
+            console.error('Error making user admin:', error);
+            toast.error('Error', {
+                description: 'Failed to update user role',
+            });
+        } finally {
+            setUpdatingUserId(null);
+            setSelectedUser(null);
+        }
+    };
 
     const users = usersData || [];
 
@@ -163,6 +216,27 @@ export default function AdminUsers() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
+                                        {user.role !== 'admin' && (
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm"
+                                                onClick={() => handleMakeAdminClick(user.id, user.name, user.email)}
+                                                disabled={updatingUserId === user.id}
+                                                className="border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950"
+                                            >
+                                                {updatingUserId === user.id ? (
+                                                    <span className="flex items-center gap-1">
+                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                        Processing...
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1">
+                                                        <Shield className="w-3 h-3" />
+                                                        Make Admin
+                                                    </span>
+                                                )}
+                                            </Button>
+                                        )}
                                         <Button variant="outline" size="sm">
                                             Edit
                                         </Button>
@@ -182,6 +256,34 @@ export default function AdminUsers() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Confirmation Dialog */}
+            <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                <AlertDialogContent className="bg-white dark:bg-[#2a2a28] border-gray-200 dark:border-[#3a3a38]">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+                            <Shield className="w-5 h-5 text-blue-600" />
+                            Promote to Admin
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                            Are you sure you want to make <strong className="text-gray-900 dark:text-white">{selectedUser?.name}</strong> ({selectedUser?.email}) an admin?
+                            <br /><br />
+                            <span className="text-orange-600 dark:text-orange-400">
+                                ⚠️ Admins have full access to manage users, courses, and content.
+                            </span>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="border-gray-300 dark:border-gray-600">Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={handleMakeAdmin}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            Yes, Make Admin
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

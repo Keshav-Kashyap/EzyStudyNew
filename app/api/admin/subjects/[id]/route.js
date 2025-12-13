@@ -1,5 +1,5 @@
 import { db } from '@/config/db';
-import { subjectsTable } from '@/config/schema';
+import { subjectsTable, materialSubjectMappingTable } from '@/config/schema';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
@@ -86,13 +86,21 @@ export async function DELETE(req, { params }) {
             );
         }
 
-        // Delete subject (cascade will handle related materials)
+        // First, delete all material-subject mappings for this subject
+        await db.delete(materialSubjectMappingTable)
+            .where(eq(materialSubjectMappingTable.subjectId, parseInt(id)));
+
+        console.log(`✅ Deleted material mappings for subject ${id}`);
+
+        // Then delete the subject
         await db.delete(subjectsTable)
             .where(eq(subjectsTable.id, parseInt(id)));
 
+        console.log(`✅ Subject ${id} deleted successfully`);
+
         return NextResponse.json({
             success: true,
-            message: 'Subject deleted successfully'
+            message: 'Subject and all related mappings deleted successfully'
         });
 
     } catch (error) {

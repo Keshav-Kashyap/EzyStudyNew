@@ -157,69 +157,69 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
     }
 
     return (
-        <DialogContent className="bg-[#2a2a28] border-[#3a3a38] text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white dark:bg-[#2a2a28] border-gray-200 dark:border-[#3a3a38] text-gray-900 dark:text-white max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-                <DialogTitle className="text-2xl text-white">Create New Course</DialogTitle>
-                <DialogDescription className="text-gray-400">
+                <DialogTitle className="text-2xl text-gray-900 dark:text-white">Create New Course</DialogTitle>
+                <DialogDescription className="text-gray-600 dark:text-gray-400">
                     Add a new course with details and category
                 </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-6 mt-4">
+            <div className="space-y-4 mt-4">
                 <div className="space-y-2">
-                    <Label htmlFor="course-title" className="text-white">Course Title *</Label>
+                    <Label htmlFor="course-title" className="text-gray-900 dark:text-white">Course Title *</Label>
                     <Input
                         id="course-title"
                         value={courseTitle}
                         onChange={(e) => setCourseTitle(e.target.value)}
                         placeholder="e.g., Data Structures and Algorithms"
-                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                        className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-500"
                         disabled={uploading}
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="subtitle" className="text-white">Subtitle *</Label>
+                    <Label htmlFor="subtitle" className="text-gray-900 dark:text-white">Subtitle *</Label>
                     <Input
                         id="subtitle"
                         value={subtitle}
                         onChange={(e) => setSubtitle(e.target.value)}
                         placeholder="e.g., Master the fundamentals of DSA"
-                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                        className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-500"
                         disabled={uploading}
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="description" className="text-white">Description *</Label>
+                    <Label htmlFor="description" className="text-gray-900 dark:text-white">Description *</Label>
                     <Textarea
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Enter a detailed description of the course..."
-                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500 min-h-[120px] resize-none"
+                        className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-500 min-h-[120px] resize-none"
                         disabled={uploading}
                     />
                     <p className="text-xs text-gray-500">Provide a comprehensive overview of what students will learn</p>
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="category" className="text-white">Course Code *</Label>
+                    <Label htmlFor="category" className="text-gray-900 dark:text-white">Course Code *</Label>
                     <Input
                         id="category"
                         value={category}
                         onChange={(e) => setCategory(e.target.value.toUpperCase())}
                         placeholder="e.g., MCA, BCA, BTECH"
-                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                        className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-500"
                         disabled={uploading}
                     />
                     <p className="text-xs text-gray-500">Enter a unique course code (will be auto-converted to uppercase)</p>
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="duration" className="text-white">Course Duration (Years) *</Label>
+                    <Label htmlFor="duration" className="text-gray-900 dark:text-white">Course Duration (Years) *</Label>
                     <Select value={duration} onValueChange={setDuration} disabled={uploading}>
-                        <SelectTrigger className="bg-[#1a1a18] border-[#3a3a38] text-white">
+                        <SelectTrigger className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white">
                             <SelectValue placeholder="Select duration" />
                         </SelectTrigger>
                         <SelectContent className="bg-[#2a2a28] border-[#3a3a38]">
@@ -234,7 +234,7 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="image-upload" className="text-white">Course Image * (Max 5MB)</Label>
+                    <Label htmlFor="image-upload" className="text-gray-900 dark:text-white">Course Image * (Max 5MB)</Label>
                     <div className="relative">
                         <Input
                             id="image-upload"
@@ -246,7 +246,7 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
                         />
 
                         {imagePreview ? (
-                            <div className="relative w-full h-48 border-2 border-[#3a3a38] rounded-lg overflow-hidden bg-[#1a1a18]">
+                            <div className="relative w-full h-48 border-2 border-gray-300 dark:border-[#3a3a38] rounded-lg overflow-hidden bg-gray-100 dark:bg-[#1a1a18]">
                                 <img
                                     src={imagePreview}
                                     alt="Course preview"
@@ -264,19 +264,19 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
                         ) : (
                             <label
                                 htmlFor="image-upload"
-                                className={`flex items-center justify-center w-full h-48 border-2 border-dashed border-[#3a3a38] rounded-lg cursor-pointer hover:border-gray-500 transition-colors bg-[#1a1a18] ${uploading ? 'pointer-events-none opacity-50' : ''}`}
+                                className={`flex items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 dark:border-[#3a3a38] rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors bg-gray-50 dark:bg-[#1a1a18] ${uploading ? 'pointer-events-none opacity-50' : ''}`}
                             >
                                 <div className="text-center">
                                     {uploading ? (
                                         <Loader2 className="mx-auto h-10 w-10 text-blue-400 mb-2 animate-spin" />
                                     ) : (
-                                        <ImageIcon className="mx-auto h-10 w-10 text-gray-400 mb-2" />
+                                        <ImageIcon className="mx-auto h-10 w-10 text-gray-500 dark:text-gray-400 mb-2" />
                                     )}
-                                    <p className="text-sm text-gray-400">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
                                         {uploading ? 'Uploading...' : 'Click to upload image'}
                                     </p>
                                     {!uploading && (
-                                        <p className="text-xs text-gray-500 mt-1">JPG, PNG or WebP (Max 5MB)</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">JPG, PNG or WebP (Max 5MB)</p>
                                     )}
                                 </div>
                             </label>
@@ -287,14 +287,14 @@ const FormCreateCourse = ({ onClose, onSuccess }) => {
                 <div className="flex gap-3 pt-4">
                     <Button
                         variant="outline"
-                        className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+                        className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         onClick={onClose}
                         disabled={uploading}
                     >
                         Cancel
                     </Button>
                     <Button
-                        className="flex-1 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
+                        className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50"
                         onClick={handleSubmit}
                         disabled={uploading || !courseTitle.trim() || !subtitle.trim() || !description.trim() || !category || !duration || !selectedImage}
                     >

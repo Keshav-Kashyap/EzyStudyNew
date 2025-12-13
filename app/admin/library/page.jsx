@@ -49,7 +49,7 @@ export default function AdminLibraryPage() {
         students: `${Math.floor(Math.random() * 500) + 100}+`,
         semesters: semesters.filter(s => s.category === course.category).length || 0,
         duration: course.category === 'mca' ? '2 Years' : course.category === 'bca' ? '3 Years' : '4 Years',
-        image: getDefaultImage(course.category || 'General'),
+        image: course.image || getDefaultImage(course.category || 'General'),
         bgColor: 'bg-blue-500',
         isUserCourse: false
     }));

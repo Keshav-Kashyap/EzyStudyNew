@@ -77,29 +77,29 @@ const FormCreateSemester = ({ onClose, courseId }) => {
     }
 
     return (
-        <DialogContent className="bg-[#2a2a28] border-[#3a3a38] text-white max-w-xl">
+        <DialogContent className="bg-white dark:bg-[#2a2a28] border-gray-200 dark:border-[#3a3a38] text-gray-900 dark:text-white max-w-xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-                <DialogTitle className="text-2xl text-white">Create New Semester</DialogTitle>
-                <DialogDescription className="text-gray-400">
+                <DialogTitle className="text-2xl text-gray-900 dark:text-white">Create New Semester</DialogTitle>
+                <DialogDescription className="text-gray-600 dark:text-gray-400">
                     Add a new semester to this course
                 </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-6 mt-4">
+            <div className="space-y-4 mt-4">
                 <div className="space-y-2">
-                    <Label htmlFor="semester-name" className="text-white">Semester Name *</Label>
+                    <Label htmlFor="semester-name" className="text-gray-900 dark:text-white">Semester Name *</Label>
                     <Input
                         id="semester-name"
                         value={semesterName}
                         onChange={(e) => setSemesterName(e.target.value)}
                         placeholder="e.g., Semester 1, First Semester"
-                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                        className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                         disabled={uploading}
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="semester-number" className="text-white">Semester Number *</Label>
+                    <Label htmlFor="semester-number" className="text-gray-900 dark:text-white">Semester Number *</Label>
                     <Input
                         id="semester-number"
                         type="number"
@@ -108,20 +108,20 @@ const FormCreateSemester = ({ onClose, courseId }) => {
                         value={semesterNumber}
                         onChange={(e) => setSemesterNumber(parseInt(e.target.value) || 1)}
                         placeholder="1"
-                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                        className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-500"
                         disabled={uploading}
                     />
                     <p className="text-xs text-gray-500">Enter the semester sequence number (1-12)</p>
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="description" className="text-white">Description</Label>
+                    <Label htmlFor="description" className="text-gray-900 dark:text-white">Description</Label>
                     <Textarea
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Enter semester description (optional)..."
-                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500 min-h-[120px] resize-none"
+                        className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-500 min-h-[120px] resize-none"
                         disabled={uploading}
                     />
                 </div>
@@ -129,14 +129,14 @@ const FormCreateSemester = ({ onClose, courseId }) => {
                 <div className="flex gap-3 pt-4">
                     <Button
                         variant="outline"
-                        className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+                        className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         onClick={onClose}
                         disabled={uploading}
                     >
                         Cancel
                     </Button>
                     <Button
-                        className="flex-1 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
+                        className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50"
                         onClick={handleSubmit}
                         disabled={uploading || !semesterName.trim() || !courseId}
                     >

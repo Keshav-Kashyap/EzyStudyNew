@@ -55,10 +55,10 @@ const CreateMaterialButton = ({ formtype, buttonText, icon: IconComponent, onSuc
     const ButtonIcon = buttonConfig.icon
 
     return (
-        <div className='bg-[#242426] flex items-center justify-center p-4'>
+        <div className='bg-transparent flex items-center justify-center p-4'>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
-                    <Button className={`${buttonConfig.className} px-8 py-6 text-lg`}>
+                    <Button className={`${buttonConfig.className} px-8 py-6 text-lg shadow-md`}>
                         <ButtonIcon className="mr-2 h-5 w-5" />
                         {buttonConfig.text}
                     </Button>

@@ -21,6 +21,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
     const [uploading, setUploading] = useState(false)
     const [uploadProgress, setUploadProgress] = useState(0)
     const [uploadMode, setUploadMode] = useState('file') // 'file' or 'link'
+    const [uploadStorage, setUploadStorage] = useState('supabase') // 'supabase' or 'appwrite'
     const [fileUrl, setFileUrl] = useState('')
     const [isPopular, setIsPopular] = useState(false)
     const [thumbnailUrl, setThumbnailUrl] = useState('')
@@ -266,6 +267,11 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
                     formData.append('courseCode', selectedSubjects[0].code)
                 }
 
+                // Choose endpoint based on storage selection
+                const uploadEndpoint = uploadStorage === 'appwrite'
+                    ? '/api/admin/upload-appwrite'
+                    : '/api/admin/upload';
+
                 const xhr = new XMLHttpRequest()
 
                 xhr.upload.addEventListener('progress', (e) => {
@@ -297,7 +303,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
                         reject(new Error('Upload cancelled'))
                     })
 
-                    xhr.open('POST', '/api/admin/upload')
+                    xhr.open('POST', uploadEndpoint)
                     xhr.send(formData)
                 })
 
@@ -305,7 +311,8 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
 
                 if (result.success) {
                     setUploadProgress(100)
-                    toast.success(`Material uploaded and assigned to ${selectedSubjects.length} subject(s)!`)
+                    const storageType = uploadStorage === 'appwrite' ? 'Appwrite' : 'Supabase';
+                    toast.success(`Material uploaded to ${storageType} and assigned to ${selectedSubjects.length} subject(s)!`)
 
                     // Reset form
                     setDocTitle('')
@@ -340,28 +347,28 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
     }
 
     return (
-        <DialogContent className="bg-[#2a2a28] border-[#3a3a38] text-white max-w-xl">
+        <DialogContent className="bg-white dark:bg-[#2a2a28] border-gray-200 dark:border-[#3a3a38] text-gray-900 dark:text-white max-w-xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-                <DialogTitle className="text-2xl text-white">
+                <DialogTitle className="text-2xl text-gray-900 dark:text-white">
                     {editMode ? 'Edit Material' : 'Upload Material'}
                 </DialogTitle>
-                <DialogDescription className="text-gray-400">
-                    {editMode ? 'Update material information' : 'Add course materials and documents to Supabase storage'}
+                <DialogDescription className="text-gray-600 dark:text-gray-400">
+                    {editMode ? 'Update material information' : 'Add course materials to Supabase or Appwrite storage'}
                 </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-6 mt-4">
+            <div className="space-y-4 mt-4">
                 {/* Subject Multi-Select */}
                 {!editMode && (
                     <div className="space-y-2">
-                        <Label className="text-white">
+                        <Label className="text-gray-900 dark:text-white">
                             Select Subjects *
                             {prefilledSubjectCode && <span className="text-gray-500 text-xs ml-2">(Pre-selected)</span>}
                         </Label>
 
                         {/* Selected Subjects Display */}
                         {selectedSubjects.length > 0 && (
-                            <div className="flex flex-wrap gap-2 p-2 bg-[#1a1a18] border border-[#3a3a38] rounded-lg">
+                            <div className="flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-[#1a1a18] border border-gray-300 dark:border-[#3a3a38] rounded-lg">
                                 {selectedSubjects.map(subject => (
                                     <div
                                         key={subject.id}
@@ -393,7 +400,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
                                     }}
                                     onFocus={() => setShowDropdown(true)}
                                     placeholder="Search subjects by name, code, course..."
-                                    className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500"
+                                    className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                                     disabled={uploading || loadingSubjects}
                                 />
 
@@ -437,13 +444,13 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
                 )}
 
                 <div className="space-y-2">
-                    <Label htmlFor="doc-title" className="text-white">Document Title *</Label>
+                    <Label htmlFor="doc-title" className="text-gray-900 dark:text-white">Document Title *</Label>
                     <Input
                         id="doc-title"
                         value={docTitle}
                         onChange={(e) => setDocTitle(e.target.value)}
                         placeholder="e.g., Lecture Notes - Chapter 5"
-                        className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                        className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                         disabled={uploading}
                     />
                 </div>
@@ -459,14 +466,53 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
                             disabled={uploading}
                             className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                         />
-                        <Label htmlFor="is-popular" className="text-white cursor-pointer">
+                        <Label htmlFor="is-popular" className="text-gray-900 dark:text-white cursor-pointer">
                             Mark as Popular Note
                         </Label>
                     </div>
                     <p className="text-xs text-gray-500">
-                        Popular notes will appear in the Popular Notes section and homepage
+                        Popular notes will be featured on homepage and library
                     </p>
                 </div>
+
+                {/* Storage Selection - Only for file upload mode */}
+                {!editMode && uploadMode === 'file' && (
+                    <div className="space-y-2">
+                        <Label className="text-gray-900 dark:text-white font-semibold">Storage Provider *</Label>
+                        <div className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant={uploadStorage === 'supabase' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setUploadStorage('supabase')}
+                                className={uploadStorage === 'supabase' 
+                                    ? 'bg-green-600 text-white hover:bg-green-700 shadow-md' 
+                                    : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}
+                                disabled={uploading}
+                            >
+                                <Upload className="h-4 w-4 mr-1" />
+                                Supabase
+                            </Button>
+                            <Button
+                                type="button"
+                                variant={uploadStorage === 'appwrite' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setUploadStorage('appwrite')}
+                                className={uploadStorage === 'appwrite' 
+                                    ? 'bg-pink-600 text-white hover:bg-pink-700 shadow-md' 
+                                    : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}
+                                disabled={uploading}
+                            >
+                                <Upload className="h-4 w-4 mr-1" />
+                                Appwrite
+                            </Button>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                            {uploading && <Loader2 className="inline h-3 w-3 mr-1 animate-spin" />}
+                            {uploading ? `Uploading to ${uploadStorage === 'appwrite' ? 'Appwrite' : 'Supabase'}...` : 'Choose where to store the uploaded file'}
+                        </p>
+                    </div>
+                )}
 
                 {/* Thumbnail Image - Optional */}
                 <div className="space-y-2">
@@ -508,7 +554,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
                                 value={thumbnailUrl}
                                 onChange={(e) => setThumbnailUrl(e.target.value)}
                                 placeholder="https://example.com/thumbnail.jpg"
-                                className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                                className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                                 disabled={uploading}
                             />
                             <p className="text-xs text-gray-500">
@@ -593,7 +639,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
                                 value={fileUrl}
                                 onChange={(e) => setFileUrl(e.target.value)}
                                 placeholder="https://example.com/document.pdf or Google Drive link"
-                                className="bg-[#1a1a18] border-[#3a3a38] text-white placeholder:text-gray-500 focus:border-gray-500"
+                                className="bg-white dark:bg-[#1a1a18] border-gray-300 dark:border-[#3a3a38] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                                 disabled={uploading}
                             />
                             <p className="text-xs text-gray-500">
@@ -612,7 +658,7 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
                             />
                             <label
                                 htmlFor="pdf-upload"
-                                className={`flex items-center justify-center w-full h-32 border-2 border-dashed border-[#3a3a38] rounded-lg cursor-pointer hover:border-gray-500 transition-colors bg-[#1a1a18] ${uploading ? 'pointer-events-none opacity-50' : ''}`}
+                                className={`flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-[#3a3a38] rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-gray-500 transition-colors bg-gray-50 dark:bg-[#1a1a18] ${uploading ? 'pointer-events-none opacity-50' : ''}`}
                             >
                                 <div className="text-center w-full px-4">
                                     {uploading ? (
@@ -654,29 +700,32 @@ const FormCreateMaterial = ({ onClose, onSuccess, prefilledSubjectCode, editMode
                     )}
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
                     <Button
                         variant="outline"
-                        className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+                        className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
                         onClick={onClose}
                         disabled={uploading}
                     >
                         Cancel
                     </Button>
                     <Button
-                        className="flex-1 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
+                        className="flex-1 bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black dark:hover:bg-gray-200 disabled:opacity-50 font-medium shadow-md"
                         onClick={handleSubmit}
                         disabled={uploading || (uploadMode === 'file' && !selectedFile && !editMode) || (uploadMode === 'link' && !fileUrl.trim()) || (selectedSubjects.length === 0 && !editMode) || !docTitle.trim()}
                     >
                         {uploading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                {editMode ? 'Updating...' : (uploadMode === 'link' ? 'Adding...' : 'Uploading...')}
+                                {editMode ? 'Updating...' : (uploadMode === 'link' ? 'Adding...' : `Uploading (${uploadProgress}%)`)}
                             </>
                         ) : (
-                            editMode
-                                ? 'Update Material'
-                                : `${uploadMode === 'link' ? 'Add' : 'Upload'} to ${selectedSubjects.length} Subject(s)`
+                            <>
+                                <Upload className="mr-2 h-4 w-4" />
+                                {editMode
+                                    ? 'Update Material'
+                                    : `${uploadMode === 'link' ? 'Add' : 'Upload'} to ${selectedSubjects.length} Subject(s)`}
+                            </>
                         )}
                     </Button>
                 </div>
