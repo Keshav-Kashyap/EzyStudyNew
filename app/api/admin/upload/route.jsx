@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { db } from "@/config/db";
 import { studyMaterialsTable, materialSubjectMappingTable, subjectsTable } from '@/config/schema';
 import { eq } from "drizzle-orm";
+import { createNotificationForAllUsers, NOTIFICATION_TYPES } from "@/services/notificationService";
 
 // Initialize Supabase client with proper error handling
 let supabase;
@@ -238,6 +239,25 @@ export async function POST(request) {
         const subjects = await db.select()
             .from(subjectsTable)
             .where(eq(subjectsTable.id, subjectIdArray[0]));
+
+        // Send notification to all users about new material
+        try {
+            const subject = subjects[0];
+            await createNotificationForAllUsers({
+                type: NOTIFICATION_TYPES.MATERIAL_UPLOADED,
+                title: '📄 New Study Material Available!',
+                message: `"${materialData[0].title}" has been uploaded${subject ? ` for ${subject.name}` : ''}.`,
+                materialTitle: materialData[0].title,
+                subjectName: subject?.name || '',
+                semesterName: subject?.semesterName || '',
+                courseName: subject?.category.toUpperCase() || '',
+                courseCode: subject?.category || '',
+                actionUrl: subject ? `/library?course=${subject.category}` : '/library',
+            });
+            console.log('✅ Notification sent about new material');
+        } catch (notifError) {
+            console.error('⚠️ Failed to send material notification:', notifError);
+        }
 
         return NextResponse.json({
             success: true,

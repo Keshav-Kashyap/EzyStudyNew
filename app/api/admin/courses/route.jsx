@@ -3,6 +3,7 @@ import { db } from "@/config/db";
 import { coursesTable, usersTable, semestersTable } from '@/config/schema'
 import { eq } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs/server";
+import { createNotificationForAllUsers, NOTIFICATION_TYPES } from "@/services/notificationService";
 
 export async function GET() {
     try {
@@ -165,6 +166,22 @@ export async function POST(request) {
             }).returning();
 
             createdSemesters.push(semester[0]);
+        }
+
+        // Send notification to all users about new course
+        try {
+            await createNotificationForAllUsers({
+                type: NOTIFICATION_TYPES.COURSE_CREATED,
+                title: '🎓 New Course Available!',
+                message: `A new course "${newCourse[0].title}" has been added. Check it out now!`,
+                courseName: newCourse[0].title,
+                courseCode: newCourse[0].category,
+                actionUrl: `/library?course=${newCourse[0].category}`,
+            });
+            console.log('✅ Notification sent to all users about new course');
+        } catch (notifError) {
+            console.error('⚠️ Failed to send course notification:', notifError);
+            // Don't fail the course creation if notification fails
         }
 
         return NextResponse.json({

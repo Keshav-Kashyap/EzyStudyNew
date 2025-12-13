@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
+import { useFirebaseMessaging } from '@/hooks/useFirebaseMessaging';
 
 const NotificationContext = createContext();
 
@@ -21,6 +22,16 @@ export const NotificationProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [browserPermission, setBrowserPermission] = useState('default');
+
+    // Initialize Firebase messaging
+    const {
+        fcmToken,
+        notificationPermission,
+        isSupported: isFirebaseSupported,
+        requestPermission: requestFirebasePermission,
+        disableNotifications: disableFirebaseNotifications,
+        setupForegroundListener,
+    } = useFirebaseMessaging();
 
     // Fetch notifications
     const fetchNotifications = useCallback(async (unreadOnly = false) => {
@@ -100,25 +111,22 @@ export const NotificationProvider = ({ children }) => {
 
     // Request browser notification permission
     const requestBrowserPermission = useCallback(async () => {
-        if (!('Notification' in window)) {
-            console.log('Browser notifications not supported');
+        if (!isFirebaseSupported) {
+            console.log('⚠️ Push notifications not supported in this browser');
             return false;
         }
 
-        if (Notification.permission === 'granted') {
+        // Request Firebase push notification permission
+        const result = await requestFirebasePermission();
+        
+        if (result.success) {
             setBrowserPermission('granted');
             return true;
+        } else {
+            setBrowserPermission(notificationPermission);
+            return false;
         }
-
-        if (Notification.permission !== 'denied') {
-            const permission = await Notification.requestPermission();
-            setBrowserPermission(permission);
-            return permission === 'granted';
-        }
-
-        setBrowserPermission('denied');
-        return false;
-    }, []);
+    }, [isFirebaseSupported, requestFirebasePermission, notificationPermission]);
 
     // Show browser notification
     const showBrowserNotification = useCallback((title, options) => {
@@ -163,12 +171,45 @@ export const NotificationProvider = ({ children }) => {
         }
     }, [isLoaded, user, fetchNotifications]);
 
+    // Setup Firebase foreground message listener
+    useEffect(() => {
+        if (!isLoaded || !user || !fcmToken) return;
+
+        const unsubscribe = setupForegroundListener((notificationData) => {
+            console.log('📨 Received foreground notification:', notificationData);
+            
+            // Refresh notifications to get the new one
+            fetchNotifications();
+            
+            // Show browser notification if tab is not active
+            if (document.hidden && Notification.permission === 'granted') {
+                const notification = new Notification(notificationData.title, {
+                    body: notificationData.body,
+                    icon: '/icon.png',
+                    badge: '/badge.png',
+                    data: notificationData.data,
+                });
+                
+                notification.onclick = () => {
+                    if (notificationData.data?.actionUrl) {
+                        window.location.href = notificationData.data.actionUrl;
+                    }
+                    notification.close();
+                };
+            }
+        });
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
+    }, [isLoaded, user, fcmToken, setupForegroundListener, fetchNotifications]);
+
     // Check browser notification permission on mount
     useEffect(() => {
-        if ('Notification' in window) {
-            setBrowserPermission(Notification.permission);
+        if (isFirebaseSupported) {
+            setBrowserPermission(notificationPermission);
         }
-    }, []);
+    }, [isFirebaseSupported, notificationPermission]);
 
     // Poll for new notifications every 30 seconds
     useEffect(() => {
@@ -187,6 +228,9 @@ export const NotificationProvider = ({ children }) => {
         loading,
         error,
         browserPermission,
+        fcmToken,
+        isFirebaseSupported,
+        notificationPermission,
         fetchNotifications,
         markAsRead,
         markAllAsRead,
@@ -194,6 +238,7 @@ export const NotificationProvider = ({ children }) => {
         addNotification,
         requestBrowserPermission,
         showBrowserNotification,
+        disableNotifications: disableFirebaseNotifications,
     };
 
     return (

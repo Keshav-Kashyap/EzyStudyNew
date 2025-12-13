@@ -3,6 +3,7 @@ import { subjectsTable, semestersTable, coursesTable } from "@/config/schema";
 import { NextResponse } from "next/server";
 import { checkAdminAccess } from "@/lib/admin-auth";
 import { eq, and } from "drizzle-orm";
+import { createNotificationForAllUsers, NOTIFICATION_TYPES } from "@/services/notificationService";
 
 // GET - Get all subjects
 export async function GET() {
@@ -83,6 +84,23 @@ export async function POST(request) {
             createdAt: new Date(),
             updatedAt: new Date()
         }).returning();
+
+        // Send notification to all users about new subject
+        try {
+            await createNotificationForAllUsers({
+                type: NOTIFICATION_TYPES.SUBJECT_CREATED,
+                title: '📖 New Subject Added!',
+                message: `${newSubject[0].name} has been added to ${semesterName} in ${category.toUpperCase()}.`,
+                subjectName: newSubject[0].name,
+                semesterName: semesterName,
+                courseName: category.toUpperCase(),
+                courseCode: category,
+                actionUrl: `/library?course=${category}`,
+            });
+            console.log('✅ Notification sent about new subject');
+        } catch (notifError) {
+            console.error('⚠️ Failed to send subject notification:', notifError);
+        }
 
         return NextResponse.json({
             success: true,

@@ -3,6 +3,7 @@ import { db } from "@/config/db";
 import { usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
+import { createNotificationForAdmins, NOTIFICATION_TYPES } from "@/services/notificationService";
 
 // Add runtime config
 export const dynamic = 'force-dynamic';
@@ -80,6 +81,20 @@ export async function POST() {
             email: user.emailAddresses?.[0]?.emailAddress,
             name: newUser[0].name
         });
+
+        // Notify all admins about new user registration
+        try {
+            await createNotificationForAdmins({
+                type: 'user_registered',
+                title: '👤 New User Registered!',
+                message: `${newUser[0].name} (${newUser[0].email}) has just registered on the platform.`,
+                actionUrl: '/admin/users',
+            });
+            console.log('✅ Admin notification sent for new user registration');
+        } catch (notifError) {
+            console.error('⚠️ Failed to send admin notification:', notifError);
+            // Don't fail the registration if notification fails
+        }
 
         return NextResponse.json({
             success: true,

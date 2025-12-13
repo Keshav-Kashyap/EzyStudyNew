@@ -9,6 +9,7 @@ export const usersTable = pgTable("users", {
     role: varchar({ length: 50 }).default('student'), // 'admin' or 'student'
     isActive: boolean().default(true),
     credits: integer().default(10),
+    fcmToken: text(), // Firebase Cloud Messaging token for push notifications
     createdAt: timestamp().defaultNow(),
     updatedAt: timestamp().defaultNow()
 });

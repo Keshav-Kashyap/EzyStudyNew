@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/config/db';
 import { coursesTable } from '@/config/schema';
 import { eq } from 'drizzle-orm';
+import { createNotificationForAllUsers, NOTIFICATION_TYPES } from '@/services/notificationService';
 
 // PUT - Update course
 export async function PUT(request, { params }) {
@@ -59,6 +60,21 @@ export async function PUT(request, { params }) {
             })
             .where(eq(coursesTable.id, parseInt(id)))
             .returning();
+
+        // Send notification to all users about course update
+        try {
+            await createNotificationForAllUsers({
+                type: NOTIFICATION_TYPES.COURSE_UPDATED,
+                title: '🔄 Course Updated!',
+                message: `The course "${updatedCourse.title}" has been updated with new information.`,
+                courseName: updatedCourse.title,
+                courseCode: updatedCourse.category,
+                actionUrl: `/library?course=${updatedCourse.category}`,
+            });
+            console.log('✅ Notification sent about course update');
+        } catch (notifError) {
+            console.error('⚠️ Failed to send course update notification:', notifError);
+        }
 
         return NextResponse.json({
             success: true,
