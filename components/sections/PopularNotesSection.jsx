@@ -9,7 +9,6 @@ import { Download, FileText, Calendar, Heart, Share2, ArrowRight, BookOpen } fro
 
 const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
     const [showReviewModal, setShowReviewModal] = useState(false);
-    const [pendingDownload, setPendingDownload] = useState(null);
     const [hasReviewed, setHasReviewed] = useState(false);
 
     useEffect(() => {
@@ -38,60 +37,36 @@ const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
             return;
         }
 
-        // Track the download first
+        // Download directly first
+        if (note.fileUrl) {
+            window.open(note.fileUrl, '_blank');
+        }
+
+        // Track the download
         try {
-            await fetch('/api/download/track', {
+            const trackResponse = await fetch('/api/download/track', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ materialId: note.id })
             });
+            const trackData = await trackResponse.json();
+            
+            // Check if user should be prompted for review (after 2+ downloads and hasn't reviewed)
+            if (trackData.success && trackData.downloadCount >= 2 && !hasReviewed) {
+                // Show review modal as suggestion (non-blocking)
+                setTimeout(() => {
+                    setShowReviewModal(true);
+                }, 500); // Small delay after download starts
+            }
         } catch (error) {
             console.error('Error tracking download:', error);
         }
-
-        // Re-check review status (to get updated download count)
-        await checkReviewStatus();
-        
-        // Wait a bit for state to update
-        setTimeout(() => {
-            // Check if user needs to review (after 2+ downloads and hasn't reviewed)
-            if (!hasReviewed) {
-                // Check download count from API
-                fetch('/api/check-review-status')
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.requiresReview) {
-                            setPendingDownload(note);
-                            setShowReviewModal(true);
-                        } else {
-                            // Download directly
-                            if (note.fileUrl) {
-                                window.open(note.fileUrl, '_blank');
-                            }
-                        }
-                    });
-            } else {
-                // User already reviewed, download directly
-                if (note.fileUrl) {
-                    window.open(note.fileUrl, '_blank');
-                }
-            }
-        }, 100);
     };
 
     const handleReviewSubmitted = async () => {
         // Update local state immediately
         setHasReviewed(true);
         setShowReviewModal(false);
-
-        // Execute the pending download
-        if (pendingDownload && pendingDownload.fileUrl) {
-            // Small delay to ensure modal is fully closed
-            setTimeout(() => {
-                window.open(pendingDownload.fileUrl, '_blank');
-                setPendingDownload(null);
-            }, 100);
-        }
     };
 
     const handleShare = (note) => {

@@ -46,8 +46,8 @@ const ReviewPromptModal = ({ isOpen, onClose, onReviewSubmitted }) => {
             const data = await response.json();
             if (data.success) {
                 // Show success message
-                toast.success('🎉 Review Submitted Successfully!', {
-                    description: '✅ You can now download materials! Starting download...',
+                toast.success('🎉 Thank You for Your Review!', {
+                    description: '✅ Your feedback helps us improve our service!',
                     duration: 4000,
                 });
 
@@ -91,10 +91,10 @@ const ReviewPromptModal = ({ isOpen, onClose, onReviewSubmitted }) => {
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                         <Star className="w-6 h-6 text-yellow-500" />
-                        Rate Before Download
+                        Help Us Improve! 🙏
                     </DialogTitle>
                     <DialogDescription className="text-base">
-                        Please rate our website and share your experience. This helps us improve and serve you better.
+                        Your download has started! If you have a moment, please share your experience to help us serve you better.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -148,9 +148,9 @@ const ReviewPromptModal = ({ isOpen, onClose, onReviewSubmitted }) => {
                     </div>
 
                     {/* Info Box */}
-                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                        <p className="text-sm text-blue-800 dark:text-blue-200">
-                            💡 <strong>Note:</strong> You can download materials only after submitting your review. This is a one-time requirement.
+                    <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <p className="text-sm text-green-800 dark:text-green-200">
+                            💡 <strong>Optional:</strong> Your feedback helps us improve! You can skip this and review later, or take a moment to share your thoughts.
                         </p>
                     </div>
 
@@ -164,7 +164,7 @@ const ReviewPromptModal = ({ isOpen, onClose, onReviewSubmitted }) => {
                             className="flex-1"
                         >
                             <X className="w-4 h-4 mr-2" />
-                            Cancel
+                            Maybe Later
                         </Button>
                         <Button
                             type="button"
