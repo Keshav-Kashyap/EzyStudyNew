@@ -13,13 +13,13 @@ export default function MigrationPage() {
     const runMigration = async () => {
         setLoading(true);
         setResult(null);
-        
+
         try {
             const response = await fetch('/api/migrate/add-pinned-columns');
             const data = await response.json();
-            
+
             setResult(data);
-            
+
             if (data.success) {
                 toast.success('Migration completed successfully!');
             } else {
@@ -59,8 +59,8 @@ export default function MigrationPage() {
                             </ul>
                         </div>
 
-                        <Button 
-                            onClick={runMigration} 
+                        <Button
+                            onClick={runMigration}
                             disabled={loading}
                             className="w-full"
                             size="lg"
@@ -79,11 +79,10 @@ export default function MigrationPage() {
                         </Button>
 
                         {result && (
-                            <div className={`p-4 rounded-lg border ${
-                                result.success 
-                                    ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' 
+                            <div className={`p-4 rounded-lg border ${result.success
+                                    ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
                                     : 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
-                            }`}>
+                                }`}>
                                 <div className="flex items-start gap-2">
                                     {result.success ? (
                                         <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
@@ -91,18 +90,16 @@ export default function MigrationPage() {
                                         <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                                     )}
                                     <div className="flex-1">
-                                        <p className={`font-semibold ${
-                                            result.success 
-                                                ? 'text-green-900 dark:text-green-100' 
+                                        <p className={`font-semibold ${result.success
+                                                ? 'text-green-900 dark:text-green-100'
                                                 : 'text-red-900 dark:text-red-100'
-                                        }`}>
+                                            }`}>
                                             {result.success ? 'Success!' : 'Error'}
                                         </p>
-                                        <p className={`text-sm mt-1 ${
-                                            result.success 
-                                                ? 'text-green-800 dark:text-green-200' 
+                                        <p className={`text-sm mt-1 ${result.success
+                                                ? 'text-green-800 dark:text-green-200'
                                                 : 'text-red-800 dark:text-red-200'
-                                        }`}>
+                                            }`}>
                                             {result.message || result.error}
                                         </p>
                                     </div>
