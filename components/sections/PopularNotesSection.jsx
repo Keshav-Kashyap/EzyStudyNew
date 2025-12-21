@@ -9,27 +9,6 @@ import { Download, FileText, Calendar, Heart, Share2, ArrowRight, BookOpen } fro
 
 const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
     const [showReviewModal, setShowReviewModal] = useState(false);
-    const [hasReviewed, setHasReviewed] = useState(false);
-
-    useEffect(() => {
-        if (isSignedIn) {
-            checkReviewStatus();
-        }
-    }, [isSignedIn]);
-
-    const checkReviewStatus = async () => {
-        try {
-            const response = await fetch('/api/check-review-status');
-            const data = await response.json();
-            console.log('📋 Review Status Response:', data); // DEBUG
-            if (data.success) {
-                setHasReviewed(data.hasReviewed);
-                console.log('✅ Has Reviewed:', data.hasReviewed); // DEBUG
-            }
-        } catch (error) {
-            console.error('Error checking review status:', error);
-        }
-    };
 
     const handleDownload = async (note) => {
         if (!isSignedIn) {
@@ -37,36 +16,32 @@ const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
             return;
         }
 
-        // Download directly first
+        // Download directly first - NO BLOCKING
         if (note.fileUrl) {
             window.open(note.fileUrl, '_blank');
         }
 
-        // Track the download
-        try {
-            const trackResponse = await fetch('/api/download/track', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ materialId: note.id })
-            });
-            const trackData = await trackResponse.json();
-            
-            // Check if user should be prompted for review (after 2+ downloads and hasn't reviewed)
-            if (trackData.success && trackData.downloadCount >= 2 && !hasReviewed) {
-                // Show review modal as suggestion (non-blocking)
-                setTimeout(() => {
-                    setShowReviewModal(true);
-                }, 500); // Small delay after download starts
-            }
-        } catch (error) {
-            console.error('Error tracking download:', error);
+        // Track download count in localStorage
+        const DOWNLOAD_COUNT_KEY = 'ezy_download_count';
+        const currentCount = parseInt(localStorage.getItem(DOWNLOAD_COUNT_KEY) || '0', 10);
+        const newCount = currentCount + 1;
+        localStorage.setItem(DOWNLOAD_COUNT_KEY, newCount.toString());
+
+        console.log(`📥 Download #${newCount}`);
+
+        // Show review modal every 3 downloads
+        if (newCount % 3 === 0) {
+            setTimeout(() => {
+                console.log('🔔 Showing review modal (3 downloads reached)');
+                setShowReviewModal(true);
+            }, 800); // Small delay after download starts
         }
     };
 
     const handleReviewSubmitted = async () => {
-        // Update local state immediately
-        setHasReviewed(true);
+        // Close modal
         setShowReviewModal(false);
+        // Count continues - user will see modal again after next 3 downloads
     };
 
     const handleShare = (note) => {
