@@ -1,19 +1,64 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from "motion/react";
 import Link from "next/link";
 import GenericCard from '@/app/(main)/_components/shared/GenericCard';
+import ReviewPromptModal from '@/components/ReviewPromptModal';
 import { Download, FileText, Calendar, Heart, Share2, ArrowRight, BookOpen } from 'lucide-react';
 
 const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [pendingDownload, setPendingDownload] = useState(null);
+    const [hasReviewed, setHasReviewed] = useState(false);
+
+    useEffect(() => {
+        if (isSignedIn) {
+            checkReviewStatus();
+        }
+    }, [isSignedIn]);
+
+    const checkReviewStatus = async () => {
+        try {
+            const response = await fetch('/api/check-review-status');
+            const data = await response.json();
+            if (data.success) {
+                setHasReviewed(data.hasReviewed);
+            }
+        } catch (error) {
+            console.error('Error checking review status:', error);
+        }
+    };
+
     const handleDownload = (note) => {
         if (!isSignedIn) {
             window.location.href = '/sign-in';
             return;
         }
-        if (note.fileUrl) {
-            window.open(note.fileUrl, '_blank');
+
+        // Check if user has reviewed
+        if (!hasReviewed) {
+            setPendingDownload(note);
+            setShowReviewModal(true);
+        } else {
+            if (note.fileUrl) {
+                window.open(note.fileUrl, '_blank');
+            }
+        }
+    };
+
+    const handleReviewSubmitted = async () => {
+        // Update local state immediately
+        setHasReviewed(true);
+        setShowReviewModal(false);
+        
+        // Execute the pending download
+        if (pendingDownload && pendingDownload.fileUrl) {
+            // Small delay to ensure modal is fully closed
+            setTimeout(() => {
+                window.open(pendingDownload.fileUrl, '_blank');
+                setPendingDownload(null);
+            }, 100);
         }
     };
 
@@ -135,6 +180,16 @@ const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
                         </button>
                     </Link>
                 </motion.div>
+
+                {/* Review Prompt Modal */}
+                <ReviewPromptModal
+                    isOpen={showReviewModal}
+                    onClose={() => {
+                        setShowReviewModal(false);
+                        setPendingDownload(null);
+                    }}
+                    onReviewSubmitted={handleReviewSubmitted}
+                />
             </div>
         </section>
     );

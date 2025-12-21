@@ -57,6 +57,8 @@ export async function POST(req) {
             })
             .returning();
 
+        console.log(`[Review Submitted] User: ${user.id}, Name: ${userName}, Rating: ${rating}`);
+
         return NextResponse.json({
             success: true,
             review: newReview[0],

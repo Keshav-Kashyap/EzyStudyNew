@@ -1,15 +1,59 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Download, Loader2, FolderArchive } from 'lucide-react'
 import { toast } from 'sonner'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
+import ReviewPromptModal from '@/components/ReviewPromptModal'
 
 const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline", size = "sm", className = "" }) => {
     const [downloading, setDownloading] = useState(false)
     const [progress, setProgress] = useState(0)
+    const [showReviewModal, setShowReviewModal] = useState(false)
+    const [hasReviewed, setHasReviewed] = useState(false)
+    const [pendingDownload, setPendingDownload] = useState(false)
+
+    useEffect(() => {
+        checkReviewStatus();
+    }, []);
+
+    const checkReviewStatus = async () => {
+        try {
+            const response = await fetch('/api/check-review-status');
+            const data = await response.json();
+            if (data.success) {
+                setHasReviewed(data.hasReviewed);
+            }
+        } catch (error) {
+            console.error('Error checking review status:', error);
+        }
+    };
+
+    const handleDownloadClick = () => {
+        if (!hasReviewed) {
+            setPendingDownload(true);
+            setShowReviewModal(true);
+        } else {
+            downloadAllMaterials();
+        }
+    };
+
+    const handleReviewSubmitted = async () => {
+        // Update local state immediately
+        setHasReviewed(true);
+        setShowReviewModal(false);
+        
+        // Execute the pending download
+        if (pendingDownload) {
+            setPendingDownload(false);
+            // Small delay to ensure modal is fully closed
+            setTimeout(() => {
+                downloadAllMaterials();
+            }, 100);
+        }
+    };
 
     const downloadAllMaterials = async () => {
         setDownloading(true)
@@ -150,25 +194,37 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
     }
 
     return (
-        <Button
-            variant={variant}
-            size={size}
-            onClick={downloadAllMaterials}
-            disabled={downloading}
-            className={`gap-2 ${className}`}
-        >
-            {downloading ? (
-                <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    {progress > 0 ? `${progress}%` : 'Preparing...'}
-                </>
-            ) : (
-                <>
-                    <FolderArchive className="h-4 w-4" />
-                    Download All
-                </>
-            )}
-        </Button>
+        <>
+            <Button
+                variant={variant}
+                size={size}
+                onClick={handleDownloadClick}
+                disabled={downloading}
+                className={`gap-2 ${className}`}
+            >
+                {downloading ? (
+                    <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {progress > 0 ? `${progress}%` : 'Preparing...'}
+                    </>
+                ) : (
+                    <>
+                        <FolderArchive className="h-4 w-4" />
+                        Download All
+                    </>
+                )}
+            </Button>
+
+            {/* Review Prompt Modal */}
+            <ReviewPromptModal
+                isOpen={showReviewModal}
+                onClose={() => {
+                    setShowReviewModal(false);
+                    setPendingDownload(false);
+                }}
+                onReviewSubmitted={handleReviewSubmitted}
+            />
+        </>
     )
 }
 

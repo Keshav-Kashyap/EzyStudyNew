@@ -1,11 +1,12 @@
 
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Download, ArrowLeft, Loader2, Upload, Trash2, MoreVertical, Edit, Eye, Star, X } from 'lucide-react';
+import { Download, ArrowLeft, Loader2, Upload, Trash2, MoreVertical, Edit, Eye, Star, X, Pin, PinOff } from 'lucide-react';
 import { useParams } from "next/navigation";
 import Link from 'next/link';
 import SubjectActions from '@/app/admin/library/_components/SubjectActions';
 import FormCreateMaterial from '@/app/admin/library/_components/formCreateMaterail';
+import ReviewPromptModal from '@/components/ReviewPromptModal';
 import {
     Dialog,
     DialogTrigger,
@@ -36,6 +37,9 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
     const [deletingMaterialId, setDeletingMaterialId] = useState(null);
     const [localMaterials, setLocalMaterials] = useState(subject.materials || []);
     const [viewingPdf, setViewingPdf] = useState(null);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [pendingDownload, setPendingDownload] = useState(null);
+    const [hasReviewed, setHasReviewed] = useState(false);
 
     // Helper function to check if material is popular based on tags
     const isPopularMaterial = (material) => {
@@ -51,6 +55,55 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
     useEffect(() => {
         setLocalMaterials(subject.materials || []);
     }, [subject.materials]);
+
+    // Check if user has reviewed on component mount
+    useEffect(() => {
+        checkReviewStatus();
+    }, []);
+
+    const checkReviewStatus = async () => {
+        try {
+            const response = await fetch('/api/check-review-status');
+            const data = await response.json();
+            if (data.success) {
+                console.log('[SubjectCard] Review status:', data);
+                setHasReviewed(data.hasReviewed);
+            }
+        } catch (error) {
+            console.error('Error checking review status:', error);
+        }
+    };
+
+    const handleDownloadClick = (material) => {
+        // Admin can download without review
+        if (isAdmin) {
+            onDownload(material);
+            return;
+        }
+
+        // Check if user has reviewed
+        if (!hasReviewed) {
+            setPendingDownload(material);
+            setShowReviewModal(true);
+        } else {
+            onDownload(material);
+        }
+    };
+
+    const handleReviewSubmitted = async () => {
+        // Update local state immediately
+        setHasReviewed(true);
+        setShowReviewModal(false);
+        
+        // Execute the pending download
+        if (pendingDownload) {
+            // Small delay to ensure modal is fully closed
+            setTimeout(() => {
+                onDownload(pendingDownload);
+                setPendingDownload(null);
+            }, 100);
+        }
+    };
 
     const handleDeleteMaterial = async (material) => {
         setMaterialToDelete(material);
@@ -88,6 +141,36 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
         } catch (error) {
             console.error('Error toggling popular:', error);
             toast.error('Failed to update popular status', { id: toastId });
+        }
+    };
+
+    const handleTogglePin = async (material) => {
+        const currentIsPinned = material.isPinned || false;
+        const newPinnedStatus = !currentIsPinned;
+        const toastId = toast.loading(`${newPinnedStatus ? 'Pinning' : 'Unpinning'} material...`);
+
+        try {
+            const response = await fetch('/api/admin/materials/toggle-pin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    mappingId: material.mappingId,
+                    subjectId: subject.id,
+                    isPinned: newPinnedStatus
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success(`Material ${newPinnedStatus ? 'pinned' : 'unpinned'} successfully!`, { id: toastId });
+                onUpdate(); // Refresh the data
+            } else {
+                toast.error(data.error || 'Failed to update', { id: toastId });
+            }
+        } catch (error) {
+            console.error('Error toggling pin:', error);
+            toast.error('Failed to update pin status', { id: toastId });
         }
     };
 
@@ -178,12 +261,35 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
             {/* Materials List */}
             <div className="space-y-3">
                 {localMaterials && localMaterials.length > 0 ? (
-                    localMaterials.map((material) => (
+                    // Sort materials: pinned first, then by created date
+                    [...localMaterials]
+                        .sort((a, b) => {
+                            // First sort by pinned status
+                            if (a.isPinned && !b.isPinned) return -1;
+                            if (!a.isPinned && b.isPinned) return 1;
+                            // Then by pinned date if both are pinned
+                            if (a.isPinned && b.isPinned) {
+                                return new Date(b.pinnedAt || 0) - new Date(a.pinnedAt || 0);
+                            }
+                            // For non-pinned, maintain original order
+                            return 0;
+                        })
+                        .map((material) => (
                         <div
                             key={material.id}
-                            className={`relative flex flex-col gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-all duration-300 ${deletingMaterialId === material.id ? 'opacity-50 animate-pulse' : ''
-                                }`}
+                            className={`relative flex flex-col gap-3 p-3 rounded-lg transition-all duration-300 ${
+                                material.isPinned 
+                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700' 
+                                    : 'bg-gray-50 dark:bg-gray-700/50'
+                            } ${deletingMaterialId === material.id ? 'opacity-50 animate-pulse' : ''}`}
                         >
+                            {/* Pinned Badge - Top Left */}
+                            {material.isPinned && (
+                                <div className="absolute -top-2 -left-2 bg-blue-600 rounded-full p-1.5 shadow-md z-10">
+                                    <Pin className="h-3 w-3 text-white fill-white" />
+                                </div>
+                            )}
+                            
                             {/* Popular Star Badge - Top Right */}
                             {isPopularMaterial(material) && (
                                 <div className="absolute -top-2 -right-2 bg-yellow-500 rounded-full p-1.5 shadow-md z-10">
@@ -222,7 +328,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                     <span>View</span>
                                 </button>
                                 <button
-                                    onClick={() => onDownload(material)}
+                                    onClick={() => handleDownloadClick(material)}
                                     disabled={deletingMaterialId === material.id}
                                     className="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1"
                                 >
@@ -239,6 +345,22 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                                             </button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="w-48">
+                                            <DropdownMenuItem
+                                                onClick={() => handleTogglePin(material)}
+                                                className="cursor-pointer"
+                                            >
+                                                {material.isPinned ? (
+                                                    <>
+                                                        <PinOff className="h-4 w-4 mr-2" />
+                                                        Unpin Material
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Pin className="h-4 w-4 mr-2" />
+                                                        Pin to Top
+                                                    </>
+                                                )}
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 onClick={() => handleTogglePopular(material)}
                                                 className="cursor-pointer"
@@ -398,6 +520,16 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Review Prompt Modal */}
+            <ReviewPromptModal
+                isOpen={showReviewModal}
+                onClose={() => {
+                    setShowReviewModal(false);
+                    setPendingDownload(null);
+                }}
+                onReviewSubmitted={handleReviewSubmitted}
+            />
         </div>
     );
 };

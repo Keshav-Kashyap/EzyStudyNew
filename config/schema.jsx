@@ -92,6 +92,8 @@ export const materialSubjectMappingTable = pgTable("material_subject_mapping", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     materialId: integer().references(() => studyMaterialsTable.id).notNull(),
     subjectId: integer().references(() => subjectsTable.id).notNull(),
+    isPinned: boolean().default(false), // Pin materials to show at top (max 3 per subject)
+    pinnedAt: timestamp(), // Track when it was pinned
     addedAt: timestamp().defaultNow()
 });
 

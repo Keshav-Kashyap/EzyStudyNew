@@ -43,6 +43,7 @@ export async function GET(request, { params }) {
                 const materials = await db
                     .select({
                         id: studyMaterialsTable.id,
+                        mappingId: materialSubjectMappingTable.id,
                         title: studyMaterialsTable.title,
                         description: studyMaterialsTable.description,
                         fileUrl: studyMaterialsTable.fileUrl,
@@ -51,6 +52,8 @@ export async function GET(request, { params }) {
                         type: studyMaterialsTable.type,
                         imageUrl: studyMaterialsTable.imageUrl,
                         tags: studyMaterialsTable.tags,
+                        isPinned: materialSubjectMappingTable.isPinned,
+                        pinnedAt: materialSubjectMappingTable.pinnedAt,
                         createdAt: studyMaterialsTable.createdAt,
                     })
                     .from(studyMaterialsTable)

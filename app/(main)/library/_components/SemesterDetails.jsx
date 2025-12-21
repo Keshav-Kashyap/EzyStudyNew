@@ -1,5 +1,5 @@
 "use client"
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { BookOpen, FileText, Download, Calendar, ArrowLeft, ExternalLink, Loader2, Upload } from 'lucide-react';
 import { useParams, useRouter } from "next/navigation";
 import Link from 'next/link';
@@ -8,6 +8,7 @@ import { UserDetailContext } from '@/context/UserDetailContext';
 import { useSemesterDetail, useInvalidateSemesterDetail } from '@/hooks/useCourses';
 import DownloadAllMaterialsButton from '@/components/DownloadAllMaterialsButton';
 import DownloadSyllabusButton from '@/components/DownloadSyllabusButton';
+import ReviewPromptModal from '@/components/ReviewPromptModal';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import FormUploadSyllabus from '@/app/admin/library/_components/FormUploadSyllabus';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,9 @@ const SemesterDetail = ({ basePath }) => {
     const isAdmin = userDetail?.role === "admin";
     const [syllabusDialogOpen, setSyllabusDialogOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [pendingDownload, setPendingDownload] = useState(null);
+    const [hasReviewed, setHasReviewed] = useState(false);
 
     const { code, semesterId } = useParams();
 
@@ -44,9 +48,55 @@ const SemesterDetail = ({ basePath }) => {
         }, 500);
     };
 
+    // Check if user has reviewed on component mount
+    useEffect(() => {
+        checkReviewStatus();
+    }, []);
+
+    const checkReviewStatus = async () => {
+        try {
+            const response = await fetch('/api/check-review-status');
+            const data = await response.json();
+            if (data.success) {
+                setHasReviewed(data.hasReviewed);
+            }
+        } catch (error) {
+            console.error('Error checking review status:', error);
+        }
+    };
+
     const handleDownload = (material) => {
-        if (material.fileUrl) {
-            window.open(material.fileUrl, '_blank');
+        // Admin can download without review
+        if (isAdmin) {
+            if (material.fileUrl) {
+                window.open(material.fileUrl, '_blank');
+            }
+            return;
+        }
+
+        // Check if user has reviewed
+        if (!hasReviewed) {
+            setPendingDownload(material);
+            setShowReviewModal(true);
+        } else {
+            if (material.fileUrl) {
+                window.open(material.fileUrl, '_blank');
+            }
+        }
+    };
+
+    const handleReviewSubmitted = async () => {
+        // Update local state immediately
+        setHasReviewed(true);
+        setShowReviewModal(false);
+        
+        // Execute the pending download
+        if (pendingDownload && pendingDownload.fileUrl) {
+            // Small delay to ensure modal is fully closed
+            setTimeout(() => {
+                window.open(pendingDownload.fileUrl, '_blank');
+                setPendingDownload(null);
+            }, 100);
         }
     };
 
@@ -164,6 +214,16 @@ const SemesterDetail = ({ basePath }) => {
                         />
                     ))}
                 </div>
+
+                {/* Review Prompt Modal */}
+                <ReviewPromptModal
+                    isOpen={showReviewModal}
+                    onClose={() => {
+                        setShowReviewModal(false);
+                        setPendingDownload(null);
+                    }}
+                    onReviewSubmitted={handleReviewSubmitted}
+                />
             </div>
         </div>
     );

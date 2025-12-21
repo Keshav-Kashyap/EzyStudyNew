@@ -6,16 +6,33 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import ReviewPromptModal from '@/components/ReviewPromptModal';
 
 const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", size = "sm", className = "" }) => {
     const [downloading, setDownloading] = useState(false);
     const [hasSyllabus, setHasSyllabus] = useState(false);
     const [checking, setChecking] = useState(true);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [hasReviewed, setHasReviewed] = useState(false);
+    const [pendingDownload, setPendingDownload] = useState(false);
 
     // Check if syllabus exists on mount
     useEffect(() => {
         checkSyllabusAvailability();
+        checkReviewStatus();
     }, [category, semesterName]);
+
+    const checkReviewStatus = async () => {
+        try {
+            const response = await fetch('/api/check-review-status');
+            const data = await response.json();
+            if (data.success) {
+                setHasReviewed(data.hasReviewed);
+            }
+        } catch (error) {
+            console.error('Error checking review status:', error);
+        }
+    };
 
     const checkSyllabusAvailability = async () => {
         if (!category || !semesterName) {
@@ -40,8 +57,37 @@ const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", s
         }
     };
 
-    const handleDownload = async (e) => {
+    const handleDownloadClick = (e) => {
         e.stopPropagation();
+
+        if (!hasReviewed) {
+            setPendingDownload(true);
+            setShowReviewModal(true);
+        } else {
+            handleDownload(e);
+        }
+    };
+
+    const handleReviewSubmitted = async () => {
+        // Update local state immediately
+        setHasReviewed(true);
+        setShowReviewModal(false);
+        
+        // Execute the pending download
+        if (pendingDownload) {
+            setPendingDownload(false);
+            // Small delay to ensure modal is fully closed
+            setTimeout(() => {
+                const syntheticEvent = { stopPropagation: () => {} };
+                handleDownload(syntheticEvent);
+            }, 100);
+        }
+    };
+
+    const handleDownload = async (e) => {
+        if (e && e.stopPropagation) {
+            e.stopPropagation();
+        }
 
         if (!category || !semesterName) {
             toast.error('Semester information not available');
@@ -122,31 +168,43 @@ const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", s
     };
 
     return (
-        <Button
-            onClick={handleDownload}
-            disabled={downloading || checking || !hasSyllabus}
-            variant={variant}
-            size={size}
-            className={`gap-2 ${className}`}
-            title={!hasSyllabus ? "No syllabus available" : "Download All Syllabus"}
-        >
-            {checking ? (
-                <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Checking...
-                </>
-            ) : downloading ? (
-                <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Loading...
-                </>
-            ) : (
-                <>
-                    <FileDown className="h-4 w-4" />
-                    {hasSyllabus ? 'Download Syllabus' : 'No Syllabus'}
-                </>
-            )}
-        </Button>
+        <>
+            <Button
+                onClick={handleDownloadClick}
+                disabled={downloading || checking || !hasSyllabus}
+                variant={variant}
+                size={size}
+                className={`gap-2 ${className}`}
+                title={!hasSyllabus ? "No syllabus available" : "Download All Syllabus"}
+            >
+                {checking ? (
+                    <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Checking...
+                    </>
+                ) : downloading ? (
+                    <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading...
+                    </>
+                ) : (
+                    <>
+                        <FileDown className="h-4 w-4" />
+                        {hasSyllabus ? 'Download Syllabus' : 'No Syllabus'}
+                    </>
+                )}
+            </Button>
+
+            {/* Review Prompt Modal */}
+            <ReviewPromptModal
+                isOpen={showReviewModal}
+                onClose={() => {
+                    setShowReviewModal(false);
+                    setPendingDownload(false);
+                }}
+                onReviewSubmitted={handleReviewSubmitted}
+            />
+        </>
     );
 };
 
