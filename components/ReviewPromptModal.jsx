@@ -55,14 +55,14 @@ const ReviewPromptModal = ({ isOpen, onClose, onReviewSubmitted }) => {
                     description: '✅ You can now download materials! Starting download...',
                     duration: 4000,
                 });
-                
+
                 // Reset form
                 setRating(0);
                 setReviewText('');
-                
+
                 // Close modal immediately
                 onClose();
-                
+
                 // Trigger download callback after modal closes
                 if (onReviewSubmitted) {
                     // Call immediately, don't wait
@@ -118,11 +118,10 @@ const ReviewPromptModal = ({ isOpen, onClose, onReviewSubmitted }) => {
                                     className="transition-transform hover:scale-110 focus:outline-none"
                                 >
                                     <Star
-                                        className={`w-12 h-12 transition-colors ${
-                                            (hoverRating || rating) >= star
+                                        className={`w-12 h-12 transition-colors ${(hoverRating || rating) >= star
                                                 ? 'fill-yellow-400 text-yellow-400'
                                                 : 'text-gray-300 dark:text-gray-600'
-                                        }`}
+                                            }`}
                                     />
                                 </button>
                             ))}

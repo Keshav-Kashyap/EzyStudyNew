@@ -94,7 +94,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
         // Update local state immediately
         setHasReviewed(true);
         setShowReviewModal(false);
-        
+
         // Execute the pending download
         if (pendingDownload) {
             // Small delay to ensure modal is fully closed
@@ -275,119 +275,118 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                             return 0;
                         })
                         .map((material) => (
-                        <div
-                            key={material.id}
-                            className={`relative flex flex-col gap-3 p-3 rounded-lg transition-all duration-300 ${
-                                material.isPinned 
-                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700' 
-                                    : 'bg-gray-50 dark:bg-gray-700/50'
-                            } ${deletingMaterialId === material.id ? 'opacity-50 animate-pulse' : ''}`}
-                        >
-                            {/* Pinned Badge - Top Left */}
-                            {material.isPinned && (
-                                <div className="absolute -top-2 -left-2 bg-blue-600 rounded-full p-1.5 shadow-md z-10">
-                                    <Pin className="h-3 w-3 text-white fill-white" />
-                                </div>
-                            )}
-                            
-                            {/* Popular Star Badge - Top Right */}
-                            {isPopularMaterial(material) && (
-                                <div className="absolute -top-2 -right-2 bg-yellow-500 rounded-full p-1.5 shadow-md z-10">
-                                    <Star className="h-3 w-3 text-white fill-white" />
-                                </div>
-                            )}
-                            
-                            {/* Title Section - Full Width */}
-                            <div className="w-full">
-                                <div className="flex items-center gap-2">
-                                    <p className="font-medium text-gray-900 dark:text-white truncate flex-1">
-                                        {material.title}
-                                    </p>
-                                    {isPopularMaterial(material) && (
-                                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                                    )}
-                                    {material.likes >= 10 && (
-                                        <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
-                                            {material.likes} ❤️
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                    {material.type || 'PDF'} • {material.size || '2.5 MB'}
-                                </p>
-                            </div>
-
-                            {/* Action Buttons - Bottom Row */}
-                            <div className="flex items-center gap-2 w-full">
-                                <button
-                                    onClick={() => setViewingPdf(material)}
-                                    disabled={deletingMaterialId === material.id}
-                                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1"
-                                >
-                                    <Eye className="h-4 w-4" />
-                                    <span>View</span>
-                                </button>
-                                <button
-                                    onClick={() => handleDownloadClick(material)}
-                                    disabled={deletingMaterialId === material.id}
-                                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1"
-                                >
-                                    <Download className="h-4 w-4" />
-                                    <span>Download</span>
-                                </button>
-                                {isAdmin && (
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <button
-                                                disabled={deletingMaterialId === material.id}
-                                                className="flex items-center justify-center w-9 h-9 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
-                                                <MoreVertical className="h-5 w-5" />
-                                            </button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-48">
-                                            <DropdownMenuItem
-                                                onClick={() => handleTogglePin(material)}
-                                                className="cursor-pointer"
-                                            >
-                                                {material.isPinned ? (
-                                                    <>
-                                                        <PinOff className="h-4 w-4 mr-2" />
-                                                        Unpin Material
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Pin className="h-4 w-4 mr-2" />
-                                                        Pin to Top
-                                                    </>
-                                                )}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() => handleTogglePopular(material)}
-                                                className="cursor-pointer"
-                                            >
-                                                <Star className={`h-4 w-4 mr-2 ${isPopularMaterial(material) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                                                {isPopularMaterial(material) ? 'Remove from Popular' : 'Mark as Popular'}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() => handleEditMaterial(material)}
-                                                className="cursor-pointer"
-                                            >
-                                                <Edit className="h-4 w-4 mr-2" />
-                                                Edit Material
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() => handleDeleteMaterial(material)}
-                                                className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
-                                            >
-                                                <Trash2 className="h-4 w-4 mr-2" />
-                                                Delete Material
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                            <div
+                                key={material.id}
+                                className={`relative flex flex-col gap-3 p-3 rounded-lg transition-all duration-300 ${material.isPinned
+                                        ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700'
+                                        : 'bg-gray-50 dark:bg-gray-700/50'
+                                    } ${deletingMaterialId === material.id ? 'opacity-50 animate-pulse' : ''}`}
+                            >
+                                {/* Pinned Badge - Top Left */}
+                                {material.isPinned && (
+                                    <div className="absolute -top-2 -left-2 bg-blue-600 rounded-full p-1.5 shadow-md z-10">
+                                        <Pin className="h-3 w-3 text-white fill-white" />
+                                    </div>
                                 )}
+
+                                {/* Popular Star Badge - Top Right */}
+                                {isPopularMaterial(material) && (
+                                    <div className="absolute -top-2 -right-2 bg-yellow-500 rounded-full p-1.5 shadow-md z-10">
+                                        <Star className="h-3 w-3 text-white fill-white" />
+                                    </div>
+                                )}
+
+                                {/* Title Section - Full Width */}
+                                <div className="w-full">
+                                    <div className="flex items-center gap-2">
+                                        <p className="font-medium text-gray-900 dark:text-white truncate flex-1">
+                                            {material.title}
+                                        </p>
+                                        {isPopularMaterial(material) && (
+                                            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                                        )}
+                                        {material.likes >= 10 && (
+                                            <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                                                {material.likes} ❤️
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        {material.type || 'PDF'} • {material.size || '2.5 MB'}
+                                    </p>
+                                </div>
+
+                                {/* Action Buttons - Bottom Row */}
+                                <div className="flex items-center gap-2 w-full">
+                                    <button
+                                        onClick={() => setViewingPdf(material)}
+                                        disabled={deletingMaterialId === material.id}
+                                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+                                    >
+                                        <Eye className="h-4 w-4" />
+                                        <span>View</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleDownloadClick(material)}
+                                        disabled={deletingMaterialId === material.id}
+                                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+                                    >
+                                        <Download className="h-4 w-4" />
+                                        <span>Download</span>
+                                    </button>
+                                    {isAdmin && (
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <button
+                                                    disabled={deletingMaterialId === material.id}
+                                                    className="flex items-center justify-center w-9 h-9 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
+                                                    <MoreVertical className="h-5 w-5" />
+                                                </button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48">
+                                                <DropdownMenuItem
+                                                    onClick={() => handleTogglePin(material)}
+                                                    className="cursor-pointer"
+                                                >
+                                                    {material.isPinned ? (
+                                                        <>
+                                                            <PinOff className="h-4 w-4 mr-2" />
+                                                            Unpin Material
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Pin className="h-4 w-4 mr-2" />
+                                                            Pin to Top
+                                                        </>
+                                                    )}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => handleTogglePopular(material)}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <Star className={`h-4 w-4 mr-2 ${isPopularMaterial(material) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                                                    {isPopularMaterial(material) ? 'Remove from Popular' : 'Mark as Popular'}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => handleEditMaterial(material)}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <Edit className="h-4 w-4 mr-2" />
+                                                    Edit Material
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => handleDeleteMaterial(material)}
+                                                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
+                                                >
+                                                    <Trash2 className="h-4 w-4 mr-2" />
+                                                    Delete Material
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))
+                        ))
                 ) : (
                     <p className="text-center text-gray-500 dark:text-gray-400 py-4">
                         No materials available
@@ -476,7 +475,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
 
             {/* PDF Viewer Dialog */}
             <Dialog open={!!viewingPdf} onOpenChange={() => setViewingPdf(null)}>
-                <DialogContent 
+                <DialogContent
                     className="max-w-[95vw] w-full h-[90vh] p-0 bg-gray-900 border-gray-700"
                     style={{
                         '--dialog-close-bg': 'white',

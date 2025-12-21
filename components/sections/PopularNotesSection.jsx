@@ -51,7 +51,7 @@ const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
         // Update local state immediately
         setHasReviewed(true);
         setShowReviewModal(false);
-        
+
         // Execute the pending download
         if (pendingDownload && pendingDownload.fileUrl) {
             // Small delay to ensure modal is fully closed

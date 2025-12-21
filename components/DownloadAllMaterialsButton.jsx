@@ -44,7 +44,7 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
         // Update local state immediately
         setHasReviewed(true);
         setShowReviewModal(false);
-        
+
         // Execute the pending download
         if (pendingDownload) {
             setPendingDownload(false);

@@ -72,13 +72,13 @@ const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", s
         // Update local state immediately
         setHasReviewed(true);
         setShowReviewModal(false);
-        
+
         // Execute the pending download
         if (pendingDownload) {
             setPendingDownload(false);
             // Small delay to ensure modal is fully closed
             setTimeout(() => {
-                const syntheticEvent = { stopPropagation: () => {} };
+                const syntheticEvent = { stopPropagation: () => { } };
                 handleDownload(syntheticEvent);
             }, 100);
         }
