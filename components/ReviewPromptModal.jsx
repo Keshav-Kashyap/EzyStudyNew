@@ -17,9 +17,8 @@ const ReviewPromptModal = ({ isOpen, onClose, onReviewSubmitted }) => {
     const [reviewText, setReviewText] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
-    // Calculate word count
-    const wordCount = reviewText.trim().split(/\s+/).filter(word => word.length > 0).length;
-    const isFormValid = rating > 0 && reviewText.trim().length > 0 && wordCount >= 10;
+    // Simple validation - just need rating and some text
+    const isFormValid = rating > 0 && reviewText.trim().length > 0;
 
     const handleSubmitReview = async () => {
         if (!rating) {
@@ -28,10 +27,6 @@ const ReviewPromptModal = ({ isOpen, onClose, onReviewSubmitted }) => {
         }
         if (!reviewText.trim()) {
             toast.error('Please write your review');
-            return;
-        }
-        if (reviewText.trim().split(/\s+/).filter(Boolean).length < 10) {
-            toast.error('Review must be at least 10 words');
             return;
         }
 
@@ -144,22 +139,12 @@ const ReviewPromptModal = ({ isOpen, onClose, onReviewSubmitted }) => {
                         </Label>
                         <Textarea
                             id="reviewText"
-                            placeholder="Write your thoughts about the website... (minimum 10 words)"
+                            placeholder="Write your thoughts about the website..."
                             value={reviewText}
                             onChange={(e) => setReviewText(e.target.value)}
                             rows={5}
                             className="resize-none text-base"
                         />
-                        <div className="flex items-center justify-between">
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {wordCount} words {wordCount < 10 && `(${10 - wordCount} more needed)`}
-                            </p>
-                            {wordCount >= 10 && (
-                                <p className="text-xs text-green-600 dark:text-green-400 font-medium">
-                                    ✓ Minimum reached
-                                </p>
-                            )}
-                        </div>
                     </div>
 
                     {/* Info Box */}

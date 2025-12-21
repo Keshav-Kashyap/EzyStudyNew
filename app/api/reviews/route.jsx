@@ -1,8 +1,8 @@
 import { db } from "@/config/db";
-import { reviewsTable } from "@/config/schema";
+import { reviewsTable, usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export async function GET() {
     try {
@@ -45,6 +45,7 @@ export async function POST(req) {
             );
         }
 
+        // Insert the review (user can submit multiple reviews)
         const newReview = await db
             .insert(reviewsTable)
             .values({
@@ -56,6 +57,12 @@ export async function POST(req) {
                 createdAt: new Date()
             })
             .returning();
+
+        // Update user's hasReviewed flag to true (only on first review)
+        await db
+            .update(usersTable)
+            .set({ hasReviewed: true })
+            .where(eq(usersTable.userId, user.id));
 
         console.log(`[Review Submitted] User: ${user.id}, Name: ${userName}, Rating: ${rating}`);
 

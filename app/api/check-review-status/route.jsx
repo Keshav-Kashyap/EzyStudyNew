@@ -1,5 +1,5 @@
 import { db } from "@/config/db";
-import { reviewsTable } from "@/config/schema";
+import { usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
@@ -15,23 +15,22 @@ export async function GET() {
             });
         }
 
-        // Check if user has submitted any review (using Clerk user ID)
-        const userReviews = await db
-            .select()
-            .from(reviewsTable)
-            .where(eq(reviewsTable.userId, user.id))
+        // Check hasReviewed flag from users table (fast lookup)
+        const userRecord = await db
+            .select({ hasReviewed: usersTable.hasReviewed })
+            .from(usersTable)
+            .where(eq(usersTable.userId, user.id))
             .limit(1);
 
-        const hasReviewed = userReviews.length > 0;
+        const hasReviewed = userRecord.length > 0 ? userRecord[0].hasReviewed : false;
 
-        console.log(`[Review Status Check] User: ${user.id}, Has Reviewed: ${hasReviewed}, Reviews Found: ${userReviews.length}`);
+        console.log(`[Review Status Check] User: ${user.id}, Has Reviewed: ${hasReviewed}`);
 
         return NextResponse.json({
             success: true,
             hasReviewed: hasReviewed,
             requiresReview: !hasReviewed,
-            userId: user.id, // For debugging
-            reviewCount: userReviews.length
+            userId: user.id
         });
     } catch (error) {
         console.error("Error checking review status:", error);

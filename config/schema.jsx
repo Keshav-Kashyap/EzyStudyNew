@@ -9,6 +9,7 @@ export const usersTable = pgTable("users", {
     role: varchar({ length: 50 }).default('student'), // 'admin' or 'student'
     isActive: boolean().default(true),
     credits: integer().default(10),
+    hasReviewed: boolean().default(false), // Track if user has submitted at least one review
     createdAt: timestamp().defaultNow(),
     updatedAt: timestamp().defaultNow()
 });
