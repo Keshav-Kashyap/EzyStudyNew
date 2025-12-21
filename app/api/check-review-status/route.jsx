@@ -1,5 +1,5 @@
 import { db } from "@/config/db";
-import { usersTable } from "@/config/schema";
+import { usersTable, downloadsTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
@@ -11,25 +11,61 @@ export async function GET() {
             return NextResponse.json({
                 success: true,
                 hasReviewed: false,
-                requiresReview: true
+                requiresReview: false,
+                downloadCount: 0
             });
         }
 
-        // Check hasReviewed flag from users table (fast lookup)
+        // Get user record to check hasReviewed flag
         const userRecord = await db
-            .select({ hasReviewed: usersTable.hasReviewed })
+            .select({ 
+                id: usersTable.id, 
+                hasReviewed: usersTable.hasReviewed 
+            })
             .from(usersTable)
             .where(eq(usersTable.userId, user.id))
             .limit(1);
 
-        const hasReviewed = userRecord.length > 0 ? userRecord[0].hasReviewed : false;
+        if (userRecord.length === 0) {
+            // User not registered yet
+            return NextResponse.json({
+                success: true,
+                hasReviewed: false,
+                requiresReview: false,
+                downloadCount: 0
+            });
+        }
 
-        console.log(`[Review Status Check] User: ${user.id}, Has Reviewed: ${hasReviewed}`);
+        const hasReviewed = userRecord[0].hasReviewed;
+        
+        // If already reviewed, no need to count downloads
+        if (hasReviewed) {
+            return NextResponse.json({
+                success: true,
+                hasReviewed: true,
+                requiresReview: false,
+                downloadCount: 0
+            });
+        }
+
+        // Count total downloads for this user
+        const downloadCount = await db
+            .select()
+            .from(downloadsTable)
+            .where(eq(downloadsTable.userId, userRecord[0].id));
+
+        const totalDownloads = downloadCount.length;
+        
+        // Require review after 2 downloads
+        const requiresReview = totalDownloads >= 2 && !hasReviewed;
+
+        console.log(`[Review Status] User: ${user.id}, Downloads: ${totalDownloads}, Has Reviewed: ${hasReviewed}, Requires Review: ${requiresReview}`);
 
         return NextResponse.json({
             success: true,
             hasReviewed: hasReviewed,
-            requiresReview: !hasReviewed,
+            requiresReview: requiresReview,
+            downloadCount: totalDownloads,
             userId: user.id
         });
     } catch (error) {

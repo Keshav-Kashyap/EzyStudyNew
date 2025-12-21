@@ -22,29 +22,61 @@ const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
         try {
             const response = await fetch('/api/check-review-status');
             const data = await response.json();
+            console.log('📋 Review Status Response:', data); // DEBUG
             if (data.success) {
                 setHasReviewed(data.hasReviewed);
+                console.log('✅ Has Reviewed:', data.hasReviewed); // DEBUG
             }
         } catch (error) {
             console.error('Error checking review status:', error);
         }
     };
 
-    const handleDownload = (note) => {
+    const handleDownload = async (note) => {
         if (!isSignedIn) {
             window.location.href = '/sign-in';
             return;
         }
 
-        // Check if user has reviewed
-        if (!hasReviewed) {
-            setPendingDownload(note);
-            setShowReviewModal(true);
-        } else {
-            if (note.fileUrl) {
-                window.open(note.fileUrl, '_blank');
-            }
+        // Track the download first
+        try {
+            await fetch('/api/download/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ materialId: note.id })
+            });
+        } catch (error) {
+            console.error('Error tracking download:', error);
         }
+
+        // Re-check review status (to get updated download count)
+        await checkReviewStatus();
+        
+        // Wait a bit for state to update
+        setTimeout(() => {
+            // Check if user needs to review (after 2+ downloads and hasn't reviewed)
+            if (!hasReviewed) {
+                // Check download count from API
+                fetch('/api/check-review-status')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.requiresReview) {
+                            setPendingDownload(note);
+                            setShowReviewModal(true);
+                        } else {
+                            // Download directly
+                            if (note.fileUrl) {
+                                window.open(note.fileUrl, '_blank');
+                            }
+                        }
+                    });
+            } else {
+                // User already reviewed, download directly
+                if (note.fileUrl) {
+                    window.open(note.fileUrl, '_blank');
+                }
+            }
+        }, 100);
     };
 
     const handleReviewSubmitted = async () => {
