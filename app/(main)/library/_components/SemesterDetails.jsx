@@ -12,6 +12,7 @@ import ReviewPromptModal from '@/components/ReviewPromptModal';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import FormUploadSyllabus from '@/app/admin/library/_components/FormUploadSyllabus';
 import { Button } from '@/components/ui/button';
+import GPTSidebar from '@/components/GPTSidebar';
 
 
 const SemesterDetail = ({ basePath }) => {
@@ -22,6 +23,11 @@ const SemesterDetail = ({ basePath }) => {
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [pendingDownload, setPendingDownload] = useState(null);
     const [hasReviewed, setHasReviewed] = useState(false);
+
+    // AI Sidebar state
+    const [aiSidebarOpen, setAISidebarOpen] = useState(false);
+    const [aiMessages, setAIMessages] = useState([]);
+    const [aiContext, setAIContext] = useState('syllabus');
 
     const { code, semesterId } = useParams();
 
@@ -34,6 +40,18 @@ const SemesterDetail = ({ basePath }) => {
 
     const { data: semesterData, isLoading, isError, error } = useSemesterDetail(code, semesterName);
     const invalidateSemester = useInvalidateSemesterDetail(code, semesterName);
+
+    // Dummy GPT handler (replace with real API call)
+    const handleAISend = async (input) => {
+        setAIMessages((msgs) => [...msgs, { role: 'user', content: input, context: aiContext }]);
+        // Simulate AI response
+        setTimeout(() => {
+            setAIMessages((msgs) => [
+                ...msgs,
+                { role: 'assistant', content: `AI response for: "${input}" (Context: ${aiContext})` }
+            ]);
+        }, 800);
+    };
 
     const handleUpdate = async () => {
         // Show refreshing state
@@ -129,8 +147,10 @@ const SemesterDetail = ({ basePath }) => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] p-3 sm:p-6">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] relative flex">
+            {/* Main Content */}
+            <div className={`flex-1 p-3 sm:p-6 transition-all duration-300 ${aiSidebarOpen ? 'sm:mr-[500px]' : ''}`}>
+                <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-6 sm:mb-8">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 mb-4">
@@ -151,6 +171,14 @@ const SemesterDetail = ({ basePath }) => {
                             </div>
                         </div>
                         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                            {/* Learn with AI button */}
+                            <Button
+                                size="sm"
+                                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2 shadow"
+                                onClick={() => setAISidebarOpen(true)}
+                            >
+                                Learn with AI
+                            </Button>
                             {isAdmin && (
                                 <Dialog open={syllabusDialogOpen} onOpenChange={setSyllabusDialogOpen}>
                                     <DialogTrigger asChild>
@@ -225,6 +253,18 @@ const SemesterDetail = ({ basePath }) => {
                     onReviewSubmitted={handleReviewSubmitted}
                 />
             </div>
+
+            {/* AI Sidebar */}
+            {aiSidebarOpen && (
+                <GPTSidebar
+                    open={aiSidebarOpen}
+                    onClose={() => setAISidebarOpen(false)}
+                    onSend={handleAISend}
+                    messages={aiMessages}
+                    context={aiContext}
+                    setContext={setAIContext}
+                />
+            )}
         </div>
     );
 };
