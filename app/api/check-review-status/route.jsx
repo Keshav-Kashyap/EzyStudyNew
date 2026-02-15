@@ -18,9 +18,9 @@ export async function GET() {
 
         // Get user record to check hasReviewed flag
         const userRecord = await db
-            .select({ 
-                id: usersTable.id, 
-                hasReviewed: usersTable.hasReviewed 
+            .select({
+                id: usersTable.id,
+                hasReviewed: usersTable.hasReviewed
             })
             .from(usersTable)
             .where(eq(usersTable.userId, user.id))
@@ -37,7 +37,7 @@ export async function GET() {
         }
 
         const hasReviewed = userRecord[0].hasReviewed;
-        
+
         // If already reviewed, no need to count downloads
         if (hasReviewed) {
             return NextResponse.json({
@@ -55,7 +55,7 @@ export async function GET() {
             .where(eq(downloadsTable.userId, userRecord[0].id));
 
         const totalDownloads = downloadCount.length;
-        
+
         // Require review after 2 downloads
         const requiresReview = totalDownloads >= 2 && !hasReviewed;
 

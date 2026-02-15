@@ -114,8 +114,8 @@ const ReviewPromptModal = ({ isOpen, onClose, onReviewSubmitted }) => {
                                 >
                                     <Star
                                         className={`w-12 h-12 transition-colors ${(hoverRating || rating) >= star
-                                                ? 'fill-yellow-400 text-yellow-400'
-                                                : 'text-gray-300 dark:text-gray-600'
+                                            ? 'fill-yellow-400 text-yellow-400'
+                                            : 'text-gray-300 dark:text-gray-600'
                                             }`}
                                     />
                                 </button>

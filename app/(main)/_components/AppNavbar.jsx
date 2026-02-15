@@ -10,7 +10,8 @@ import {
     Menu,
     ChevronDown,
     Sun,
-    Moon
+    Moon,
+    Sparkles
 } from 'lucide-react';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { UserButton, useUser } from '@clerk/nextjs';
@@ -18,7 +19,7 @@ import { UserDetailContext } from '@/context/UserDetailContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 
-const Navbar = () => {
+const Navbar = ({ onOpenAI }) => {
     const { userDetail } = useContext(UserDetailContext);
     const { setOpen } = useSidebar(); // Sidebar control ke liye
 
@@ -102,8 +103,18 @@ const Navbar = () => {
                 onClose={() => setShowSearchDialog(false)}
             />
 
-            {/* Right Side - Theme Toggle, Notifications & Profile */}
+            {/* Right Side - AI, Theme Toggle, Notifications & Profile */}
             <div className="flex items-center gap-1 md:gap-2">
+
+                {/* AI Button */}
+                <button
+                    onClick={onOpenAI}
+                    className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg"
+                    aria-label="Open AI Assistant"
+                    title="Chat with AI"
+                >
+                    <Sparkles size={20} className="text-white" />
+                </button>
 
                 {/* Theme Toggle Button */}
                 <button

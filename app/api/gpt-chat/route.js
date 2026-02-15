@@ -142,7 +142,7 @@ async function mockAIResponse(message, context) {
 
 export async function POST(req) {
   try {
-    const { message, context, history = [] } = await req.json();
+    const { message, context, history = [], stream = true } = await req.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
