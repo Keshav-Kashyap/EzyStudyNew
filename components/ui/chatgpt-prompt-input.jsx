@@ -191,7 +191,7 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
         setValue(e.target.value);
         if (props.onChange) props.onChange(e);
     };
-  
+
     const handleKeyDown = (e) => {
         // Enter without Shift = Send message
         if (e.key === 'Enter' && !e.shiftKey) {

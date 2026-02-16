@@ -3,15 +3,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { PromptBox } from '@/components/ui/chatgpt-prompt-input';
 import { Sparkles, Bot, User, X, Trash2, Copy, Check } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
+import Image from 'next/image';
 
 const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }) => {
+    const { user } = useUser();
+    console.log("user ", user);
     const [messages, setMessages] = useState(externalMessages || []);
     const [loading, setLoading] = useState(false);
     const [copiedIndex, setCopiedIndex] = useState(null);
     const [width, setWidth] = useState(500);
     const [isResizing, setIsResizing] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [isUserScrolling, setIsUserScrolling] = useState(false);
     const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
 
     // Check if mobile
     useEffect(() => {
@@ -21,10 +27,30 @@ const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Auto-scroll to bottom
+    // Smart auto-scroll: only scroll if user hasn't manually scrolled up
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, loading]);
+        if (!isUserScrolling && messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, loading, isUserScrolling]);
+
+    // Detect if user is manually scrolling
+    useEffect(() => {
+        const container = messagesContainerRef.current;
+        if (!container) return;
+
+        const handleScroll = () => {
+            const { scrollTop, scrollHeight, clientHeight } = container;
+            const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+
+            // If user is within 100px of bottom, enable auto-scroll
+            // Otherwise, they've scrolled up manually
+            setIsUserScrolling(distanceFromBottom > 100);
+        };
+
+        container.addEventListener('scroll', handleScroll);
+        return () => container.removeEventListener('scroll', handleScroll);
+    }, []);
 
     // Handle resize
     useEffect(() => {
@@ -88,14 +114,7 @@ const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }
         setMessages(msgs => [...msgs, userMessage]);
         setLoading(true);
 
-        // Add placeholder for AI response
-        const placeholderMsg = {
-            role: 'assistant',
-            content: '',
-            timestamp: Date.now(),
-            isTyping: true
-        };
-        setMessages(msgs => [...msgs, placeholderMsg]);
+        // Don't add placeholder, we'll show loading indicator instead
 
         try {
             const res = await fetch('/api/gpt-chat', {
@@ -110,16 +129,28 @@ const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }
             const data = await res.json();
 
             if (data.ok && data.reply) {
+                // Stop loading immediately when response arrives
+                setLoading(false);
+
                 // Simulate typing animation
                 const fullText = data.reply;
                 let currentIndex = 0;
+
+                // Add initial message
+                const assistantMsg = {
+                    role: 'assistant',
+                    content: '',
+                    timestamp: Date.now(),
+                    isTyping: true
+                };
+                setMessages(msgs => [...msgs, assistantMsg]);
 
                 // Type character by character - update the last message
                 const typeInterval = setInterval(() => {
                     if (currentIndex < fullText.length) {
                         const nextChunk = fullText.slice(0, currentIndex + 2); // 2 chars at a time for speed
                         currentIndex += 2;
-                        
+
                         setMessages(msgs => {
                             const newMsgs = [...msgs];
                             newMsgs[newMsgs.length - 1] = {
@@ -139,33 +170,24 @@ const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }
                             };
                             return newMsgs;
                         });
-                        setLoading(false);
                     }
                 }, 10); // 10ms delay between characters for smooth typing
             } else {
-                setMessages(msgs => {
-                    const newMsgs = [...msgs];
-                    newMsgs[newMsgs.length - 1] = {
-                        role: 'assistant',
-                        content: '❌ Error: ' + (data.error || 'Unknown error occurred'),
-                        timestamp: Date.now(),
-                        isError: true
-                    };
-                    return newMsgs;
-                });
+                setMessages(msgs => [...msgs, {
+                    role: 'assistant',
+                    content: 'Error: ' + (data.error || 'Unknown error occurred'),
+                    timestamp: Date.now(),
+                    isError: true
+                }]);
                 setLoading(false);
             }
         } catch (e) {
-            setMessages(msgs => {
-                const newMsgs = [...msgs];
-                newMsgs[newMsgs.length - 1] = {
-                    role: 'assistant',
-                    content: '❌ Network Error: Could not connect to AI service',
-                    timestamp: Date.now(),
-                    isError: true
-                };
-                return newMsgs;
-            });
+            setMessages(msgs => [...msgs, {
+                role: 'assistant',
+                content: 'Network Error: Could not connect to AI service',
+                timestamp: Date.now(),
+                isError: true
+            }]);
             setLoading(false);
         }
     };
@@ -223,14 +245,20 @@ const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }
                 <div className="flex items-center justify-between p-4">
                     <div className="flex items-center gap-3">
                         <div className="relative">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                <Bot className="w-6 h-6 text-white" />
+                            <div className="w-10 h-10  flex items-center justify-center overflow-hidden">
+                                <Image
+                                    src="/aiLogo.png"
+                                    alt="AI Assistant"
+                                    width={40}
+                                    height={40}
+                                    className="w-full h-full object-cover"
+                                />
                             </div>
-                           
+
                         </div>
                         <div>
                             <h2 className="font-bold text-lg text-zinc-100">AI Assistant</h2>
-                            <p className="text-xs text-zinc-400">Powered by Groq</p>
+                          
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -258,7 +286,10 @@ const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }
             </div>
 
             {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+            <div
+                ref={messagesContainerRef}
+                className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
+            >
                 {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center px-6">
 
@@ -276,8 +307,14 @@ const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }
                             >
                                 {msg.role === 'assistant' && (
                                     <div className="flex-shrink-0 mt-1">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                                            <Bot className="w-5 h-5 text-white" />
+                                        <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+                                            <Image
+                                                src="/aiLogo.png"
+                                                alt="AI"
+                                                width={33}
+                                                height={33}
+                                                className="w-full h-full object-cover"
+                                            />
                                         </div>
                                     </div>
                                 )}
@@ -291,9 +328,6 @@ const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }
                                         }`}>
                                         <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                                             {msg.content}
-                                            {msg.isTyping && (
-                                                <span className="inline-block w-1.5 h-4 ml-1 bg-blue-400 animate-pulse" />
-                                            )}
                                         </p>
                                     </div>
 
@@ -323,9 +357,21 @@ const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }
 
                                 {msg.role === 'user' && (
                                     <div className="flex-shrink-0 mt-1">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
-                                            <User className="w-5 h-5 text-white" />
-                                        </div>
+                                        {user?.imageUrl ? (
+                                            <div className="w-8 h-8 rounded-full overflow-hidden shadow-lg ring-2 ring-emerald-500/50">
+                                                <Image
+                                                    src={user.imageUrl}
+                                                    alt={user.firstName || 'User'}
+                                                    width={32}
+                                                    height={32}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                                                <User className="w-5 h-5 text-white" />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -334,8 +380,14 @@ const GPTSidebar = ({ open, onClose, messages: externalMessages, onWidthChange }
                         {loading && (
                             <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-3 duration-300">
                                 <div className="flex-shrink-0 mt-1">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                                        <Bot className="w-5 h-5 text-white" />
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg overflow-hidden">
+                                        <Image
+                                            src="/aiLogo.png"
+                                            alt="AI"
+                                            width={32}
+                                            height={32}
+                                            className="w-full h-full object-cover"
+                                        />
                                     </div>
                                 </div>
                                 <div className="bg-zinc-800 rounded-2xl px-4 py-3 border border-zinc-700">
