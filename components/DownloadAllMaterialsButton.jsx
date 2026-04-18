@@ -1,12 +1,13 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Download, Loader2, FolderArchive } from 'lucide-react'
 import { toast } from 'sonner'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 import ReviewPromptModal from '@/components/ReviewPromptModal'
+import { UserDetailContext } from '@/context/UserDetailContext'
 
 const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline", size = "sm", className = "" }) => {
     const [downloading, setDownloading] = useState(false)
@@ -14,6 +15,7 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
     const [showReviewModal, setShowReviewModal] = useState(false)
     const [hasReviewed, setHasReviewed] = useState(false)
     const [pendingDownload, setPendingDownload] = useState(false)
+    const { setUserDetail } = useContext(UserDetailContext) || {}
 
     useEffect(() => {
         checkReviewStatus();
@@ -79,6 +81,20 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
                 toast.info('No materials found for this semester')
                 setDownloading(false)
                 return
+            }
+
+            const creditResponse = await fetch('/api/users/consume-credit', {
+                method: 'POST'
+            })
+            const creditResult = await creditResponse.json()
+
+            if (!creditResponse.ok || !creditResult.success) {
+                toast.error(creditResult.error || 'Unable to deduct credit for this download')
+                return
+            }
+
+            if (setUserDetail && creditResult.user) {
+                setUserDetail(creditResult.user)
             }
 
             toast.loading(`Preparing ${totalMaterials} files...`, { id: 'download-prep' })

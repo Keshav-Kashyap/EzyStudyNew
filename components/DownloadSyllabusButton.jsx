@@ -1,12 +1,13 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { FileDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import ReviewPromptModal from '@/components/ReviewPromptModal';
+import { UserDetailContext } from '@/context/UserDetailContext';
 
 const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", size = "sm", className = "" }) => {
     const [downloading, setDownloading] = useState(false);
@@ -15,6 +16,7 @@ const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", s
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [hasReviewed, setHasReviewed] = useState(false);
     const [pendingDownload, setPendingDownload] = useState(false);
+    const { setUserDetail } = useContext(UserDetailContext) || {};
 
     // Check if syllabus exists on mount
     useEffect(() => {
@@ -114,6 +116,20 @@ const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", s
             if (!data.success || !data.syllabi || data.syllabi.length === 0) {
                 toast.error(data.error || 'No syllabus available for this semester', { id: toastId });
                 return;
+            }
+
+            const creditResponse = await fetch('/api/users/consume-credit', {
+                method: 'POST'
+            });
+            const creditResult = await creditResponse.json();
+
+            if (!creditResponse.ok || !creditResult.success) {
+                toast.error(creditResult.error || 'Unable to deduct credit for this download', { id: toastId });
+                return;
+            }
+
+            if (setUserDetail && creditResult.user) {
+                setUserDetail(creditResult.user);
             }
 
             toast.success(`Found ${data.syllabi.length} syllabus files`, { id: toastId });

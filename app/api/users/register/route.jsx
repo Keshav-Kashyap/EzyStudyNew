@@ -55,6 +55,20 @@ export async function POST() {
         });
 
         if (existingUser.length > 0) {
+            if (existingUser[0].credits == null) {
+                const normalizedUser = await db.update(usersTable)
+                    .set({ credits: 10 })
+                    .where(eq(usersTable.userId, user.id))
+                    .returning();
+
+                return NextResponse.json({
+                    success: true,
+                    message: "User already exists",
+                    user: normalizedUser[0],
+                    isNew: false
+                });
+            }
+
             return NextResponse.json({
                 success: true,
                 message: "User already exists",

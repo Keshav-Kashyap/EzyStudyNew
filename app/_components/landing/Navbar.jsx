@@ -1,19 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
 import { UserButton } from "@clerk/nextjs";
-import { Search, X, Download, Eye, Lock } from "lucide-react";
+import { Search, X, Download, Eye, Lock, CreditCard } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { UserDetailContext } from "@/context/UserDetailContext";
 
 export default function Navbar() {
     const { user } = useUser();
+    const { userDetail } = useContext(UserDetailContext) || {};
     const router = useRouter();
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
@@ -167,6 +169,13 @@ export default function Navbar() {
                                 </Link>
                             ) : (
                                 <div className="flex items-center gap-3">
+                                    {userDetail !== undefined && (
+                                        <Badge variant="secondary" className="hidden sm:inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-200 border border-blue-200 dark:border-blue-900">
+                                            <CreditCard className="h-3.5 w-3.5" />
+                                            {userDetail?.credits ?? 0} credits
+                                        </Badge>
+                                    )}
+
                                     <UserButton />
                                     <button
                                         onClick={() => router.push('/dashboard')}
