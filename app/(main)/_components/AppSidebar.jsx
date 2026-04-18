@@ -4,6 +4,7 @@ import React, { useContext, useState } from 'react';
 import SettingsDialog from './SettingDialog'
 import {
     BookOpen,
+    LayoutGrid,
     Settings,
     CreditCard,
     Users,
@@ -68,6 +69,7 @@ const AppSidebar = ({ menuItems, bottomMenuItems, isAdmin = false }) => {
         FileText,
         TrendingUp,
         MessageSquare,
+        LayoutGrid,
         'trending-up': TrendingUp
     };
 

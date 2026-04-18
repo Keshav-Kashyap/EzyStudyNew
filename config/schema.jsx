@@ -144,3 +144,12 @@ export const reviewsTable = pgTable("reviews", {
     createdAt: timestamp().defaultNow()
 });
 
+export const userProfileTable = pgTable("user_profile", {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+
+    userId: integer("userId").notNull(),
+
+    courseId: integer("courseId"), // better rename to course_id later
+
+    heardFrom: varchar("heardFrom", { length: 50 }),
+});

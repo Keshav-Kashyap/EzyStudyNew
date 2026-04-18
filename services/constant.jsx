@@ -11,6 +11,11 @@ export const menuItems = [
         isActive: true,
     },
     {
+        title: "Personalized Dashboard",
+        icon: "LayoutGrid",
+        href: "/personalized",
+    },
+    {
         title: "Popular Notes",
         icon: "TrendingUp",
         href: "/dashboard/popular",

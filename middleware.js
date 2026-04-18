@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { db } from './config/db'
-import { usersTable } from './config/schema'
+import { userProfileTable, usersTable } from './config/schema'
 import { eq } from 'drizzle-orm'
 
 const isPublicRoute = createRouteMatcher([
@@ -13,12 +13,42 @@ const isPublicRoute = createRouteMatcher([
     '/api/popular-courses(.*)'
 ])
 const isAdminRoute = createRouteMatcher(['/admin(.*)'])
+const isProfileCompletionRoute = createRouteMatcher(['/profile-completion(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
     const { userId } = await auth()
+    const pathname = req.nextUrl.pathname
+    const isApiRoute = pathname.startsWith('/api')
 
     if (!isPublicRoute(req)) {
         await auth.protect()
+    }
+
+    // Force profile completion before allowing access to app pages.
+    if (userId && !isApiRoute) {
+        try {
+            const dbUser = await db.select({ id: usersTable.id })
+                .from(usersTable)
+                .where(eq(usersTable.userId, userId))
+                .limit(1)
+
+            if (dbUser.length === 0) {
+                if (!isProfileCompletionRoute(req)) {
+                    return NextResponse.redirect(new URL('/profile-completion', req.url))
+                }
+            } else {
+                const profile = await db.select({ id: userProfileTable.id })
+                    .from(userProfileTable)
+                    .where(eq(userProfileTable.userId, dbUser[0].id))
+                    .limit(1)
+
+                if (profile.length === 0 && !isProfileCompletionRoute(req)) {
+                    return NextResponse.redirect(new URL('/profile-completion', req.url))
+                }
+            }
+        } catch (error) {
+            console.error('Profile check error:', error)
+        }
     }
 
     // Check admin access for admin routes

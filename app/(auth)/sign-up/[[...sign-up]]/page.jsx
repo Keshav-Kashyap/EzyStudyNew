@@ -5,7 +5,7 @@ export default function Page() {
 
 
         <div className='flex justify-center h-screen  items-center'>
-            <SignUp />
+            <SignUp forceRedirectUrl='/profile-completion' />
 
         </div >
     );
