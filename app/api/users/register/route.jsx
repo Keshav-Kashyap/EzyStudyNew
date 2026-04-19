@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/config/db";
 import { usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 
 // Add runtime config
 export const dynamic = 'force-dynamic';
@@ -38,6 +38,7 @@ async function retryDbOperation(operation, maxRetries = 3) {
 export async function POST() {
     try {
         const user = await currentUser();
+        const userEmail = user?.emailAddresses?.[0]?.emailAddress || '';
 
         if (!user) {
             return NextResponse.json({
@@ -46,8 +47,15 @@ export async function POST() {
             }, { status: 401 });
         }
 
-        // Check if user already exists with retry
+        // Check if user already exists by Clerk ID or email with retry
         const existingUser = await retryDbOperation(async () => {
+            if (userEmail) {
+                return await db.select()
+                    .from(usersTable)
+                    .where(or(eq(usersTable.userId, user.id), eq(usersTable.email, userEmail)))
+                    .limit(1);
+            }
+
             return await db.select()
                 .from(usersTable)
                 .where(eq(usersTable.userId, user.id))
@@ -82,7 +90,7 @@ export async function POST() {
             return await db.insert(usersTable).values({
                 userId: user.id,
                 name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User',
-                email: user.emailAddresses?.[0]?.emailAddress || '',
+                email: userEmail,
                 role: 'student', // Default role
                 isActive: true,
                 credits: 10 // Default credits
@@ -91,7 +99,7 @@ export async function POST() {
 
         console.log('✅ New user created in database:', {
             userId: user.id,
-            email: user.emailAddresses?.[0]?.emailAddress,
+            email: userEmail,
             name: newUser[0].name
         });
 
