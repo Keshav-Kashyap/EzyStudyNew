@@ -44,8 +44,8 @@ export default function RootLayout({ children }) {
           <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9698637801497906"
             crossOrigin="anonymous"></script>
 
-          <link rel="icon" href="/favicon.ico" sizes="any" />
-          <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+          <link rel="icon" href="/Image.jpeg" sizes="any" type="image/jpeg" />
+          <link rel="apple-touch-icon" href="/Image.jpeg" />
           <link rel="manifest" href="/site.webmanifest" />
           <meta name="theme-color" content="#3b82f6" />
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
