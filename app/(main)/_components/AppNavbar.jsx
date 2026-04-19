@@ -17,6 +17,8 @@ import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { UserButton, useUser } from '@clerk/nextjs';
 import { UserDetailContext } from '@/context/UserDetailContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { CreditCard } from 'lucide-react';
 
 
 const Navbar = ({ onOpenAI }) => {
@@ -172,6 +174,13 @@ const Navbar = ({ onOpenAI }) => {
                         className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[rgb(45,45,44)] transition-colors duration-300 ease-in-out"
                         onClick={() => setShowProfile(!showProfile)}
                     >
+                        {userDetail !== undefined && (
+                            <Badge variant="secondary" className="hidden md:inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-200 border border-blue-200 dark:border-blue-900">
+                                <CreditCard className="h-3.5 w-3.5" />
+                                {userDetail?.credits ?? 0} credits
+                            </Badge>
+                        )}
+
                         <UserButton
                             appearance={{
                                 baseTheme: undefined,
