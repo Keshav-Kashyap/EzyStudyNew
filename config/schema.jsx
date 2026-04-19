@@ -141,6 +141,7 @@ export const reviewsTable = pgTable("reviews", {
     rating: integer().notNull(), // 1-5 stars
     reviewText: text().notNull(),
     isApproved: boolean().default(true), // For moderation
+    isFeatured: boolean().default(false),
     createdAt: timestamp().defaultNow()
 });
 

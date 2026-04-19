@@ -3,10 +3,11 @@
 import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import Image from "next/image";
 import { UserButton } from "@clerk/nextjs";
-import { Search, X, Download, Eye, Lock, CreditCard } from "lucide-react";
+import { Search, X, Download, Eye, Lock, CreditCard, Sun, Moon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,7 @@ import { UserDetailContext } from "@/context/UserDetailContext";
 
 export default function Navbar() {
     const { user } = useUser();
+    const { theme, setTheme } = useTheme();
     const { userDetail } = useContext(UserDetailContext) || {};
     const router = useRouter();
     const [isVisible, setIsVisible] = useState(true);
@@ -23,6 +25,15 @@ export default function Navbar() {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const toggleTheme = () => {
+        setTheme(theme === "dark" ? "light" : "dark");
+    };
 
     useEffect(() => {
         const controlNavbar = () => {
@@ -138,6 +149,21 @@ export default function Navbar() {
                         </div>
 
                         <div className="flex items-center gap-4 flex-shrink-0">
+                            {mounted && (
+                                <button
+                                    onClick={toggleTheme}
+                                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[rgb(45,45,44)] transition-colors duration-300 ease-in-out"
+                                    aria-label="Toggle theme"
+                                    title="Toggle theme"
+                                >
+                                    {theme === "dark" ? (
+                                        <Sun size={20} className="text-yellow-500" />
+                                    ) : (
+                                        <Moon size={20} className="text-gray-600 dark:text-gray-300" />
+                                    )}
+                                </button>
+                            )}
+
                             {/* Navigation Links */}
                             <a
                                 href="#billing"
@@ -147,7 +173,7 @@ export default function Navbar() {
                                 }}
                                 className="hidden lg:block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-300 cursor-pointer"
                             >
-                                Billing with ads
+                                Billing
                             </a>
 
                             <a

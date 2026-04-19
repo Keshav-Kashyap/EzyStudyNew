@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import Image from "next/image";
 import { GraduationCap, ArrowRight, BookOpen, FileText, Users } from 'lucide-react';
+import CourseSkeleton from './skeletons/CourseSkeleton';
 
 export default function CoursesSection({ courses, loading }) {
     const courseImages = {
@@ -40,11 +41,7 @@ export default function CoursesSection({ courses, loading }) {
                 </motion.div>
 
                 {loading ? (
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="bg-gray-200 dark:bg-gray-800 rounded-xl h-80 animate-pulse" />
-                        ))}
-                    </div>
+                    <CourseSkeleton count={3} wrapperClassName="grid md:grid-cols-3 gap-8" />
                 ) : (
                     <div className="grid md:grid-cols-3 gap-8">
                         {displayCourses.map((course, i) => {

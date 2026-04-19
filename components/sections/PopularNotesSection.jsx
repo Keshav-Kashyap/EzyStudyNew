@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from "motion/react";
 import Link from "next/link";
 import GenericCard from '@/app/(main)/_components/shared/GenericCard';
 import ReviewPromptModal from '@/components/ReviewPromptModal';
 import { Download, FileText, Calendar, Heart, Share2, ArrowRight, BookOpen } from 'lucide-react';
+import CourseSkeleton from '@/app/_components/landing/skeletons/CourseSkeleton';
 
 const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
     const [showReviewModal, setShowReviewModal] = useState(false);
@@ -75,11 +76,7 @@ const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
                 </motion.div>
 
                 {loading ? (
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="bg-gray-200 dark:bg-gray-800 rounded-xl h-64 animate-pulse" />
-                        ))}
-                    </div>
+                    <CourseSkeleton count={3} wrapperClassName="grid md:grid-cols-3 gap-8" />
                 ) : notes && notes.length > 0 ? (
                     <div className="grid md:grid-cols-3 gap-8 mb-8">
                         {notes.map((note, i) => {
@@ -156,7 +153,7 @@ const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
                     viewport={{ once: true }}
                     className="text-center">
                     <Link href="/dashboard/popular">
-                        <button className="px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center gap-2">
+                        <button className="px-8 py-4 mt-5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center gap-2">
                             View All Notes
                             <ArrowRight className="w-5 h-5" />
                         </button>
@@ -168,7 +165,6 @@ const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
                     isOpen={showReviewModal}
                     onClose={() => {
                         setShowReviewModal(false);
-                        setPendingDownload(null);
                     }}
                     onReviewSubmitted={handleReviewSubmitted}
                 />

@@ -133,6 +133,11 @@ export const adminbottomMenuItems = [
         badge: 3
     },
     {
+        title: "Reviews",
+        icon: "MessageSquare",
+        href: "/admin/reviews",
+    },
+    {
         title: 'Settings',
         icon: "Settings",
         // No href - opens UserProfile dialog

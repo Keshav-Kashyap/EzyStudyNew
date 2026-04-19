@@ -110,6 +110,20 @@ const fetchReviews = async () => {
     return data.reviews;
 };
 
+const fetchFeaturedReviews = async () => {
+    const response = await fetch('/api/reviews/featured');
+    if (!response.ok) {
+        throw new Error('Failed to fetch reviews');
+    }
+    const data = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch reviews');
+    }
+
+    return data.reviews;
+};
+
 const fetchCourseDetail = async (code) => {
     const response = await fetch(`/api/courses/${code}`);
     if (!response.ok) {
@@ -261,6 +275,16 @@ export function useReviews() {
     return useQuery({
         queryKey: courseKeys.reviews,
         queryFn: fetchReviews,
+        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    });
+}
+
+
+export function useFeaturedReviews() {
+    return useQuery({
+        queryKey: courseKeys.reviews,
+        queryFn: fetchFeaturedReviews,
         staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
         gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
     });
