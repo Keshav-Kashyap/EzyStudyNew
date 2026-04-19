@@ -232,14 +232,14 @@ export function useInfiniteCourses(limit = 10) {
 /**
  * Hook to fetch dashboard statistics with caching
  */
-// export function useDashboardStats() {
-//     return useQuery({
-//         queryKey: courseKeys.stats(),
-//         queryFn: fetchDashboardStats,
-//         staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
-//         gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
-//     });
-// }
+export function useDashboardStats() {
+    return useQuery({
+        queryKey: courseKeys.stats(),
+        queryFn: fetchDashboardStats,
+        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    });
+}
 
 /**
  * Hook to fetch popular notes with caching
@@ -338,17 +338,19 @@ export function useSemesterDetail(code, semesterId) {
  */
 export function useDashboardData() {
     const coursesQuery = useCourses();
-    // const statsQuery = useDashboardStats();
+    const statsQuery = useDashboardStats();
     const popularNotesQuery = usePopularNotes();
 
     return {
         courses: coursesQuery.data || [],
+        stats: statsQuery.data || {},
         popularNotes: popularNotesQuery.data || [],
         isLoading: coursesQuery.isLoading || statsQuery.isLoading || popularNotesQuery.isLoading,
         isError: coursesQuery.isError || statsQuery.isError || popularNotesQuery.isError,
         error: coursesQuery.error || statsQuery.error || popularNotesQuery.error,
         refetch: () => {
             coursesQuery.refetch();
+            statsQuery.refetch();
             popularNotesQuery.refetch();
         }
     };
