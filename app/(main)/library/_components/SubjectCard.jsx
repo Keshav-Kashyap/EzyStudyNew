@@ -56,23 +56,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
         setLocalMaterials(subject.materials || []);
     }, [subject.materials]);
 
-    // Check if user has reviewed on component mount
-    useEffect(() => {
-        checkReviewStatus();
-    }, []);
 
-    const checkReviewStatus = async () => {
-        try {
-            const response = await fetch('/api/check-review-status');
-            const data = await response.json();
-            if (data.success) {
-                console.log('[SubjectCard] Review status:', data);
-                setHasReviewed(data.hasReviewed);
-            }
-        } catch (error) {
-            console.error('Error checking review status:', error);
-        }
-    };
 
     const handleDownloadClick = (material) => {
         // Admin can download without review

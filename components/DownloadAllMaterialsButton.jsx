@@ -17,21 +17,21 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
     const [pendingDownload, setPendingDownload] = useState(false)
     const { setUserDetail } = useContext(UserDetailContext) || {}
 
-    useEffect(() => {
-        checkReviewStatus();
-    }, []);
+    // useEffect(() => {
+    //     checkReviewStatus();
+    // }, []);
 
-    const checkReviewStatus = async () => {
-        try {
-            const response = await fetch('/api/check-review-status');
-            const data = await response.json();
-            if (data.success) {
-                setHasReviewed(data.hasReviewed);
-            }
-        } catch (error) {
-            console.error('Error checking review status:', error);
-        }
-    };
+    // const checkReviewStatus = async () => {
+    //     try {
+    //         const response = await fetch('/api/check-review-status');
+    //         const data = await response.json();
+    //         if (data.success) {
+    //             setHasReviewed(data.hasReviewed);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error checking review status:', error);
+    //     }
+    // };
 
     const handleDownloadClick = () => {
         if (!hasReviewed) {

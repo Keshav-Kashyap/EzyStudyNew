@@ -48,22 +48,6 @@ const SemesterDetail = ({ basePath }) => {
         }, 500);
     };
 
-    // Check if user has reviewed on component mount
-    useEffect(() => {
-        checkReviewStatus();
-    }, []);
-
-    const checkReviewStatus = async () => {
-        try {
-            const response = await fetch('/api/check-review-status');
-            const data = await response.json();
-            if (data.success) {
-                setHasReviewed(data.hasReviewed);
-            }
-        } catch (error) {
-            console.error('Error checking review status:', error);
-        }
-    };
 
     const handleDownload = (material) => {
         // Admin can download without review

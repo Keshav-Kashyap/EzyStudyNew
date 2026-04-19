@@ -30,7 +30,7 @@ export default function AdminGuard({ children }) {
                 try {
                     const res = await fetch('/api/check-admin')
                     const data = await res.json()
-
+                    console.log("check admin",user)
                     setIsAdmin(data.isAdmin)
                     setIsChecking(false)
 

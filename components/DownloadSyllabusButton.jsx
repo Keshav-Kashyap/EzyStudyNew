@@ -21,20 +21,10 @@ const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", s
     // Check if syllabus exists on mount
     useEffect(() => {
         checkSyllabusAvailability();
-        checkReviewStatus();
+     
     }, [category, semesterName]);
 
-    const checkReviewStatus = async () => {
-        try {
-            const response = await fetch('/api/check-review-status');
-            const data = await response.json();
-            if (data.success) {
-                setHasReviewed(data.hasReviewed);
-            }
-        } catch (error) {
-            console.error('Error checking review status:', error);
-        }
-    };
+    
 
     const checkSyllabusAvailability = async () => {
         if (!category || !semesterName) {

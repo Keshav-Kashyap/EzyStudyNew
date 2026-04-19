@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // ==================== QUERY KEYS ====================
 export const courseKeys = {
@@ -16,8 +16,8 @@ export const courseKeys = {
 };
 
 // ==================== API FUNCTIONS ====================
-const fetchCourses = async () => {
-    const response = await fetch('/api/courses');
+const fetchCoursesWithPagination = async (page = 1, limit = 10) => {
+    const response = await fetch(`/api/courses/minimal?page=${page}&limit=${limit}`);
     if (!response.ok) {
         throw new Error('Failed to fetch courses');
     }
@@ -43,7 +43,15 @@ const fetchCourses = async () => {
         bgColor: course.bgColor || 'bg-blue-500'
     }));
 
-    return transformedCourses;
+    return {
+        courses: transformedCourses,
+        pagination: data.pagination,
+    };
+};
+
+const fetchCourses = async (page = 1, limit = 6) => {
+    const data = await fetchCoursesWithPagination(page, limit);
+    return data.courses;
 };
 
 const fetchDashboardStats = async () => {
@@ -60,8 +68,8 @@ const fetchDashboardStats = async () => {
     return data;
 };
 
-const fetchPopularNotes = async () => {
-    const response = await fetch('/api/popularNotes');
+const fetchPopularNotes = async (limit = 6) => {
+    const response = await fetch(`/api/popularNotes?limit=${limit}`);
     if (!response.ok) {
         throw new Error('Failed to fetch popular notes');
     }
@@ -74,8 +82,8 @@ const fetchPopularNotes = async () => {
     return data;
 };
 
-const fetchPopularCourses = async () => {
-    const response = await fetch('/api/popular-courses');
+const fetchPopularCourses = async (limit = 6) => {
+    const response = await fetch(`/api/popular-courses?limit=${limit}`);
     if (!response.ok) {
         throw new Error('Failed to fetch popular courses');
     }
@@ -173,25 +181,60 @@ export function useCourses() {
 }
 
 /**
- * Hook to fetch dashboard statistics with caching
+ * Hook to fetch courses with infinite pagination
+ * Starts with a configurable limit and fetches more pages on demand
  */
-export function useDashboardStats() {
-    return useQuery({
-        queryKey: courseKeys.stats(),
-        queryFn: fetchDashboardStats,
-        staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+export function useInfiniteCourses(limit = 10) {
+    return useInfiniteQuery({
+        queryKey: [...courseKeys.list(), 'infinite', limit],
+        initialPageParam: 1,
+        queryFn: ({ pageParam }) => fetchCoursesWithPagination(pageParam, limit),
+        getNextPageParam: (lastPage, allPages) => {
+            // Stop immediately if backend returns no records for current page.
+            if (!lastPage?.courses?.length) {
+                return undefined;
+            }
+
+            if (lastPage?.pagination?.hasNextPage === true) {
+                return lastPage.pagination.currentPage + 1;
+            }
+
+            if (lastPage?.pagination?.hasNextPage === false) {
+                return undefined;
+            }
+
+            // Fallback behavior when pagination metadata is missing.
+            if (lastPage.courses.length < limit) {
+                return undefined;
+            }
+
+            return allPages.length + 1;
+        },
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
     });
 }
+
+/**
+ * Hook to fetch dashboard statistics with caching
+ */
+// export function useDashboardStats() {
+//     return useQuery({
+//         queryKey: courseKeys.stats(),
+//         queryFn: fetchDashboardStats,
+//         staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
+//         gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+//     });
+// }
 
 /**
  * Hook to fetch popular notes with caching
  * Data cached for 5 minutes to prevent unnecessary API calls
  */
-export function usePopularNotes() {
+export function usePopularNotes(limit = 6) {
     return useQuery({
-        queryKey: courseKeys.popularNotes,
-        queryFn: fetchPopularNotes,
+        queryKey: [...courseKeys.popularNotes, limit],
+        queryFn: () => fetchPopularNotes(limit),
         staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
         gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
     });
@@ -201,10 +244,10 @@ export function usePopularNotes() {
  * Hook to fetch popular courses with caching
  * Data cached for 5 minutes to prevent unnecessary API calls
  */
-export function usePopularCourses() {
+export function usePopularCourses(limit = 6) {
     return useQuery({
-        queryKey: courseKeys.popularCourses,
-        queryFn: fetchPopularCourses,
+        queryKey: [...courseKeys.popularCourses, limit],
+        queryFn: () => fetchPopularCourses(limit),
         staleTime: 5 * 60 * 1000, // 5 minutes - no refetch for 5 minutes
         gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
     });
@@ -271,19 +314,17 @@ export function useSemesterDetail(code, semesterId) {
  */
 export function useDashboardData() {
     const coursesQuery = useCourses();
-    const statsQuery = useDashboardStats();
+    // const statsQuery = useDashboardStats();
     const popularNotesQuery = usePopularNotes();
 
     return {
         courses: coursesQuery.data || [],
-        stats: statsQuery.data || {},
         popularNotes: popularNotesQuery.data || [],
         isLoading: coursesQuery.isLoading || statsQuery.isLoading || popularNotesQuery.isLoading,
         isError: coursesQuery.isError || statsQuery.isError || popularNotesQuery.isError,
         error: coursesQuery.error || statsQuery.error || popularNotesQuery.error,
         refetch: () => {
             coursesQuery.refetch();
-            statsQuery.refetch();
             popularNotesQuery.refetch();
         }
     };

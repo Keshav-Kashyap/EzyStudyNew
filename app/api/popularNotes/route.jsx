@@ -4,8 +4,12 @@ import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable, mater
 import { NextResponse } from "next/server";
 import { eq, desc, sql, like } from "drizzle-orm";
 
-export async function GET() {
+export async function GET(request) {
     try {
+        // Get limit from query params, default to 6
+        const { searchParams } = new URL(request.url);
+        const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '6')));
+
         // Fetch popular notes with their subjects through mapping table
         const notesWithSubjects = await db
             .select({
@@ -33,7 +37,7 @@ export async function GET() {
             )
             .where(like(studyMaterialsTable.tags, '%popular%'))
             .orderBy(desc(studyMaterialsTable.downloadCount))
-            .limit(10);
+            .limit(limit);
 
         // Group materials with their subjects
         const notesMap = new Map();

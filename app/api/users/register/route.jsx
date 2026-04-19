@@ -97,7 +97,7 @@ export async function POST() {
             }).returning();
         });
 
-        console.log('✅ New user created in database:', {
+        console.log(' New user created in database:', {
             userId: user.id,
             email: userEmail,
             name: newUser[0].name
@@ -111,7 +111,7 @@ export async function POST() {
         });
 
     } catch (error) {
-        console.error('❌ Error creating user:', error);
+        console.error('Error creating user:', error);
 
         // Return more user-friendly error
         return NextResponse.json({

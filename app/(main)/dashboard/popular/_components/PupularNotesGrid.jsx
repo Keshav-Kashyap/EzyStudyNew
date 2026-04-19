@@ -16,9 +16,9 @@ import {
 } from "lucide-react";
 import HeroHeader from '../../_components/HeroHeader';
 
-const PopularNotesGrid = () => {
+const PopularNotesGrid = ({ limit = 10 }) => {
     // Use React Query hook for caching
-    const { data, isLoading, isError } = usePopularNotes();
+    const { data, isLoading, isError } = usePopularNotes(limit);
     const popularNotes = data?.notes || [];
     const [likedNotes, setLikedNotes] = useState(new Set());
 

@@ -3,11 +3,27 @@ import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable, mater
 import { NextResponse } from "next/server";
 import { eq, and, count } from "drizzle-orm";
 
-export async function GET() {
+export async function GET(request) {
     try {
-        // Fetch all courses with retry logic
+        // Get pagination params from query
+        const { searchParams } = new URL(request.url);
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+        const limit = Math.min(20, Math.max(1, parseInt(searchParams.get('limit') || '10')));
+        const offset = (page - 1) * limit;
+
+        // Get total count of courses
+        const [{ total }] = await withRetry(async () => {
+            return await db
+                .select({ total: count() })
+                .from(coursesTable);
+        });
+
+        // Fetch paginated courses with retry logic
         const courses = await withRetry(async () => {
-            return await db.select().from(coursesTable);
+            return await db.select()
+                .from(coursesTable)
+                .limit(limit)
+                .offset(offset);
         });
 
         // For each course, get additional statistics
@@ -57,7 +73,6 @@ export async function GET() {
                     };
                 } catch (error) {
                     console.error(`Error processing course ${course.id}:`, error);
-                    // Return course with default stats if there's an error
                     return {
                         ...course,
                         semesters: 0,
@@ -71,9 +86,19 @@ export async function GET() {
             })
         );
 
+        const totalPages = Math.ceil(total / limit);
+
         return NextResponse.json({
             success: true,
-            courses: coursesWithStats
+            courses: coursesWithStats,
+            pagination: {
+                currentPage: page,
+                limit,
+                totalCourses: total,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            }
         });
 
     } catch (error) {

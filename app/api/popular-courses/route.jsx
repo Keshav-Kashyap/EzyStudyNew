@@ -3,8 +3,12 @@ import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable, mater
 import { NextResponse } from "next/server";
 import { eq, sql, count, inArray } from "drizzle-orm";
 
-export async function GET() {
+export async function GET(request) {
     try {
+        // Get limit from query params, default to 6
+        const { searchParams } = new URL(request.url);
+        const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '6')));
+
         console.log("🚀 Fetching popular courses...");
 
         // Fetch courses with material count and student count
@@ -20,7 +24,7 @@ export async function GET() {
                 createdAt: coursesTable.createdAt,
             })
             .from(coursesTable)
-            .limit(10);
+            .limit(limit);
 
         console.log(`📚 Found ${courses.length} courses:`, courses.map(c => ({ title: c.title, category: c.category })));
 

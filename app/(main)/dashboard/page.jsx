@@ -10,7 +10,6 @@ import SearchFilterToolbar from '../_components/SearchFilterToolbar'
 import { useDashboardData } from '@/hooks/useCourses';
 import JsonLd from '@/components/JsonLd';
 import { generateOrganizationJsonLd, generateBreadcrumbJsonLd } from '@/lib/seo-config';
-
 import {
 
     Search,
@@ -30,6 +29,8 @@ import Link from "next/link";
 import { useState } from "react";
 import CoursesCard from "./allCourses/_components/CoursesCard";
 import WelcomeContainer from "../_components/AppWelcomeContainer";
+import GenericCardSkeleton from "../_components/skeletons/GenericCardSkeleton";
+import Stats from "./_components/stats";
 
 export default function CoursesPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -50,26 +51,6 @@ export default function CoursesPage() {
         { name: "Home", url: "/" },
         { name: "Dashboard", url: "/dashboard" },
     ]);
-
-    if (isLoading) {
-        // Show card skeletons instead of a spinner
-        const GenericCardSkeleton = require('../_components/skeletons/GenericCardSkeleton').default;
-        return (
-            <div className="min-h-screen bg-white dark:bg-[rgb(38,38,36)] text-slate-900 dark:text-slate-100 transition-colors duration-300">
-                <div className="flex-1 p-6 lg:p-8">
-                    <div className="max-w-7xl mx-auto">
-                        <div className="mb-8">
-                            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                                {Array.from({ length: 6 }).map((_, i) => (
-                                    <GenericCardSkeleton key={i} />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     if (isError) {
         return (
@@ -100,6 +81,8 @@ export default function CoursesPage() {
 
                         <WelcomeContainer />
 
+                      
+
 
                         <SearchFilterToolbar
                             searchValue={searchQuery}
@@ -124,7 +107,7 @@ export default function CoursesPage() {
                         )}
 
                         {/* Course Grid */}
-                        <PupularNotesGrid />
+                        <PupularNotesGrid limit={6} />
 
                         {/* View All Notes Button */}
                         <div className="mt-4 mb-8 flex justify-center">
@@ -138,13 +121,27 @@ export default function CoursesPage() {
                                 </Button>
                             </Link>
                         </div>
-
-                        <CoursesCard
-                            courses={courses}
-                            viewMode={viewMode}
-                            searchQuery={searchQuery}
-                        />
-
+                        {isLoading ? (
+                            <div className="min-h-screen bg-white dark:bg-[rgb(38,38,36)] text-slate-900 dark:text-slate-100 transition-colors duration-300">
+                                <div className="flex-1 p-6 lg:p-8">
+                                    <div className="max-w-7xl mx-auto">
+                                        <div className="mb-8">
+                                            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                                                {Array.from({ length: 6 }).map((_, i) => (
+                                                    <GenericCardSkeleton key={i} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <CoursesCard
+                                courses={courses.slice(0, 6)}
+                                viewMode={viewMode}
+                                searchQuery={searchQuery}
+                            />)
+                        }
                         {/* View All Courses Button */}
                         <div className="mt-4 mb-8 flex justify-center">
                             <Link href="/dashboard/allCourses">

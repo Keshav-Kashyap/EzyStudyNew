@@ -12,7 +12,8 @@ const isPublicRoute = createRouteMatcher([
     '/privacy-policy(.*)',
     '/api/reviews(.*)',
     '/api/popularNotes(.*)',
-    '/api/popular-courses(.*)'
+    '/api/popular-courses(.*)',
+    '/api/courses(.*)'
 ])
 const isAdminRoute = createRouteMatcher(['/admin(.*)'])
 
@@ -27,18 +28,18 @@ export default clerkMiddleware(async (auth, req) => {
     if (isAdminRoute(req) && userId) {
         try {
             // Check user role from database
+
             const dbUser = await db.select()
                 .from(usersTable)
                 .where(eq(usersTable.userId, userId))
                 .limit(1)
-
+           
             // If user not found or not admin, redirect to dashboard
             if (dbUser.length === 0 || dbUser[0].role !== 'admin' || !dbUser[0].isActive) {
-                return NextResponse.redirect(new URL('/dashboard', req.url))
+                return NextResponse.rewrite(new URL('/not-found', req.url));
             }
         } catch (error) {
-            console.error('Admin check error:', error)
-            return NextResponse.redirect(new URL('/dashboard', req.url))
+            return NextResponse.rewrite(new URL('/not-found', req.url));
         }
     }
 
