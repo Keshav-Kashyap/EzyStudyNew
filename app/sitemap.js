@@ -8,6 +8,8 @@ export default function sitemap() {
         '',
         '/dashboard',
         '/library',
+        '/terms',
+        '/privacy-policy',
     ].map((route) => ({
         url: `${baseUrl}${route}`,
         lastModified: new Date().toISOString(),
