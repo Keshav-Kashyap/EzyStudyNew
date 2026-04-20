@@ -1,12 +1,13 @@
 import { db } from "@/config/db";
 import { coursesTable, semestersTable, subjectsTable, studyMaterialsTable, materialSubjectMappingTable, usersTable } from "@/config/schema";
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { auth } from '@clerk/nextjs/server';
 
 export async function GET(request, { params }) {
     try {
         const { code } = await params;
+        const normalizedCode = code?.trim();
         const { userId: clerkUserId } = await auth();
 
         // Get user role if authenticated
@@ -21,7 +22,7 @@ export async function GET(request, { params }) {
 
         // Find course by category/code
         const courses = await db.select().from(coursesTable)
-            .where(eq(coursesTable.category, code.toUpperCase()));
+            .where(sql`lower(${coursesTable.category}) = lower(${normalizedCode})`);
 
         if (courses.length === 0) {
             return NextResponse.json({

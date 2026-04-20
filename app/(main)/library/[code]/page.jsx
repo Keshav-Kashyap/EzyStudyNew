@@ -1,28 +1,40 @@
 "use client"
 import React, { useContext } from 'react';
-import { Calendar, Loader2 } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { useParams } from "next/navigation";
 import SemesterCard from './../_components/SemesterCard'
-import { useUser } from '@clerk/nextjs';
 import { UserDetailContext } from '@/context/UserDetailContext';
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
 import { useCourseDetail } from '@/hooks/useCourses';
-import DownloadAllMaterialsButton from '@/components/DownloadAllMaterialsButton';
+import SemesterCardSkeleton from '../_components/SemesterCardSkeleton';
 
 const SemesterOverview = () => {
     const { code } = useParams();
     const { data: courseData, isLoading, isError, error } = useCourseDetail(code);
-    const { user } = useUser();
     const { userDetail } = useContext(UserDetailContext);
     const isAdmin = userDetail?.role === "admin";
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-lg text-gray-600 dark:text-gray-300">Loading course data...</p>
+            <div className="min-h-screen bg-gray-50 dark:bg-[rgb(38,38,36)] p-6">
+                <div className="max-w-7xl mx-auto">
+                    <div className="animate-pulse mb-8 space-y-3">
+                        <div className="h-10 w-72 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+                        <div className="h-5 w-48 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+                    </div>
+
+                    <div className="bg-white dark:bg-[rgb(24,24,24)] rounded-2xl p-8 border border-gray-200 dark:border-gray-700 shadow-lg mb-8 animate-pulse">
+                        <div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4" />
+                        <div className="space-y-3">
+                            <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded" />
+                            <div className="h-4 w-10/12 bg-gray-200 dark:bg-gray-700 rounded" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {Array.from({ length: 6 }).map((_, index) => (
+                            <SemesterCardSkeleton key={index} />
+                        ))}
+                    </div>
                 </div>
             </div>
         );
