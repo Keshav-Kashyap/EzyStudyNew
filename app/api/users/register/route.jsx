@@ -39,7 +39,7 @@ export async function POST() {
     try {
         const user = await currentUser();
         const userEmail = user?.emailAddresses?.[0]?.emailAddress || '';
-
+        console.log(user.imageUrl)
         if (!user) {
             return NextResponse.json({
                 success: false,
@@ -93,6 +93,7 @@ export async function POST() {
                 email: userEmail,
                 role: 'student', // Default role
                 isActive: true,
+                image: user.imageUrl,
                 credits: 10 // Default credits
             }).returning();
         });
@@ -100,7 +101,8 @@ export async function POST() {
         console.log(' New user created in database:', {
             userId: user.id,
             email: userEmail,
-            name: newUser[0].name
+            name: newUser[0].name,
+            image:user.imageUrl
         });
 
         return NextResponse.json({

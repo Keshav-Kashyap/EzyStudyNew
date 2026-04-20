@@ -59,19 +59,9 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
 
 
     const handleDownloadClick = (material) => {
-        // Admin can download without review
-        if (isAdmin) {
-            onDownload(material);
-            return;
-        }
-
-        // Check if user has reviewed
-        if (!hasReviewed) {
-            setPendingDownload(material);
-            setShowReviewModal(true);
-        } else {
-            onDownload(material);
-        }
+        
+    onDownload(material);
+      
     };
 
     const handleReviewSubmitted = async () => {

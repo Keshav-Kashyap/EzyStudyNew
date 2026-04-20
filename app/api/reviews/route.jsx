@@ -7,8 +7,20 @@ import { desc, eq } from "drizzle-orm";
 export async function GET() {
     try {
         const reviews = await db
-            .select()
+            .select({
+                id: reviewsTable.id,
+                userId: reviewsTable.userId,
+                userName: reviewsTable.userName,
+                userEmail: reviewsTable.userEmail,
+                rating: reviewsTable.rating,
+                reviewText: reviewsTable.reviewText,
+                isApproved: reviewsTable.isApproved,
+                isFeatured: reviewsTable.isFeatured,
+                createdAt: reviewsTable.createdAt,
+                image: usersTable.image
+            })
             .from(reviewsTable)
+            .leftJoin(usersTable, eq(reviewsTable.userId, usersTable.userId))
             .orderBy(desc(reviewsTable.createdAt))
             .limit(50);
 

@@ -5,7 +5,7 @@ import { Sparkles, Check } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import BillingFeatures from '@/components/billing/BillingFeatures'
 import BillingBenefits from '@/components/billing/BillingBenefits'
-import ClerkPricingTable from '@/components/billing/ClerkPricingTable'
+import PricingTable from './_components/PricingTable'
 
 const Billing = () => {
     return (
@@ -36,7 +36,7 @@ const Billing = () => {
 
             {/* Pricing Table */}
             <div className="max-w-7xl mx-auto px-6">
-                <ClerkPricingTable />
+                <PricingTable />
             </div>
 
             {/* Trust Badge */}

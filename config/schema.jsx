@@ -6,6 +6,7 @@ export const usersTable = pgTable("users", {
     userId: varchar({ length: 255 }).notNull().unique(), // Clerk user ID
     name: varchar({ length: 255 }).notNull(),
     email: varchar({ length: 255 }).notNull().unique(),
+    image: text("image"), 
     role: varchar({ length: 50 }).default('student'), // 'admin' or 'student'
     isActive: boolean().default(true),
     credits: integer().default(10),
@@ -142,6 +143,16 @@ export const reviewsTable = pgTable("reviews", {
     reviewText: text().notNull(),
     isApproved: boolean().default(true), // For moderation
     isFeatured: boolean().default(false),
+    createdAt: timestamp().defaultNow()
+});
+
+// Join Our Team / Contact submissions
+export const contactSubmissionsTable = pgTable("contact_submissions", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar({ length: 255 }).notNull(),
+    email: varchar({ length: 255 }).notNull(),
+    subject: varchar({ length: 255 }).notNull(),
+    message: text().notNull(),
     createdAt: timestamp().defaultNow()
 });
 

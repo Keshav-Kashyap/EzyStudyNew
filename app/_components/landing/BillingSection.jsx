@@ -1,6 +1,6 @@
 "use client";
 
-import ClerkPricingTable from '@/components/billing/ClerkPricingTable';
+import PricingTable from '@/app/(main)/billing/_components/PricingTable';
 
 export default function BillingSection() {
     return (
@@ -16,8 +16,8 @@ export default function BillingSection() {
                     </p>
                 </div>
 
-                {/* Clerk Pricing Table */}
-                <ClerkPricingTable />
+                {/* Custom Pricing Table */}
+                <PricingTable />
             </div>
         </section>
     );

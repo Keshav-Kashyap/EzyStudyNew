@@ -101,7 +101,7 @@ const ReviewsPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center mb-12">
                     <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-                      Share Your Experience
+                        Share Your Experience
                     </h1>
                     <p className="text-xl text-gray-600 dark:text-gray-400">
                         Help us improve by sharing your feedback
@@ -225,9 +225,20 @@ const ReviewsPage = () => {
                                     <Card>
                                         <CardContent className="pt-6">
                                             <div className="flex items-start gap-4">
-                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-                                                    {review.userName?.[0]?.toUpperCase() || <User className="w-6 h-6" />}
-                                                </div>
+                                                {review.image ? (
+                                                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white dark:ring-gray-800 shadow-md">
+                                                        <img
+                                                            src={review.image}
+                                                            alt={review.userName || 'User'}
+                                                            className="w-full h-full object-cover"
+                                                            loading="lazy"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+                                                        {review.userName?.[0]?.toUpperCase() || <User className="w-6 h-6" />}
+                                                    </div>
+                                                )}
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between mb-2">
                                                         <div>

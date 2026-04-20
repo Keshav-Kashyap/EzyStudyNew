@@ -14,11 +14,50 @@ export default function ContactSection() {
         subject: '',
         message: ''
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [feedback, setFeedback] = useState({ type: '', message: '' });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
-        // Add your form submission logic here
+
+        setIsSubmitting(true);
+        setFeedback({ type: '', message: '' });
+
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ...formData,
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to submit your message');
+            }
+
+            setFormData({
+                name: '',
+                email: '',
+                subject: '',
+                message: ''
+            });
+            setFeedback({
+                type: 'success',
+                message: data.message || 'Your message has been sent successfully.'
+            });
+        } catch (error) {
+            setFeedback({
+                type: 'error',
+                message: error.message || 'Something went wrong. Please try again.'
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleChange = (e) => {
@@ -107,11 +146,24 @@ export default function ContactSection() {
 
                         <Button
                             type="submit"
+                            disabled={isSubmitting}
                             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white h-12 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
                         >
                             <Send className="w-5 h-5 mr-2" />
-                            Send Message
+                            {isSubmitting ? 'Sending...' : 'Send Message'}
                         </Button>
+
+                        {feedback.message && (
+                            <p
+                                className={`text-sm text-center ${feedback.type === 'success'
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : 'text-red-600 dark:text-red-400'
+                                    }`}
+                                aria-live="polite"
+                            >
+                                {feedback.message}
+                            </p>
+                        )}
                     </form>
 
                     {/* Contact Info */}

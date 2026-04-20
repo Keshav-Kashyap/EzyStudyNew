@@ -13,7 +13,10 @@ const isPublicRoute = createRouteMatcher([
     '/api/reviews(.*)',
     '/api/popularNotes(.*)',
     '/api/popular-courses(.*)',
-    '/api/courses(.*)'
+    '/api/courses(.*)',
+    '/about(.*)',
+    '/api/contact(.*)',
+    '/api/allusers(.*)'
 ])
 const isAdminRoute = createRouteMatcher(['/admin(.*)'])
 

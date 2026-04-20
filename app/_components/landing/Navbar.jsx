@@ -177,11 +177,7 @@ export default function Navbar() {
                             </a>
 
                             <a
-                                href="#about"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
-                                }}
+                                href="/about"
                                 className="hidden lg:block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-300 cursor-pointer"
                             >
                                 About

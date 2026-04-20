@@ -31,11 +31,10 @@ import CoursesCard from "./allCourses/_components/CoursesCard";
 import WelcomeContainer from "../_components/AppWelcomeContainer";
 import GenericCardSkeleton from "../_components/skeletons/GenericCardSkeleton";
 import Stats from "./_components/stats";
-
 export default function CoursesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [viewMode, setViewMode] = useState("grid");
-
+  
     // Use React Query hook - data is cached and won't refetch unnecessarily
     const { courses, stats, isLoading, isError, error } = useDashboardData();
 

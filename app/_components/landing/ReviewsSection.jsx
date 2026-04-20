@@ -49,7 +49,7 @@ export default function ReviewsSection() {
                         Student Feedback
                     </span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-5 flex items-center justify-center gap-3">
-                       
+
                         Loved by Thousands of Students
                     </h2>
                     <p className="max-w-3xl mx-auto text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
@@ -146,6 +146,7 @@ export default function ReviewsSection() {
 
 function ReviewCard({ review, index, getInitials, avatarColors, isFeatured }) {
     const avatarBg = avatarColors[index % avatarColors.length];
+    const userImage = review?.image;
 
     return (
         <div className="
@@ -160,10 +161,21 @@ function ReviewCard({ review, index, getInitials, avatarColors, isFeatured }) {
         ">
             {/* Top: Avatar + Name */}
             <div className="flex items-center gap-3">
-                <div className={`relative w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm text-white flex-shrink-0 ${avatarBg} shadow-md ring-2 ring-white/70 dark:ring-slate-800`}>
-                    <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 via-transparent to-transparent" />
-                    {getInitials(review.userName)}
-                </div>
+                {userImage ? (
+                    <div className="relative w-12 h-12 rounded-full flex-shrink-0 shadow-md ring-2 ring-white/70 dark:ring-slate-800 overflow-hidden">
+                        <img
+                            src={userImage}
+                            alt={review.userName || 'User'}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                        />
+                    </div>
+                ) : (
+                    <div className={`relative w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm text-white flex-shrink-0 ${avatarBg} shadow-md ring-2 ring-white/70 dark:ring-slate-800`}>
+                        <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 via-transparent to-transparent" />
+                        {getInitials(review.userName)}
+                    </div>
+                )}
                 <div className="min-w-0">
                     <p className="font-bold text-slate-900 dark:text-white text-base leading-tight truncate">
                         {review.userName}
