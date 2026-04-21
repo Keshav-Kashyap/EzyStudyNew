@@ -1,5 +1,5 @@
-import { extractAttachmentText } from './attachments';
-import { callGroqChat } from './groq-client';
+import { extractAttachmentText } from './attachments.js';
+import { callGroqChat } from './groq-client.js';
 
 function sanitizeHistory(history = []) {
     if (!Array.isArray(history)) return [];

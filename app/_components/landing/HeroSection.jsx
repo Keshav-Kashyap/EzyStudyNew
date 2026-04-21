@@ -64,7 +64,7 @@ export default function HeroSection({ onDashboard }) {
                                 Get Started Free
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </button>
-                            <Link href="/library">
+                            <Link href="/dashboard/allCourses">
                                 <button className="px-8 py-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105">
                                     Browse Library
                                 </button>

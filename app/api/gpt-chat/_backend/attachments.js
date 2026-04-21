@@ -1,7 +1,31 @@
-import { PDFParse } from 'pdf-parse';
-
 const MAX_ATTACHMENTS = 3;
 const MAX_EXTRACTED_CHARS = 12000;
+
+let pdfParseModulePromise;
+
+function ensurePdfPolyfills() {
+    if (typeof globalThis.DOMMatrix === 'undefined') {
+        globalThis.DOMMatrix = class DOMMatrix { };
+    }
+
+    if (typeof globalThis.ImageData === 'undefined') {
+        globalThis.ImageData = class ImageData { };
+    }
+
+    if (typeof globalThis.Path2D === 'undefined') {
+        globalThis.Path2D = class Path2D { };
+    }
+}
+
+async function getPdfParseModule() {
+    ensurePdfPolyfills();
+
+    if (!pdfParseModulePromise) {
+        pdfParseModulePromise = import('pdf-parse');
+    }
+
+    return pdfParseModulePromise;
+}
 
 function normalizeAttachment(attachment = {}) {
     const { name = 'file', type = 'application/octet-stream', dataUrl = '' } = attachment;
@@ -24,6 +48,8 @@ function normalizeAttachment(attachment = {}) {
 }
 
 async function extractTextFromPdfBase64(base64Data) {
+    const { PDFParse } = await getPdfParseModule();
+
     const parser = new PDFParse({
         data: Buffer.from(base64Data, 'base64'),
     });
