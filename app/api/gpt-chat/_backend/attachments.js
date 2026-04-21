@@ -1,14 +1,7 @@
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
-import * as pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.mjs';
+import { PDFParse } from 'pdf-parse';
 
 const MAX_ATTACHMENTS = 3;
 const MAX_EXTRACTED_CHARS = 12000;
-
-// In Next.js Node runtime, PDF.js may attempt fake-worker dynamic import from .next chunks.
-// Preloading worker handler prevents "Cannot find module ... pdf.worker.mjs" errors.
-if (typeof globalThis !== 'undefined' && !globalThis.pdfjsWorker) {
-    globalThis.pdfjsWorker = pdfjsWorker;
-}
 
 function normalizeAttachment(attachment = {}) {
     const { name = 'file', type = 'application/octet-stream', dataUrl = '' } = attachment;
@@ -31,35 +24,16 @@ function normalizeAttachment(attachment = {}) {
 }
 
 async function extractTextFromPdfBase64(base64Data) {
-    const buffer = Buffer.from(base64Data, 'base64');
-    const bytes = new Uint8Array(buffer);
-
-    const loadingTask = pdfjs.getDocument({
-        data: bytes,
-        disableWorker: true,
-        useWorkerFetch: false,
+    const parser = new PDFParse({
+        data: Buffer.from(base64Data, 'base64'),
     });
 
-    const pdf = await loadingTask.promise;
-    const pageTexts = [];
-
     try {
-        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-            const page = await pdf.getPage(pageNumber);
-            const content = await page.getTextContent();
-            const text = content.items
-                .map((item) => (item && 'str' in item ? item.str : ''))
-                .join(' ')
-                .replace(/\s+/g, ' ')
-                .trim();
-
-            if (text) pageTexts.push(text);
-        }
+        const result = await parser.getText();
+        return (result?.text || '').replace(/\s+\n/g, '\n').trim();
     } finally {
-        await pdf.destroy();
+        await parser.destroy();
     }
-
-    return pageTexts.join('\n').trim();
 }
 
 export async function extractAttachmentText(attachments = []) {
