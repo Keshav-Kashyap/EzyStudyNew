@@ -18,7 +18,7 @@ const TooltipContent = React.forwardRef(({ className, sideOffset = 4, showArrow 
         <TooltipPrimitive.Content
             ref={ref}
             sideOffset={sideOffset}
-            className={cn("relative z-50 max-w-[280px] rounded-md bg-popover text-popover-foreground px-1.5 py-1 text-xs animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2", className)}
+            className={cn("relative z-50 max-w-70 rounded-md bg-popover text-popover-foreground px-1.5 py-1 text-xs animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2", className)}
             {...props}
         >
             {props.children}
@@ -36,7 +36,7 @@ const PopoverContent = React.forwardRef(({ className, align = "center", sideOffs
             ref={ref}
             align={align}
             sideOffset={sideOffset}
-            className={cn("z-50 w-64 rounded-xl bg-popover dark:bg-[#303030] p-2 text-popover-foreground dark:text-white shadow-md outline-none animate-in data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2", className)}
+            className={cn("z-50 w-64 rounded-xl bg-popover p-2 text-popover-foreground shadow-md outline-none animate-in data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:bg-[#303030] dark:text-white", className)}
             {...props}
         />
     </PopoverPrimitive.Portal>
@@ -60,13 +60,13 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
         <DialogOverlay />
         <DialogPrimitive.Content
             ref={ref}
-            className={cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-[90vw] md:max-w-[800px] translate-x-[-50%] translate-y-[-50%] gap-4 border-none bg-transparent p-0 shadow-none duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95", className)}
+            className={cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-[90vw] md:max-w-200 translate-x-[-50%] translate-y-[-50%] gap-4 border-none bg-transparent p-0 shadow-none duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95", className)}
             {...props}
         >
-            <div className="relative bg-card dark:bg-[#303030] rounded-[28px] overflow-hidden shadow-2xl p-1">
+            <div className="relative overflow-hidden rounded-[28px] bg-card p-1 shadow-2xl dark:bg-[#303030]">
                 {children}
-                <DialogPrimitive.Close className="absolute right-3 top-3 z-10 rounded-full bg-background/50 dark:bg-[#303030] p-1 hover:bg-accent dark:hover:bg-[#515151] transition-all">
-                    <XIcon className="h-5 w-5 text-muted-foreground dark:text-gray-200 hover:text-foreground dark:hover:text-white" />
+                <DialogPrimitive.Close className="absolute right-3 top-3 z-10 rounded-full bg-background/70 p-1 transition-all hover:bg-accent dark:bg-[#303030] dark:hover:bg-[#515151]">
+                    <XIcon className="h-5 w-5 text-muted-foreground hover:text-foreground dark:text-gray-200 dark:hover:text-white" />
                     <span className="sr-only">Close</span>
                 </DialogPrimitive.Close>
             </div>
@@ -171,7 +171,7 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
     const internalTextareaRef = React.useRef(null);
     const fileInputRef = React.useRef(null);
     const [value, setValue] = React.useState("");
-    const [imagePreview, setImagePreview] = React.useState(null);
+    const [attachment, setAttachment] = React.useState(null);
     const [selectedTool, setSelectedTool] = React.useState(null);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = React.useState(false);
@@ -207,10 +207,15 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
 
     const handleFileChange = (event) => {
         const file = event.target.files?.[0];
-        if (file && file.type.startsWith("image/")) {
+        if (file && (file.type.startsWith("image/") || file.type === "application/pdf")) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImagePreview(reader.result);
+                setAttachment({
+                    name: file.name,
+                    type: file.type,
+                    dataUrl: reader.result,
+                    size: file.size,
+                });
             };
             reader.readAsDataURL(file);
         }
@@ -219,7 +224,7 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
 
     const handleRemoveImage = (e) => {
         e.stopPropagation();
-        setImagePreview(null);
+        setAttachment(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
@@ -228,36 +233,58 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
     const handleSubmit = (e) => {
         e.preventDefault();
         if (hasValue && onSend) {
-            onSend(value);
+            onSend({
+                message: value,
+                attachments: attachment ? [attachment] : [],
+                selectedTool,
+            });
             setValue("");
-            setImagePreview(null);
+            setAttachment(null);
             setSelectedTool(null);
         }
     };
 
-    const hasValue = value.trim().length > 0 || imagePreview;
+    const hasValue = value.trim().length > 0 || attachment;
     const activeTool = selectedTool ? toolsList.find(t => t.id === selectedTool) : null;
     const ActiveToolIcon = activeTool?.icon;
+    const isImageAttachment = attachment?.type?.startsWith("image/");
 
     return (
         <form onSubmit={handleSubmit}>
-            <div className={cn("flex flex-col rounded-[28px] p-2 shadow-sm transition-colors bg-zinc-800 border border-zinc-700 cursor-text", className)}>
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+            <div className={cn("flex cursor-text flex-col rounded-[28px] border border-zinc-300 bg-white p-2 shadow-sm transition-colors dark:border-zinc-700 dark:bg-zinc-800", className)}>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,application/pdf" />
 
-                {imagePreview && (
+                {attachment && isImageAttachment && (
                     <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
-                        <div className="relative mb-1 w-fit rounded-[1rem] px-1 pt-1">
+                        <div className="relative mb-1 w-fit rounded-2xl px-1 pt-1">
                             <button type="button" className="transition-transform" onClick={() => setIsImageDialogOpen(true)}>
-                                <img src={imagePreview} alt="Image preview" className="h-14 w-14 rounded-[1rem]" />
+                                <img src={attachment.dataUrl} alt="Image preview" className="h-14 w-14 rounded-2xl object-cover" />
                             </button>
-                            <button type="button" onClick={handleRemoveImage} className="absolute right-2 top-2 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-white/50 dark:bg-[#303030] text-black dark:text-white transition-colors hover:bg-accent dark:hover:bg-[#515151]" aria-label="Remove image">
+                            <button type="button" onClick={handleRemoveImage} className="absolute right-2 top-2 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-white/75 text-black transition-colors hover:bg-accent dark:bg-[#303030] dark:text-white dark:hover:bg-[#515151]" aria-label="Remove image">
                                 <XIcon className="h-4 w-4" />
                             </button>
                         </div>
                         <DialogContent>
-                            <img src={imagePreview} alt="Full size preview" className="w-full max-h-[95vh] object-contain rounded-[24px]" />
+                            <img src={attachment.dataUrl} alt="Full size preview" className="w-full max-h-[95vh] object-contain rounded-3xl" />
                         </DialogContent>
                     </Dialog>
+                )}
+
+                {attachment && !isImageAttachment && (
+                    <div className="mb-2 w-fit rounded-xl border border-zinc-300 bg-zinc-100 px-3 py-2 text-xs text-zinc-800 dark:border-zinc-600 dark:bg-zinc-700/70 dark:text-zinc-100">
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold">PDF</span>
+                            <span className="max-w-55 truncate" title={attachment.name}>{attachment.name}</span>
+                            <button
+                                type="button"
+                                onClick={handleRemoveImage}
+                                className="rounded-full p-0.5 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-600 dark:hover:text-white"
+                                aria-label="Remove PDF"
+                            >
+                                <XIcon className="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                    </div>
                 )}
 
                 <textarea
@@ -268,7 +295,7 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
                     onKeyDown={handleKeyDown}
                     placeholder="Message..."
                     disabled={disabled}
-                    className="custom-scrollbar w-full resize-none border-0 bg-transparent p-3 text-zinc-100 placeholder:text-zinc-400 focus:ring-0 focus-visible:outline-none min-h-12"
+                    className="custom-scrollbar min-h-12 w-full resize-none border-0 bg-transparent p-3 text-zinc-900 placeholder:text-zinc-500 focus:ring-0 focus-visible:outline-none dark:text-zinc-100 dark:placeholder:text-zinc-400"
                     {...props}
                 />
 
@@ -277,19 +304,19 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
                         <div className="flex items-center gap-2">
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <button type="button" onClick={handlePlusClick} className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-100 transition-colors hover:bg-zinc-700 focus-visible:outline-none">
+                                    <button type="button" onClick={handlePlusClick} className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-none dark:text-zinc-100 dark:hover:bg-zinc-700">
                                         <PlusIcon className="h-6 w-6" />
-                                        <span className="sr-only">Attach image</span>
+                                        <span className="sr-only">Attach file</span>
                                     </button>
                                 </TooltipTrigger>
-                                <TooltipContent side="top" showArrow={true}><p>Attach image</p></TooltipContent>
+                                <TooltipContent side="top" showArrow={true}><p>Attach image or PDF</p></TooltipContent>
                             </Tooltip>
 
                             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <PopoverTrigger asChild>
-                                            <button type="button" className="flex h-8 items-center gap-2 rounded-full p-2 text-sm text-zinc-100 transition-colors hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-ring">
+                                            <button type="button" className="flex h-8 items-center gap-2 rounded-full p-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-ring dark:text-zinc-100 dark:hover:bg-zinc-700">
                                                 <Settings2Icon className="h-4 w-4" />
                                                 {!selectedTool && 'Tools'}
                                             </button>
@@ -307,11 +334,11 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
                                                     setSelectedTool(tool.id);
                                                     setIsPopoverOpen(false);
                                                 }}
-                                                className="flex w-full items-center gap-2 rounded-md p-2 text-left text-sm hover:bg-zinc-700"
+                                                className="flex w-full items-center gap-2 rounded-md p-2 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-700"
                                             >
                                                 <tool.icon className="h-4 w-4" />
                                                 <span>{tool.name}</span>
-                                                {tool.extra && <span className="ml-auto text-xs text-zinc-400">{tool.extra}</span>}
+                                                {tool.extra && <span className="ml-auto text-xs text-zinc-500 dark:text-zinc-400">{tool.extra}</span>}
                                             </button>
                                         ))}
                                     </div>
@@ -320,11 +347,11 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
 
                             {activeTool && (
                                 <>
-                                    <div className="h-4 w-px bg-zinc-600" />
+                                    <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-600" />
                                     <button
                                         type="button"
                                         onClick={() => setSelectedTool(null)}
-                                        className="flex h-8 items-center gap-2 rounded-full px-2 text-sm hover:bg-zinc-700 cursor-pointer text-blue-400 transition-colors"
+                                        className="flex h-8 cursor-pointer items-center gap-2 rounded-full px-2 text-sm text-blue-700 transition-colors hover:bg-zinc-100 dark:text-blue-400 dark:hover:bg-zinc-700"
                                     >
                                         {ActiveToolIcon && <ActiveToolIcon className="h-4 w-4" />}
                                         {activeTool.shortName}
@@ -336,7 +363,7 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
                             <div className="ml-auto flex items-center gap-2">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-100 transition-colors hover:bg-zinc-700 focus-visible:outline-none">
+                                        <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-none dark:text-zinc-100 dark:hover:bg-zinc-700">
                                             <MicIcon className="h-5 w-5" />
                                             <span className="sr-only">Record voice</span>
                                         </button>
@@ -349,7 +376,7 @@ export const PromptBox = React.forwardRef(({ className, onSend, disabled, ...pro
                                         <button
                                             type="submit"
                                             disabled={!hasValue || disabled}
-                                            className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none bg-white text-black hover:bg-white/80 disabled:bg-zinc-600"
+                                            className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-sm font-medium text-white transition-colors hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:bg-zinc-400 dark:bg-white dark:text-black dark:hover:bg-white/80 dark:disabled:bg-zinc-600"
                                         >
                                             <SendIcon className="h-6 w-6 text-bold" />
                                             <span className="sr-only">Send message</span>

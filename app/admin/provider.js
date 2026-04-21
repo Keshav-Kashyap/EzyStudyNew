@@ -9,7 +9,7 @@ import { adminMenuItems, adminbottomMenuItems } from '@/services/constant'
 const DashboardProvider = ({ children }) => {
     const [aiSidebarOpen, setAISidebarOpen] = useState(false);
     const [aiMessages, setAIMessages] = useState([]);
-    const [sidebarWidth, setSidebarWidth] = useState(500);
+    const [sidebarWidth, setSidebarWidth] = useState(680);
 
     return (
         <SidebarProvider defaultOpen={false}>
