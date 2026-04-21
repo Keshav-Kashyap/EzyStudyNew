@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { processGroqChatRequest } from './_backend/chat-service';
+import { processGroqChatRequest } from './_backend/chat-service.js';
 
 export const runtime = 'nodejs';
 
