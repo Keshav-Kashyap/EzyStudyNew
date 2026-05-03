@@ -6,15 +6,13 @@ import { Download, Loader2, FolderArchive } from 'lucide-react'
 import { toast } from 'sonner'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
-import ReviewPromptModal from '@/components/ReviewPromptModal'
+// Removed ReviewPromptModal to prevent review prompt during downloads
 import { UserDetailContext } from '@/context/UserDetailContext'
 
 const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline", size = "sm", className = "" }) => {
     const [downloading, setDownloading] = useState(false)
     const [progress, setProgress] = useState(0)
-    const [showReviewModal, setShowReviewModal] = useState(false)
-    const [hasReviewed, setHasReviewed] = useState(false)
-    const [pendingDownload, setPendingDownload] = useState(false)
+    // removed review modal state to allow direct downloads
     const { setUserDetail } = useContext(UserDetailContext) || {}
 
     // useEffect(() => {
@@ -34,28 +32,11 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
     // };
 
     const handleDownloadClick = () => {
-        if (!hasReviewed) {
-            setPendingDownload(true);
-            setShowReviewModal(true);
-        } else {
-            downloadAllMaterials();
-        }
+        // Start download immediately without prompting for review
+        downloadAllMaterials();
     };
 
-    const handleReviewSubmitted = async () => {
-        // Update local state immediately
-        setHasReviewed(true);
-        setShowReviewModal(false);
-
-        // Execute the pending download
-        if (pendingDownload) {
-            setPendingDownload(false);
-            // Small delay to ensure modal is fully closed
-            setTimeout(() => {
-                downloadAllMaterials();
-            }, 100);
-        }
-    };
+    // review submission handler removed — downloads proceed without review
 
     const downloadAllMaterials = async () => {
         setDownloading(true)
@@ -231,15 +212,7 @@ const DownloadAllMaterialsButton = ({ category, semesterName, variant = "outline
                 )}
             </Button>
 
-            {/* Review Prompt Modal */}
-            <ReviewPromptModal
-                isOpen={showReviewModal}
-                onClose={() => {
-                    setShowReviewModal(false);
-                    setPendingDownload(false);
-                }}
-                onReviewSubmitted={handleReviewSubmitted}
-            />
+            {/* Review prompt removed: downloads start immediately */}
         </>
     )
 }

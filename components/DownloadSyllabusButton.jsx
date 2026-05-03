@@ -6,16 +6,14 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import ReviewPromptModal from '@/components/ReviewPromptModal';
+// Review prompt removed for direct downloads
 import { UserDetailContext } from '@/context/UserDetailContext';
 
 const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", size = "sm", className = "" }) => {
     const [downloading, setDownloading] = useState(false);
     const [hasSyllabus, setHasSyllabus] = useState(false);
     const [checking, setChecking] = useState(true);
-    const [showReviewModal, setShowReviewModal] = useState(false);
-    const [hasReviewed, setHasReviewed] = useState(false);
-    const [pendingDownload, setPendingDownload] = useState(false);
+    // review modal state removed to allow direct downloads
     const { setUserDetail } = useContext(UserDetailContext) || {};
 
     // Check if syllabus exists on mount
@@ -51,30 +49,10 @@ const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", s
 
     const handleDownloadClick = (e) => {
         e.stopPropagation();
-
-        if (!hasReviewed) {
-            setPendingDownload(true);
-            setShowReviewModal(true);
-        } else {
-            handleDownload(e);
-        }
+        handleDownload(e);
     };
 
-    const handleReviewSubmitted = async () => {
-        // Update local state immediately
-        setHasReviewed(true);
-        setShowReviewModal(false);
-
-        // Execute the pending download
-        if (pendingDownload) {
-            setPendingDownload(false);
-            // Small delay to ensure modal is fully closed
-            setTimeout(() => {
-                const syntheticEvent = { stopPropagation: () => { } };
-                handleDownload(syntheticEvent);
-            }, 100);
-        }
-    };
+    // review handler removed - downloads proceed immediately
 
     const handleDownload = async (e) => {
         if (e && e.stopPropagation) {
@@ -201,15 +179,7 @@ const DownloadSyllabusButton = ({ category, semesterName, variant = "outline", s
                 )}
             </Button>
 
-            {/* Review Prompt Modal */}
-            <ReviewPromptModal
-                isOpen={showReviewModal}
-                onClose={() => {
-                    setShowReviewModal(false);
-                    setPendingDownload(false);
-                }}
-                onReviewSubmitted={handleReviewSubmitted}
-            />
+            {/* Review prompt removed: downloads start immediately */}
         </>
     );
 };
