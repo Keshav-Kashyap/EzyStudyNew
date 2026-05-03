@@ -8,7 +8,7 @@ import { UserDetailContext } from '@/context/UserDetailContext';
 import { useSemesterDetail, useInvalidateSemesterDetail } from '@/hooks/useCourses';
 import DownloadAllMaterialsButton from '@/components/DownloadAllMaterialsButton';
 import DownloadSyllabusButton from '@/components/DownloadSyllabusButton';
-import ReviewPromptModal from '@/components/ReviewPromptModal';
+// Review prompt removed for direct downloads
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import FormUploadSyllabus from '@/app/admin/library/_components/FormUploadSyllabus';
 import { Button } from '@/components/ui/button';
@@ -19,9 +19,7 @@ const SemesterDetail = ({ basePath }) => {
     const isAdmin = userDetail?.role === "admin";
     const [syllabusDialogOpen, setSyllabusDialogOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
-    const [showReviewModal, setShowReviewModal] = useState(false);
-    const [pendingDownload, setPendingDownload] = useState(null);
-    const [hasReviewed, setHasReviewed] = useState(false);
+    // review modal state removed to allow direct downloads
 
     const { code, semesterId } = useParams();
 
@@ -58,31 +56,13 @@ const SemesterDetail = ({ basePath }) => {
             return;
         }
 
-        // Check if user has reviewed
-        if (!hasReviewed) {
-            setPendingDownload(material);
-            setShowReviewModal(true);
-        } else {
-            if (material.fileUrl) {
-                window.open(material.fileUrl, '_blank');
-            }
+        // Directly open the file for non-admin users as well
+        if (material && material.fileUrl) {
+            window.open(material.fileUrl, '_blank');
         }
     };
 
-    const handleReviewSubmitted = async () => {
-        // Update local state immediately
-        setHasReviewed(true);
-        setShowReviewModal(false);
-
-        // Execute the pending download
-        if (pendingDownload && pendingDownload.fileUrl) {
-            // Small delay to ensure modal is fully closed
-            setTimeout(() => {
-                window.open(pendingDownload.fileUrl, '_blank');
-                setPendingDownload(null);
-            }, 100);
-        }
-    };
+    // review handler removed — downloads proceed immediately
 
     if (isLoading) {
         return (
@@ -200,15 +180,7 @@ const SemesterDetail = ({ basePath }) => {
                         ))}
                     </div>
 
-                    {/* Review Prompt Modal */}
-                    <ReviewPromptModal
-                        isOpen={showReviewModal}
-                        onClose={() => {
-                            setShowReviewModal(false);
-                            setPendingDownload(null);
-                        }}
-                        onReviewSubmitted={handleReviewSubmitted}
-                    />
+                    {/* Review prompt removed: downloads start immediately */}
                 </div>
             </div>
         </div>

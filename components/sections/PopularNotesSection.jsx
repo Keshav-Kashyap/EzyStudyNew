@@ -4,12 +4,12 @@ import React, { useState } from 'react';
 import { motion } from "motion/react";
 import Link from "next/link";
 import GenericCard from '@/app/(main)/_components/shared/GenericCard';
-import ReviewPromptModal from '@/components/ReviewPromptModal';
+// Review prompt removed from popular notes downloads
 import { Download, FileText, Calendar, Heart, Share2, ArrowRight, BookOpen } from 'lucide-react';
 import CourseSkeleton from '@/app/_components/landing/skeletons/CourseSkeleton';
 
 const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
-    const [showReviewModal, setShowReviewModal] = useState(false);
+    // review modal removed to avoid interrupting downloads
 
     const handleDownload = async (note) => {
         if (!isSignedIn) {
@@ -30,20 +30,10 @@ const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
 
         console.log(`📥 Download #${newCount}`);
 
-        // Show review modal every 3 downloads
-        if (newCount % 3 === 0) {
-            setTimeout(() => {
-                console.log('🔔 Showing review modal (3 downloads reached)');
-                setShowReviewModal(true);
-            }, 800); // Small delay after download starts
-        }
+        // no review modal shown — downloads continue uninterrupted
     };
 
-    const handleReviewSubmitted = async () => {
-        // Close modal
-        setShowReviewModal(false);
-        // Count continues - user will see modal again after next 3 downloads
-    };
+    // review handler removed — no modal shown
 
     const handleShare = (note) => {
         if (navigator.share) {
@@ -160,14 +150,7 @@ const PopularNotesSection = ({ notes, loading, isSignedIn }) => {
                     </Link>
                 </motion.div>
 
-                {/* Review Prompt Modal */}
-                <ReviewPromptModal
-                    isOpen={showReviewModal}
-                    onClose={() => {
-                        setShowReviewModal(false);
-                    }}
-                    onReviewSubmitted={handleReviewSubmitted}
-                />
+                {/* Review prompt removed: downloads start immediately */}
             </div>
         </section>
     );

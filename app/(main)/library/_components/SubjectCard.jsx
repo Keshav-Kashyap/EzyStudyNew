@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import Link from 'next/link';
 import SubjectActions from '@/app/admin/library/_components/SubjectActions';
 import FormCreateMaterial from '@/app/admin/library/_components/formCreateMaterail';
-import ReviewPromptModal from '@/components/ReviewPromptModal';
+// Review prompt removed from subject downloads
 import {
     Dialog,
     DialogTrigger,
@@ -37,9 +37,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
     const [deletingMaterialId, setDeletingMaterialId] = useState(null);
     const [localMaterials, setLocalMaterials] = useState(subject.materials || []);
     const [viewingPdf, setViewingPdf] = useState(null);
-    const [showReviewModal, setShowReviewModal] = useState(false);
-    const [pendingDownload, setPendingDownload] = useState(null);
-    const [hasReviewed, setHasReviewed] = useState(false);
+    // review modal state removed to allow direct downloads
 
     // Helper function to check if material is popular based on tags
     const isPopularMaterial = (material) => {
@@ -64,20 +62,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
       
     };
 
-    const handleReviewSubmitted = async () => {
-        // Update local state immediately
-        setHasReviewed(true);
-        setShowReviewModal(false);
-
-        // Execute the pending download
-        if (pendingDownload) {
-            // Small delay to ensure modal is fully closed
-            setTimeout(() => {
-                onDownload(pendingDownload);
-                setPendingDownload(null);
-            }, 100);
-        }
-    };
+    // review submission handler removed — downloads proceed immediately
 
     const handleDeleteMaterial = async (material) => {
         setMaterialToDelete(material);
@@ -494,15 +479,7 @@ const SubjectCard = ({ subject, onDownload, isAdmin, onUpdate }) => {
                 </DialogContent>
             </Dialog>
 
-            {/* Review Prompt Modal */}
-            <ReviewPromptModal
-                isOpen={showReviewModal}
-                onClose={() => {
-                    setShowReviewModal(false);
-                    setPendingDownload(null);
-                }}
-                onReviewSubmitted={handleReviewSubmitted}
-            />
+            {/* Review prompt removed: downloads start immediately */}
         </div>
     );
 };
